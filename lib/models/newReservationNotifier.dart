@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-enum Floors { f12, f11, f10, f9 }
+import "./floors.dart";
 
 class NewReservationNotifier extends ChangeNotifier{
   var _floor = Floors.f9;
@@ -36,7 +35,6 @@ class NewReservationNotifier extends ChangeNotifier{
   }
 
   String? getRoomNumber(){
-    print(_roomNumber);
     return [_roomNumber].first;
   }
 

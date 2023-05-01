@@ -4,7 +4,7 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "../widgets/plainTextButton.dart";
 import "../widgets/plainElevatedButton.dart";
-import 'newReservationStructure.dart';
+import "../models/floors.dart";
 import '../models/newReservationNotifier.dart';
 
 class NewReservationMenu extends StatelessWidget {
