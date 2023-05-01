@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "../widgets/floor_9.dart";
+import '../widgets/floor.dart';
 import "../models/newReservationNotifier.dart";
 
 class NewReservationContent extends StatelessWidget {
@@ -17,7 +17,7 @@ class NewReservationContent extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-      Floor9(selectedRoom: selectedRoom, newReservationNotifier: newReservationNotifier,),
+      Floor(selectedRoom: selectedRoom, newReservationNotifier: newReservationNotifier, floor: newReservationNotifier.getFloor()),
       if(newReservationNotifier.getRoomNumber() != null) Text("Room ${newReservationNotifier.getRoomNumber()}",),
     ],);
   }
