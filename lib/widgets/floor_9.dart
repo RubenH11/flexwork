@@ -76,90 +76,90 @@ Map<String, Path> getRooms(
 
   rooms.addAll({
     //top layer
-    "1": Path()
+    "09A-27": Path()
       ..addRect(Rect.fromLTWH(
           wall + 2 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "2": Path()
+    "09A-29": Path()
       ..addRect(Rect.fromLTWH(
           wall + 3 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "3": Path()
+    "09A-31": Path()
       ..addRect(Rect.fromLTWH(
           wall + 4 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "4": Path()
+    "09A-33": Path()
       ..addRect(Rect.fromLTWH(
           wall + 5 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "5": Path()
+    "09A-35": Path()
       ..addRect(Rect.fromLTWH(
           wall + 6 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "6": Path()
+    "09A-39": Path()
       ..addRect(Rect.fromLTWH(wall + 7 * unitWidth, wall,
           unitWidth + roomUnitWidth, roomUnitHeight)),
-    "7": Path()
+    "09A-41": Path()
       ..addRect(Rect.fromLTWH(
           wall + 9 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "8": Path()
+    "09A-43": Path()
       ..addRect(Rect.fromLTWH(wall + 10 * unitWidth, wall,
           unitWidth + roomUnitWidth, roomUnitHeight)),
-    "9": Path()
+    "09A-47": Path()
       ..addRect(Rect.fromLTWH(wall + 12 * unitWidth, wall,
           unitWidth + roomUnitWidth, roomUnitHeight)),
-    "10": Path()
+    "09A-51": Path()
       ..addRect(Rect.fromLTWH(wall + 14 * unitWidth, wall,
           unitWidth + roomUnitWidth, roomUnitHeight)),
-    "12": Path()
+    "09A-55": Path()
       ..addRect(Rect.fromLTWH(
           wall + 16 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "13": Path()
+    "09A-57": Path()
       ..addRect(Rect.fromLTWH(
           wall + 17 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "14": Path()
+    "09A-59": Path()
       ..addRect(Rect.fromLTWH(
           wall + 18 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "15": Path()
+    "09A-61": Path()
       ..addRect(Rect.fromLTWH(
           wall + 19 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "16": Path()
+    "09A-63": Path()
       ..addRect(Rect.fromLTWH(
           wall + 20 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "17": Path()
+    "09A-65": Path()
       ..addRect(Rect.fromLTWH(
           wall + 21 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "18": Path()
+    "09A-67": Path()
       ..addRect(Rect.fromLTWH(
           wall + 22 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-    "19": Path()
+    "09A-69": Path()
       ..addRect(Rect.fromLTWH(
           wall + 23 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
     //second layer
-    "20": Path()
+    "09A-30": Path()
       ..addRect(Rect.fromLTWH(
           wall + 3 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-    "21": Path()
+    "09A-36": Path()
       ..addRect(Rect.fromLTWH(wall + 4 * unitWidth, topPoint,
           2 * unitWidth + roomUnitWidth, roomUnitHeight)),
-    "22": Path()
+    "09A-46": Path()
       ..addRect(Rect.fromLTWH(wall + 11 * unitWidth, topPoint,
           2 * unitWidth + roomUnitWidth, unitHeight * 1.5 + roomUnitHeight)),
-    "23": Path()
+    "09A-54": Path()
       ..addRect(Rect.fromLTWH(
           wall + 15 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-    "24": Path()
+    "09A-56": Path()
       ..addRect(Rect.fromLTWH(wall + 16 * unitWidth, topPoint,
           unitWidth + roomUnitWidth, roomUnitHeight)),
-    "25": Path()
+    "09A-60": Path()
       ..addRect(Rect.fromLTWH(wall + 16 * unitWidth, topPoint + unitHeight,
           unitWidth + roomUnitWidth, 0.5 * unitHeight + roomUnitHeight)),
-    "26": Path()
+    "09A-66": Path()
       ..addRect(Rect.fromLTWH(wall + 20.5 * unitWidth, topPoint,
           unitWidth * 0.5 + roomUnitWidth, roomUnitHeight)),
     // left layer
-    "27": Path()
+    "09A-13": Path()
       ..addRect(Rect.fromLTWH(wall + 0.0, 2 * unitHeight,
           wall + unitWidth * 0.5 + roomUnitWidth, unitHeight + roomUnitHeight)),
-    "28": Path()
+    "09A-07": Path()
       ..addRect(Rect.fromLTWH(wall + 0.0, 4 * unitHeight,
           wall + unitWidth * 0.5 + roomUnitWidth, unitHeight + roomUnitHeight)),
-    "29": Path()
+    "09A-01": Path()
       ..addRect(Rect.fromLTWH(wall + 0.0, 6 * unitHeight,
           wall + unitWidth * 0.5 + roomUnitWidth, unitHeight + roomUnitHeight))
       ..addRect(Rect.fromLTWH(
@@ -168,7 +168,7 @@ Map<String, Path> getRooms(
           wall + unitWidth * 2 + roomUnitWidth,
           (1 / 3) * unitHeight + roomUnitHeight)),
     // right layer
-    "31": Path()
+    "09A-89": Path()
       ..moveTo((24 + 2 / 3) * unitWidth, 6 * unitHeight)
       ..lineTo(
           (24 + 2 / 3) * unitWidth - math.cos(angleOfWalls) * roomUnitHeight,
@@ -184,7 +184,7 @@ Map<String, Path> getRooms(
           (24 + 2 / 3) * unitWidth + math.sin(angleOfWalls) * roomUnitWidth,
           6 * unitHeight - math.cos(angleOfWalls) * roomUnitWidth)
       ..lineTo((24 + 2 / 3) * unitWidth, 6 * unitHeight),
-    "32": Path()
+    "09A-87": Path()
       ..moveTo(xOffset1 + (24 + 2 / 3) * unitWidth, yOffset1 + 6 * unitHeight)
       ..lineTo(
           xOffset1 +
@@ -206,7 +206,7 @@ Map<String, Path> getRooms(
               math.sin(angleOfWalls) * roomUnitWidth,
           yOffset1 + 6 * unitHeight - math.cos(angleOfWalls) * roomUnitWidth)
       ..lineTo(xOffset1 + (24 + 2 / 3) * unitWidth, yOffset1 + 6 * unitHeight),
-    "33": Path()
+    "09A-85": Path()
       ..moveTo(xOffset2 + (24 + 2 / 3) * unitWidth, yOffset2 + 6 * unitHeight)
       ..lineTo(
           xOffset2 +
@@ -231,7 +231,7 @@ Map<String, Path> getRooms(
               math.cos(angleOfWalls) * (roomUnitWidth + unitWidth))
       ..lineTo(xOffset2 + (24 + 2 / 3) * unitWidth, yOffset2 + 6 * unitHeight),
     //tricky room
-    "34": Path()
+    "09A-93": Path()
       ..moveTo((22 + 2 / 3 - 1 / 4) * unitWidth, 8 * unitHeight)
       ..lineTo(wall + 21 * unitWidth, 8 * unitHeight)
       ..lineTo(

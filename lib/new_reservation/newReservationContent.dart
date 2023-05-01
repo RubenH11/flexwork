@@ -13,9 +13,12 @@ class NewReservationContent extends StatelessWidget {
     final selectedRoom = newReservationNotifier.getRoomNumber();
     print("selectedRoom: $selectedRoom");
 
-    return Column(children: [
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
       Floor9(selectedRoom: selectedRoom, newReservationNotifier: newReservationNotifier,),
-      Text("test"),
+      if(newReservationNotifier.getRoomNumber() != null) Text("Room ${newReservationNotifier.getRoomNumber()}",),
     ],);
   }
 }
