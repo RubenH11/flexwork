@@ -2,14 +2,14 @@ import "package:flutter/material.dart";
 
 class PlainElevatedButton extends StatelessWidget {
   bool focused;
-  String text;
+  Widget child;
   Icon? icon;
-  Function action;
+  Function onPressed;
 
   PlainElevatedButton({
-    required this.action,
+    required this.onPressed,
     required this.focused,
-    required this.text,
+    required this.child,
     this.icon,
     super.key,
   });
@@ -28,15 +28,15 @@ class PlainElevatedButton extends StatelessWidget {
     if (icon == null) {
       return ElevatedButton(
         style: buttonStyle,
-        child: Text(text),
-        onPressed: () => action(),
+        child: child,
+        onPressed: () => onPressed(),
       );
     } else {
       return ElevatedButton.icon(
         style: buttonStyle,
-        onPressed: () => action(),
+        onPressed: () => onPressed(),
         icon: icon!,
-        label: Text(text),
+        label: child,
       );
     }
   }

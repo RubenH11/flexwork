@@ -1,7 +1,7 @@
-import 'package:flexwork/new_reservation/newReservationStructure.dart';
+import 'package:flexwork/new_reservation/newResStructure.dart';
 import "package:flutter/material.dart";
 import "./my_reservations/myReservations.dart";
-import 'new_reservation/newReservationStructure.dart';
+import 'new_reservation/newResStructure.dart';
 
 enum Pages {
   newReservation,

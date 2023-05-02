@@ -2,8 +2,8 @@ import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "./newReservationMenu.dart";
-import "./newReservationContent.dart";
+import 'newResMenu.dart';
+import "./newResContent.dart";
 import '../models/newReservationNotifier.dart';
 
 class NewReservationStructure extends StatefulWidget {

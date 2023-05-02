@@ -3,8 +3,8 @@ import "./floors.dart";
 
 class NewReservationNotifier extends ChangeNotifier{
   var _floor = Floors.f9;
-  var _starTime = DateTime.now();
-  var _endTime = DateTime.now();
+  DateTime? _startTime;
+  DateTime? _endTime;
   String? _roomNumber;
 
   Floors getFloor(){
@@ -16,20 +16,21 @@ class NewReservationNotifier extends ChangeNotifier{
     notifyListeners();
   }
 
-  DateTime getStartTime(){
-    return _starTime.copyWith();
+  DateTime? getStartTime(){
+    return _startTime == null ? null :_startTime!.copyWith();
   }
 
-  void setStartTime(DateTime start){
-    _starTime = start;
+  void setStartTime(DateTime? start){
+    _startTime = start;
+    print("setStartTime in newResercationNotifier");
     notifyListeners();
   }
 
-  DateTime getEndTime(){
-    return _endTime.copyWith();
+  DateTime? getEndTime(){
+    return _endTime == null ? null : _endTime!.copyWith();
   }
 
-  void setEndTime(DateTime end){
+  void setEndTime(DateTime? end){
     _endTime = end;
     notifyListeners();
   }

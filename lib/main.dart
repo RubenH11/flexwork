@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import "dart:math" as math;
 import './flexwork.dart';
@@ -39,7 +40,13 @@ class MyApp extends StatelessWidget {
             ),
           ),
           textTheme: const TextTheme(
-              bodyMedium: TextStyle(color: Colors.black, fontSize: 12)),
+            bodyMedium: TextStyle(color: Colors.black, fontSize: 12),
+          ),
+          cupertinoOverrideTheme: CupertinoThemeData(
+            textTheme: CupertinoTextThemeData(
+              dateTimePickerTextStyle: TextStyle(fontSize: 12),
+            ),
+          ),
           colorScheme: ColorScheme(
               brightness: Brightness.light,
               primary: Color.fromARGB(255, 134, 159, 249),

@@ -3,11 +3,11 @@ import "package:flutter/material.dart";
 class PlainTextButton extends StatelessWidget {
   bool selected;
   String text;
-  Function action;
+  Function onPressed;
   bool? alignLeft;
 
   PlainTextButton({
-    required this.action,
+    required this.onPressed,
     required this.selected,
     required this.text,
     this.alignLeft,
@@ -28,7 +28,7 @@ class PlainTextButton extends StatelessWidget {
             : TextStyle(color: Theme.of(context).colorScheme.onSecondary),
             
       ),
-      onPressed: () => action(),
+      onPressed: () => onPressed(),
     );
   }
 }

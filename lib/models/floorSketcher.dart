@@ -954,131 +954,67 @@ class FloorSketcher {
       "12A-58": Path()
         ..addRect(Rect.fromLTWH(
             wall + 17 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-      "12A-66": Path()
-        ..addRect(Rect.fromLTWH(wall + 20.5 * unitWidth, topPoint,
-            unitWidth * 0.5 + roomUnitWidth, roomUnitHeight)),
       // left layer
-      "12A-13": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 0.0,
-            2 * unitHeight,
-            wall + unitWidth * 0.5 + roomUnitWidth,
-            unitHeight + roomUnitHeight)),
-      "12A-07": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 0.0,
-            4 * unitHeight,
-            wall + unitWidth * 0.5 + roomUnitWidth,
-            unitHeight + roomUnitHeight)),
-      "12A-01": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 0.0,
-            6 * unitHeight,
-            wall + unitWidth * 0.5 + roomUnitWidth,
-            unitHeight + roomUnitHeight))
-        ..addRect(Rect.fromLTWH(
-            wall + 0.0,
-            (6 + 2 / 3) * unitHeight,
-            wall + unitWidth * 2 + roomUnitWidth,
-            (1 / 3) * unitHeight + roomUnitHeight)),
-      // right layer
-      "12A-89": Path()
-        ..moveTo((24 + 2 / 3) * unitWidth, 6 * unitHeight)
-        ..lineTo(
-            (24 + 2 / 3) * unitWidth - math.cos(angleOfWalls) * roomUnitHeight,
-            6 * unitHeight - math.sin(angleOfWalls) * roomUnitHeight)
-        ..lineTo(
-            (24 + 2 / 3) * unitWidth -
-                math.cos(angleOfWalls) * roomUnitHeight +
-                math.sin(angleOfWalls) * roomUnitWidth,
-            6 * unitHeight -
-                math.sin(angleOfWalls) * roomUnitHeight -
-                math.cos(angleOfWalls) * roomUnitWidth)
-        ..lineTo(
-            (24 + 2 / 3) * unitWidth + math.sin(angleOfWalls) * roomUnitWidth,
-            6 * unitHeight - math.cos(angleOfWalls) * roomUnitWidth)
-        ..lineTo((24 + 2 / 3) * unitWidth, 6 * unitHeight),
-      "12A-87": Path()
-        ..moveTo(xOffset1 + (24 + 2 / 3) * unitWidth, yOffset1 + 6 * unitHeight)
-        ..lineTo(
-            xOffset1 +
-                (24 + 2 / 3) * unitWidth -
-                math.cos(angleOfWalls) * roomUnitHeight,
-            yOffset1 + 6 * unitHeight - math.sin(angleOfWalls) * roomUnitHeight)
-        ..lineTo(
-            xOffset1 +
-                (24 + 2 / 3) * unitWidth -
-                math.cos(angleOfWalls) * roomUnitHeight +
-                math.sin(angleOfWalls) * roomUnitWidth,
-            yOffset1 +
-                6 * unitHeight -
-                math.sin(angleOfWalls) * roomUnitHeight -
-                math.cos(angleOfWalls) * roomUnitWidth)
-        ..lineTo(
-            xOffset1 +
-                (24 + 2 / 3) * unitWidth +
-                math.sin(angleOfWalls) * roomUnitWidth,
-            yOffset1 + 6 * unitHeight - math.cos(angleOfWalls) * roomUnitWidth)
-        ..lineTo(
-            xOffset1 + (24 + 2 / 3) * unitWidth, yOffset1 + 6 * unitHeight),
-      "12A-85": Path()
-        ..moveTo(xOffset2 + (24 + 2 / 3) * unitWidth, yOffset2 + 6 * unitHeight)
-        ..lineTo(
-            xOffset2 +
-                (24 + 2 / 3) * unitWidth -
-                math.cos(angleOfWalls) * roomUnitHeight,
-            yOffset2 + 6 * unitHeight - math.sin(angleOfWalls) * roomUnitHeight)
-        ..lineTo(
-            xOffset2 +
-                (24 + 2 / 3) * unitWidth -
-                math.cos(angleOfWalls) * roomUnitHeight +
-                math.sin(angleOfWalls) * (roomUnitWidth + unitWidth),
-            yOffset2 +
-                6 * unitHeight -
-                math.sin(angleOfWalls) * roomUnitHeight -
-                math.cos(angleOfWalls) * (unitWidth + roomUnitWidth))
-        ..lineTo(
-            xOffset2 +
-                (24 + 2 / 3) * unitWidth +
-                math.sin(angleOfWalls) * (roomUnitWidth + unitWidth),
-            yOffset2 +
-                6 * unitHeight -
-                math.cos(angleOfWalls) * (roomUnitWidth + unitWidth))
-        ..lineTo(
-            xOffset2 + (24 + 2 / 3) * unitWidth, yOffset2 + 6 * unitHeight),
+      "12A-11": Path()
+        ..moveTo(wall + 0.0, 4 * unitHeight)
+        ..lineTo(2.7 * unitWidth, 4 * unitHeight)
+        ..lineTo(2.7 * unitWidth, 4.75 * unitHeight)
+        ..lineTo(3.2 * unitWidth, 4.75 * unitHeight)
+        ..lineTo(3.2 * unitWidth, 5.5 * unitHeight)
+        ..lineTo(7 * unitWidth, 5.5 * unitHeight)
+        ..lineTo(7 * unitWidth, 8 * unitHeight)
+        ..lineTo(wall + 0.0 * unitWidth, 8 * unitHeight)
+        ..lineTo(wall + 0.0, 4 * unitHeight),
       //tricky room
-      "12A-93": Path()
-        ..moveTo((22 + 5 / 12) * unitWidth, 8 * unitHeight) // G
+      "12A-81": Path()
+        ..moveTo(19.5 * unitWidth, 2.5 * unitHeight)
+        ..lineTo(22 * unitWidth, 2.5 * unitHeight)
         ..lineTo(
-            (22 + 5 / 12) * unitWidth +
-                math.cos(0.5 * math.pi - trickyAngle) *
-                    (2 * unitWidth / math.cos(trickyAngle - angleOfWalls)),
-            8 * unitHeight -
-                math.sin(0.5 * math.pi - trickyAngle) *
-                    (2 * unitWidth / math.cos(trickyAngle - angleOfWalls)))
+            24 * unitWidth -
+                math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
+            2.5 * unitHeight -
+                math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
         ..lineTo(
-            (22 + 5 / 12) * unitWidth +
-                math.sin(angleOfWalls) * 2 * unitWidth -
-                math.cos(angleOfWalls) * unitHeight,
-            8 * unitHeight -
-                math.cos(angleOfWalls) * 2 * unitWidth -
-                math.sin(angleOfWalls) * unitHeight) // H
-        ..lineTo(
-            (22 + 5 / 12) * unitWidth +
-                math.sin(angleOfWalls) * 2 * unitWidth -
-                math.cos(angleOfWalls) * unitHeight +
-                math.sin(angleOfWalls) * 1.1 * unitWidth,
-            8 * unitHeight -
-                math.cos(angleOfWalls) * 2 * unitWidth -
-                math.sin(angleOfWalls) * unitHeight -
-                math.cos(angleOfWalls) * 1.1 * unitWidth) // K
-        ..lineTo(19 * unitWidth - math.sin(angleOfWalls) * 2 * unitWidth,
-            4 * unitHeight + math.cos(angleOfWalls) * 2 * unitWidth)
+            24 * unitWidth +
+                math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
+            2.5 * unitHeight +
+                math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
+        ..lineTo((24 + 2 / 3) * unitWidth, 6 * unitHeight)
+        ..lineTo((22 + 2 / 3 - 1 / 4) * unitWidth, 8 * unitHeight)
         ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
-        ..lineTo(
-            (22 + 5 / 12) * unitWidth - unitHeight / math.cos(angleOfWalls),
-            8 * unitHeight) // I
-        ..lineTo((22 + 5 / 12) * unitWidth, 8 * unitHeight), //D
+        ..lineTo(19.5 * unitWidth, 2.5 * unitHeight),
+      // "12A-93": Path()
+      //   ..moveTo((22 + 5 / 12) * unitWidth, 8 * unitHeight) // G
+      //   ..lineTo(
+      //       (22 + 5 / 12) * unitWidth +
+      //           math.cos(0.5 * math.pi - trickyAngle) *
+      //               (2 * unitWidth / math.cos(trickyAngle - angleOfWalls)),
+      //       8 * unitHeight -
+      //           math.sin(0.5 * math.pi - trickyAngle) *
+      //               (2 * unitWidth / math.cos(trickyAngle - angleOfWalls)))
+      //   ..lineTo(
+      //       (22 + 5 / 12) * unitWidth +
+      //           math.sin(angleOfWalls) * 2 * unitWidth -
+      //           math.cos(angleOfWalls) * unitHeight,
+      //       8 * unitHeight -
+      //           math.cos(angleOfWalls) * 2 * unitWidth -
+      //           math.sin(angleOfWalls) * unitHeight) // H
+      //   ..lineTo(
+      //       (22 + 5 / 12) * unitWidth +
+      //           math.sin(angleOfWalls) * 2 * unitWidth -
+      //           math.cos(angleOfWalls) * unitHeight +
+      //           math.sin(angleOfWalls) * 1.1 * unitWidth,
+      //       8 * unitHeight -
+      //           math.cos(angleOfWalls) * 2 * unitWidth -
+      //           math.sin(angleOfWalls) * unitHeight -
+      //           math.cos(angleOfWalls) * 1.1 * unitWidth) // K
+      //   ..lineTo(19 * unitWidth - math.sin(angleOfWalls) * 2 * unitWidth,
+      //       4 * unitHeight + math.cos(angleOfWalls) * 2 * unitWidth)
+      //   ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
+      //   ..lineTo(
+      //       (22 + 5 / 12) * unitWidth - unitHeight / math.cos(angleOfWalls),
+      //       8 * unitHeight) // I
+      //   ..lineTo((22 + 5 / 12) * unitWidth, 8 * unitHeight), //D
     });
     return rooms;
   }
@@ -1092,7 +1028,7 @@ class FloorSketcher {
       //middle-left wall
       ..moveTo(7 * unitWidth, 1.5 * unitHeight + 2.0)
       ..lineTo(7 * unitWidth, 2.5 * unitHeight)
-      //moddle-right wall
+      //middle-right wall
       ..moveTo(11 * unitWidth, 1.5 * unitHeight + 2.0)
       ..lineTo(11 * unitWidth, 4 * unitHeight)
       //topleft
@@ -1107,52 +1043,22 @@ class FloorSketcher {
       ..lineTo(7 * unitWidth, 3.5 * unitHeight)
       //bottomleft
       ..moveTo(3.2 * unitWidth, 4 * unitHeight)
-      ..lineTo(2.5 * unitWidth, 4 * unitHeight)
-      ..lineTo(2.5 * unitWidth, 5.5 * unitHeight)
+      ..lineTo(2.7 * unitWidth, 4 * unitHeight)
+      ..lineTo(2.7 * unitWidth, 4.75 * unitHeight)
+      ..lineTo(3.2 * unitWidth, 4.75 * unitHeight)
+      ..lineTo(3.2 * unitWidth, 5.5 * unitHeight)
       ..lineTo(7 * unitWidth, 5.5 * unitHeight)
       ..lineTo(7 * unitWidth, 4.2 * unitHeight)
       ..lineTo(3.2 * unitWidth, 4.2 * unitHeight)
       ..lineTo(3.2 * unitWidth, 4 * unitHeight)
       //right
-      ..moveTo(19 * unitWidth, 4 * unitHeight)
-      ..lineTo(19.5 * unitWidth, 2.5 * unitHeight)
+      ..moveTo(19.5 * unitWidth, 2.5 * unitHeight)
+      ..lineTo(19.5 * unitWidth + math.tan(angleOfWalls) * unitHeight,
+          1.5 * unitHeight)
+      ..lineTo(22 * unitWidth + math.tan(angleOfWalls) * unitHeight,
+          1.5 * unitHeight)
       ..lineTo(22 * unitWidth, 2.5 * unitHeight)
-      ..lineTo(
-          19 * unitWidth +
-              math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth,
-          4 * unitHeight +
-              math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth)
-      ..lineTo(
-          19 * unitWidth +
-              math.cos(angleOfWalls) *
-                  math.cos(angleOfWalls) *
-                  2.5 *
-                  unitWidth +
-              math.cos(angleOfWalls) * unitHeight,
-          4 * unitHeight +
-              math.sin(angleOfWalls) *
-                  math.cos(angleOfWalls) *
-                  2.5 *
-                  unitWidth +
-              math.sin(angleOfWalls) * unitHeight)
-      ..lineTo(
-          19 * unitWidth +
-              math.cos(angleOfWalls) *
-                  math.cos(angleOfWalls) *
-                  2.5 *
-                  unitWidth +
-              math.cos(angleOfWalls) * unitHeight -
-              math.sin(angleOfWalls) * 2 * unitWidth,
-          4 * unitHeight +
-              math.sin(angleOfWalls) *
-                  math.cos(angleOfWalls) *
-                  2.5 *
-                  unitWidth +
-              math.sin(angleOfWalls) * unitHeight +
-              math.cos(angleOfWalls) * 2 * unitWidth)
-      ..lineTo(19 * unitWidth - math.sin(angleOfWalls) * 2 * unitWidth,
-          4 * unitHeight + math.cos(angleOfWalls) * 2 * unitWidth)
-      ..lineTo(19 * unitWidth, 4 * unitHeight);
+      ..lineTo(19.5 * unitWidth, 2.5 * unitHeight);
   }
 
   // Equal for all floors

@@ -8,10 +8,8 @@ class NewReservationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("rebuilding NewResrvationContent");
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
     final selectedRoom = newReservationNotifier.getRoomNumber();
-    print("selectedRoom: $selectedRoom");
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -19,6 +17,8 @@ class NewReservationContent extends StatelessWidget {
       children: [
       Floor(selectedRoom: selectedRoom, newReservationNotifier: newReservationNotifier, floor: newReservationNotifier.getFloor()),
       if(newReservationNotifier.getRoomNumber() != null) Text("Room ${newReservationNotifier.getRoomNumber()}",),
+      if(newReservationNotifier.getStartTime() != null) Text("Start time is set to ${newReservationNotifier.getStartTime()}"),
+      if(newReservationNotifier.getEndTime() != null) Text("End time is set to ${newReservationNotifier.getEndTime()}"),
     ],);
   }
 }
