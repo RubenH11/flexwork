@@ -7,12 +7,12 @@ import "../widgets/plainElevatedButton.dart";
 import "../models/floors.dart";
 import '../models/newReservationNotifier.dart';
 import "./newResTimeFrame.dart";
+import "./newResFloors.dart";
+
+const LABEL_INDENT = 10.0;
 
 class NewReservationMenu extends StatelessWidget {
   NewReservationMenu({super.key});
-
-  final LABEL_INDENT = 10.0;
-  final FUNCTION_INDENT = 90.0;
 
   @override
   Widget build(BuildContext context) {
@@ -20,74 +20,7 @@ class NewReservationMenu extends StatelessWidget {
 
     return Column(
       children: [
-        //  -------- Floors --------
-        // Row(children: const [
-        //   Icon(Icons.reorder),
-        //   SizedBox(width: 10),
-        //   Text("Floors")
-        // ]),
-        // const SizedBox(height: 5),
-        // Row(children: [
-        //   SizedBox(width: LABEL_INDENT),
-        //   Expanded(
-        //     child: PlainTextButton(
-        //         alignLeft: true,
-        //         text: "Floor 12",
-        //         selected: newReservationNotifier.getFloor() == Floors.f12,
-        //         onPressed: () {
-        //           if (newReservationNotifier.getFloor() != Floors.f12) {
-        //             newReservationNotifier.setFloor(Floors.f12);
-        //             newReservationNotifier.setRoomNumber(null);
-        //           }
-        //         }),
-        //   ),
-        // ]),
-        // Row(children: [
-        //   SizedBox(width: LABEL_INDENT),
-        //   Expanded(
-        //     child: PlainTextButton(
-        //         alignLeft: true,
-        //         text: "Floor 11",
-        //         selected: newReservationNotifier.getFloor() == Floors.f11,
-        //         onPressed: () {
-        //           if (newReservationNotifier.getFloor() != Floors.f11) {
-        //             newReservationNotifier.setFloor(Floors.f11);
-        //             newReservationNotifier.setRoomNumber(null);
-        //           }
-        //         }),
-        //   ),
-        // ]),
-        // Row(children: [
-        //   SizedBox(width: LABEL_INDENT),
-        //   Expanded(
-        //     child: PlainTextButton(
-        //         alignLeft: true,
-        //         text: "Floor 10",
-        //         selected: newReservationNotifier.getFloor() == Floors.f10,
-        //         onPressed: () {
-        //           if (newReservationNotifier.getFloor() != Floors.f10) {
-        //             newReservationNotifier.setFloor(Floors.f10);
-        //             newReservationNotifier.setRoomNumber(null);
-        //           }
-        //         }),
-        //   ),
-        // ]),
-        // Row(children: [
-        //   SizedBox(width: LABEL_INDENT),
-        //   Expanded(
-        //     child: PlainTextButton(
-        //         alignLeft: true,
-        //         text: "Floor 9",
-        //         selected: newReservationNotifier.getFloor() == Floors.f9,
-        //         onPressed: () {
-        //           if (newReservationNotifier.getFloor() != Floors.f9) {
-        //             newReservationNotifier.setFloor(Floors.f9);
-        //             newReservationNotifier.setRoomNumber(null);
-        //           }
-        //         }),
-        //   ),
-        // ]),
-
+        NewReservationFloors(),
         Divider(),
         NewReservationTimeFrame(),
         Divider(),
@@ -145,7 +78,7 @@ class MenuItem extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 10,
+          width: LABEL_INDENT,
         ),
         SizedBox(
           width: 80,
