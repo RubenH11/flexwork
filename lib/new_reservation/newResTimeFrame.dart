@@ -50,14 +50,15 @@ class _NewReservationTimeFrameState extends State<NewReservationTimeFrame> {
         if (displayOption == _DisplayOption.onlyStart)
           DatePicker(
             releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-            getInitialDateTime: () => roundToNext15(
-                newReservationNotifier.getStartTime() ?? DateTime.now()),
+            getInitialDateTime: () => roundToNext15(newReservationNotifier.getStartTime() ?? DateTime.now()),
             getMinimumDate: () =>
                 roundToNext15(DateTime.now()).subtract(Duration(minutes: 15)),
             getMaximumDate: () => newReservationNotifier.getEndTime(),
             onDateTimeChanged: (DateTime newDate) {
               newReservationNotifier.setStartTime(newDate);
             },
+            getTime: newReservationNotifier.getStartTime,
+            setTime: newReservationNotifier.setStartTime,
           ),
         //End
         _EndDateSelection(
@@ -77,6 +78,8 @@ class _NewReservationTimeFrameState extends State<NewReservationTimeFrame> {
             onDateTimeChanged: (DateTime newDate) {
               newReservationNotifier.setEndTime(newDate);
             },
+            getTime: newReservationNotifier.getEndTime,
+            setTime: newReservationNotifier.setEndTime,
           ),
       ],
     );
@@ -93,7 +96,13 @@ class _StartDateSelection extends StatelessWidget {
     return MenuItem(
         labelText: "Start",
         child: PlainTextButton(
-          onPressed: () => takeDisplay(),
+          onPressed: () {
+            if (newReservationNotifier.getStartTime() == null) {
+              newReservationNotifier
+                  .setStartTime(roundToNext15(DateTime.now()));
+            }
+            takeDisplay();
+          },
           selected: true,
           text: newReservationNotifier.getStartTime() == null
               ? "no date selected"
@@ -113,7 +122,18 @@ class _EndDateSelection extends StatelessWidget {
     return MenuItem(
         labelText: "End",
         child: PlainTextButton(
-          onPressed: () => takeDisplay(),
+          onPressed: () {
+            final startTime = newReservationNotifier.getStartTime();
+            final endTime = newReservationNotifier.getEndTime();
+
+            if (startTime != null && endTime == null) {
+              newReservationNotifier.setEndTime(startTime);
+            } else if (startTime == null && endTime == null) {
+              newReservationNotifier.setEndTime(roundToNext15(DateTime.now()));
+            }
+
+            takeDisplay();
+          },
           selected: true,
           text: newReservationNotifier.getEndTime() == null
               ? "no date selected"
@@ -124,17 +144,21 @@ class _EndDateSelection extends StatelessWidget {
 }
 
 class DatePicker extends StatefulWidget {
-  Function() releaseDisplay;
+  void Function() releaseDisplay;
   DateTime? Function() getInitialDateTime;
   void Function(DateTime) onDateTimeChanged;
   DateTime? Function() getMinimumDate;
   DateTime? Function()? getMaximumDate;
+  DateTime? Function() getTime;
+  void Function(DateTime?) setTime;
 
   DatePicker({
     required this.releaseDisplay,
     required this.getInitialDateTime,
     required this.getMinimumDate,
     required this.onDateTimeChanged,
+    required this.getTime,
+    required this.setTime,
     this.getMaximumDate,
     super.key,
   });
@@ -153,8 +177,11 @@ class _DatePickerState extends State<DatePicker> {
     return Column(
       children: [
         _DatePickerButtons(
-            releaseDisplay: widget.releaseDisplay,
-            updateDatePicker: updateDatePicker),
+          releaseDisplay: widget.releaseDisplay,
+          updateDatePicker: updateDatePicker,
+          getTime: widget.getTime,
+          setTime: widget.setTime,
+        ),
         // picker interface
         SizedBox(
           height: 200,
@@ -165,7 +192,8 @@ class _DatePickerState extends State<DatePicker> {
             initialDateTime: widget.getInitialDateTime(),
             onDateTimeChanged: widget.onDateTimeChanged,
             minimumDate: widget.getMinimumDate(),
-            maximumDate: widget.getMaximumDate == null ? null : widget.getMaximumDate!(),
+            maximumDate:
+                widget.getMaximumDate == null ? null : widget.getMaximumDate!(),
             minuteInterval: 15,
           ),
         ),
@@ -177,9 +205,13 @@ class _DatePickerState extends State<DatePicker> {
 class _DatePickerButtons extends StatefulWidget {
   Function() releaseDisplay;
   Function updateDatePicker;
+  DateTime? Function() getTime;
+  void Function(DateTime?) setTime;
   _DatePickerButtons(
       {required this.releaseDisplay,
       required this.updateDatePicker,
+      required this.getTime,
+      required this.setTime,
       super.key});
 
   @override
@@ -190,7 +222,7 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
   @override
   Widget build(BuildContext context) {
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
-    final previousStartTime = newReservationNotifier.getStartTime();
+    final previousStartTime = widget.getTime();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,7 +231,7 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
           child: PlainElevatedButton(
             onPressed: () {
               widget.releaseDisplay();
-              newReservationNotifier.setStartTime(previousStartTime);
+              widget.setTime(previousStartTime);
             },
             child: Text("cancel"),
             focused: false,
@@ -211,13 +243,12 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
         Expanded(
           child: PlainTextButton(
             onPressed: () {
-              changeStartTimeToToday(newReservationNotifier);
+              widget.setTime(changeTimeToToday(widget.getTime()));
               widget.updateDatePicker();
             },
             text: "today",
-            selected: newReservationNotifier.getStartTime() != null &&
-                newReservationNotifier.getStartTime()!.day ==
-                    DateTime.now().day,
+            selected: widget.getTime != null &&
+                widget.getTime()!.day == DateTime.now().day,
           ),
         ),
         SizedBox(
@@ -235,10 +266,10 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
 }
 
 // helpers
-DateTime roundToNext15(DateTime dateTime) {
-  final minutesToAdd = 15 - dateTime.minute % 15;
+DateTime roundToNext15(DateTime dateTimeToRound) {
+  final minutesToAdd = 15 - dateTimeToRound.minute % 15;
   final roundedDateTime =
-      dateTime.add(Duration(minutes: minutesToAdd == 15 ? 0 : minutesToAdd));
+      dateTimeToRound.add(Duration(minutes: minutesToAdd == 15 ? 0 : minutesToAdd)).subtract(Duration(seconds: dateTimeToRound.second, milliseconds: dateTimeToRound.millisecond, microseconds: dateTimeToRound.microsecond));
   return roundedDateTime;
 }
 
@@ -251,29 +282,23 @@ DateTime onlyChangeDay(DateTime dateTimeToChange, DateTime day) {
   return newDate;
 }
 
-void changeStartTimeToToday(NewReservationNotifier newReservationNotifier) {
-  DateTime newStartTime;
-  var currentStartTime = newReservationNotifier.getStartTime();
-  // if no starttime is set yet
-  if (currentStartTime == null) {
+DateTime changeTimeToToday(DateTime? timeToBeChanged) {
+  DateTime newTime;
+  
+  // if no time is set yet
+  if (timeToBeChanged == null) {
     print("==no time was set");
-    newStartTime = roundToNext15(DateTime.now());
-    newReservationNotifier.setStartTime(newStartTime);
-    return;
+    return roundToNext15(DateTime.now());
   }
 
   // if returning to today would cause the datepicker to go before its minimum
-  if (currentStartTime.hour < DateTime.now().hour ||
-      (currentStartTime.hour == DateTime.now().hour &&
-          currentStartTime.minute < DateTime.now().minute)) {
+  if (timeToBeChanged.hour < DateTime.now().hour ||
+      (timeToBeChanged.hour == DateTime.now().hour &&
+          timeToBeChanged.minute < DateTime.now().minute)) {
     print("==time was before minimum");
-    newStartTime = roundToNext15(DateTime.now());
-    print("moved it to ${newStartTime.toString()} to avoid errors");
-    newReservationNotifier.setStartTime(newStartTime);
-    return;
+    return roundToNext15(DateTime.now());
   }
 
   print("==no issues");
-  newStartTime = onlyChangeDay(currentStartTime, DateTime.now());
-  newReservationNotifier.setStartTime(newStartTime);
+  return onlyChangeDay(timeToBeChanged, DateTime.now());
 }

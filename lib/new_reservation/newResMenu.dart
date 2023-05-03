@@ -1,29 +1,21 @@
 import "dart:html";
 
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
-import "../helpers/firebase.dart";
+
 import "../widgets/plainTextButton.dart";
 import "../widgets/plainElevatedButton.dart";
-import "../models/floors.dart";
-import '../models/newReservationNotifier.dart';
+
 import "./newResTimeFrame.dart";
 import "./newResFloors.dart";
+import "./newResButton.dart";
 
 const LABEL_INDENT = 10.0;
 
 class NewReservationMenu extends StatelessWidget {
   NewReservationMenu({super.key});
 
-  void makeReservation(){
-    print("make res");
-    FirebaseService().firestore.collection("testCollection").doc("testDoc").set({"testEntry": "testValue"});
-  }
-
   @override
   Widget build(BuildContext context) {
-    //final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
-
     return Column(
       children: [
         NewReservationFloors(),
@@ -70,7 +62,8 @@ class NewReservationMenu extends StatelessWidget {
               icon: Icon(Icons.add),
             )),
         Spacer(),
-        PlainElevatedButton(onPressed: makeReservation, focused: true, child: Text("make reservation")),
+        Divider(),
+        MakeReserationButton()
       ],
     );
   }

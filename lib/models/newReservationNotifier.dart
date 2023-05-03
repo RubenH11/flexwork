@@ -7,6 +7,17 @@ class NewReservationNotifier extends ChangeNotifier{
   DateTime? _endTime;
   String? _roomNumber;
 
+  bool isComplete(){
+    return _startTime != null && _endTime != null && _roomNumber != null;
+  }
+
+  void clear(){
+    _startTime = null;
+    _endTime = null;
+    _roomNumber = null;
+    notifyListeners();
+  }
+
   Floors getFloor(){
     return _floor;
   }
