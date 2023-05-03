@@ -4,16 +4,33 @@ import "dart:math" as math;
 import './flexwork.dart';
 import "package:provider/provider.dart";
 import 'models/newReservationNotifier.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() {
+void main() async {
+  // Hook up to Firestore database
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyBK9xQzpEgGfGxljk6L7oq1OUDQ10w7Kd0",
+      appId: "1:598691515878:web:f30e1a8f34a75d16d45a27",
+      messagingSenderId: "598691515878",
+      projectId: "nu-flex-app",
+      storageBucket: "nu-flex-app.appspot.com",
+    ),
+  );
+
+  // Provide NewReservationNotifier
   runApp(ChangeNotifierProvider(
     create: (_) => NewReservationNotifier(),
-    child: const MyApp(),
+    child: MyApp(),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  MyApp({super.key});
 
   // This widget is the root of your application.
   @override

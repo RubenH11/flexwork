@@ -1,6 +1,6 @@
 import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flutter/material.dart";
-import "../models/floorSketcher.dart";
+import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
 import "dart:math" as math;
 
