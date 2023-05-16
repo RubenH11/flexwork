@@ -2,7 +2,7 @@ import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "./newResMenu.dart";
-import "../widgets/plainTextButton.dart";
+import '../widgets/customTextButton.dart';
 import "../models/floors.dart";
 
 class NewReservationFloors extends StatefulWidget {
@@ -27,7 +27,7 @@ class _NewReservationFloorsState extends State<NewReservationFloors> {
         Row(children: [
           SizedBox(width: LABEL_INDENT),
           Expanded(
-            child: PlainTextButton(
+            child: CustomTextButton(
                 alignLeft: true,
                 text: "Floor 12",
                 selected: newReservationNotifier.getFloor() == Floors.f12,
@@ -42,7 +42,7 @@ class _NewReservationFloorsState extends State<NewReservationFloors> {
         Row(children: [
           SizedBox(width: LABEL_INDENT),
           Expanded(
-            child: PlainTextButton(
+            child: CustomTextButton(
                 alignLeft: true,
                 text: "Floor 11",
                 selected: newReservationNotifier.getFloor() == Floors.f11,
@@ -57,7 +57,7 @@ class _NewReservationFloorsState extends State<NewReservationFloors> {
         Row(children: [
           SizedBox(width: LABEL_INDENT),
           Expanded(
-            child: PlainTextButton(
+            child: CustomTextButton(
                 alignLeft: true,
                 text: "Floor 10",
                 selected: newReservationNotifier.getFloor() == Floors.f10,
@@ -73,7 +73,7 @@ class _NewReservationFloorsState extends State<NewReservationFloors> {
           children: [
             SizedBox(width: LABEL_INDENT),
             Expanded(
-              child: PlainTextButton(
+              child: CustomTextButton(
                   alignLeft: true,
                   text: "Floor 9",
                   selected: newReservationNotifier.getFloor() == Floors.f9,

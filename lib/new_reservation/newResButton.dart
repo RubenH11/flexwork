@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "../models/newReservationNotifier.dart";
-import "../widgets/plainElevatedButton.dart";
+import '../widgets/customElevatedButton.dart';
 import "../helpers/firebase.dart";
 
 class MakeReserationButton extends StatelessWidget {

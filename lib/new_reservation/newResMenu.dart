@@ -2,8 +2,8 @@ import "dart:html";
 
 import "package:flutter/material.dart";
 
-import "../widgets/plainTextButton.dart";
-import "../widgets/plainElevatedButton.dart";
+import '../widgets/customTextButton.dart';
+import '../widgets/customElevatedButton.dart';
 
 import "./newResTimeFrame.dart";
 import "./newResFloors.dart";
@@ -35,20 +35,20 @@ class NewReservationMenu extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: PlainTextButton(
+                  child: CustomTextButton(
                     onPressed: () {},
                     selected: true,
                     text: "every other",
                   ),
                 ),
                 Expanded(
-                    child: PlainTextButton(
+                    child: CustomTextButton(
                         onPressed: () {}, selected: true, text: "week"))
               ],
             )),
         MenuItem(
             labelText: "Until",
-            child: PlainTextButton(
+            child: CustomTextButton(
               onPressed: () {},
               selected: true,
               text: "29 Jul 2023",

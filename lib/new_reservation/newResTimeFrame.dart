@@ -1,9 +1,9 @@
 import "package:flexwork/models/newReservationNotifier.dart";
-import "package:flexwork/widgets/plainElevatedButton.dart";
+import 'package:flexwork/widgets/customElevatedButton.dart';
 import "package:flutter/material.dart";
 import "package:flutter/cupertino.dart";
 import "./newResMenu.dart";
-import "../widgets/plainTextButton.dart";
+import '../widgets/customTextButton.dart';
 import "package:provider/provider.dart";
 import "package:intl/intl.dart";
 
@@ -95,7 +95,7 @@ class _StartDateSelection extends StatelessWidget {
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
     return MenuItem(
         labelText: "Start",
-        child: PlainTextButton(
+        child: CustomTextButton(
           onPressed: () {
             if (newReservationNotifier.getStartTime() == null) {
               newReservationNotifier
@@ -121,7 +121,7 @@ class _EndDateSelection extends StatelessWidget {
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
     return MenuItem(
         labelText: "End",
-        child: PlainTextButton(
+        child: CustomTextButton(
           onPressed: () {
             final startTime = newReservationNotifier.getStartTime();
             final endTime = newReservationNotifier.getEndTime();
@@ -228,7 +228,7 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: PlainElevatedButton(
+          child: CustomElevatedButton(
             onPressed: () {
               widget.releaseDisplay();
               widget.setTime(previousStartTime);
@@ -241,7 +241,7 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
           width: 5,
         ),
         Expanded(
-          child: PlainTextButton(
+          child: CustomTextButton(
             onPressed: () {
               widget.setTime(changeTimeToToday(widget.getTime()));
               widget.updateDatePicker();

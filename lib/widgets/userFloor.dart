@@ -11,12 +11,12 @@ import "dart:math" as math;
 // Rooms are 1.5/27 high of the Canvas width
 // ---------------------------------
 
-class Floor extends StatelessWidget {
+class UserFloor extends StatelessWidget {
   final String? selectedRoom;
   final Floors floor;
   final NewReservationNotifier newReservationNotifier;
 
-  const Floor(
+  const UserFloor(
       {required this.newReservationNotifier,
       required this.floor,
       this.selectedRoom,

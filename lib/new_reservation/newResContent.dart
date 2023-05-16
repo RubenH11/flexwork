@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import '../widgets/floor.dart';
+import '../widgets/userFloor.dart';
 import "../models/newReservationNotifier.dart";
 
 class NewReservationContent extends StatelessWidget {

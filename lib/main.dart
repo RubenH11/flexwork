@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import "dart:math" as math;
 import './flexwork.dart';
+import "./admin/admin.dart";
 import "package:provider/provider.dart";
 import 'models/newReservationNotifier.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +21,7 @@ void main() async {
     ),
   );
 
-  // Provide NewReservationNotifier
+  // Provide NewReservationNotifier (should only be for users)
   runApp(ChangeNotifierProvider(
     create: (_) => NewReservationNotifier(),
     child: MyApp(),
@@ -73,11 +74,11 @@ class MyApp extends StatelessWidget {
               error: Color.fromARGB(255, 239, 141, 141),
               onError: Colors.white,
               background: Colors.grey.shade200,
-              onBackground: Colors.black,
+              onBackground: Colors.grey,
               surface: Colors.white,
               onSurface: Colors.grey)),
       home: Scaffold(
-        body: FlexWork(),
+        body: Admin(), //FlexWork(),
       ),
     );
   }
