@@ -6,14 +6,15 @@ import '../../models/newSpaceNotifier.dart';
 
 class NewSpaceContent extends StatelessWidget {
   final Floors floor;
-  const NewSpaceContent({required this.floor, super.key});
+  final bool isValid;
+  const NewSpaceContent({required this.floor, required this.isValid, super.key});
 
   @override
   Widget build(BuildContext context) {
     final newSpaceNotifier = Provider.of<NewSpaceNotifier>(context);
     return Column(
       children: [
-        AdminFloor(floor: Floors.f11),
+        AdminFloor(floor: floor, isValid: isValid),
         Row(
           children: [
             SizedBox(width: 100, child: Text("Identifier")),

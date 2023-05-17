@@ -19,8 +19,10 @@ import "package:provider/provider.dart";
 
 class AdminFloor extends StatelessWidget {
   final Floors floor;
+  final bool isValid;
 
   const AdminFloor({
+    required this.isValid,
     required this.floor,
     super.key,
   });
@@ -41,19 +43,14 @@ class AdminFloor extends StatelessWidget {
 
         Path outterWalls = FloorSketcher.getOutterWalls();
         Path innerWalls;
-        bool newSpaceIsValid = false;
         if (floor == Floors.f9) {
           innerWalls = FloorSketcher.getFloor9InnerWalls();
-          newSpaceIsValid = newSpaceNotifier.isValid(floor);
         } else if (floor == Floors.f10) {
           innerWalls = FloorSketcher.getFloor10InnerWalls();
-          newSpaceIsValid = newSpaceNotifier.isValid(floor);
         } else if (floor == Floors.f11) {
           innerWalls = FloorSketcher.getFloor11InnerWalls();
-          newSpaceIsValid = newSpaceNotifier.isValid(floor);
         } else {
           innerWalls = FloorSketcher.getFloor12InnerWalls();
-          newSpaceIsValid = newSpaceNotifier.isValid(floor);
         }
 
         final scaledInnerWalls = innerWalls.transform(scale);
@@ -62,8 +59,8 @@ class AdminFloor extends StatelessWidget {
 
         return CustomPaint(
           size: Size(canvasWidth, canvasHeigt),
-          painter: _FloorPainter(pixelSize, angleOfWalls,
-              scaledInnerWalls, scaledOutterWalls, scaledNewSpace, newSpaceIsValid),
+          painter: _FloorPainter(pixelSize, angleOfWalls, scaledInnerWalls,
+              scaledOutterWalls, scaledNewSpace, isValid),
         );
       }),
     );
@@ -77,7 +74,6 @@ class _FloorPainter extends CustomPainter {
   Path outterWalls;
   Path newSpace;
   bool newSpaceIsValid;
-  
 
   _FloorPainter(
     this.pixelSize,
@@ -86,20 +82,20 @@ class _FloorPainter extends CustomPainter {
     this.outterWalls,
     this.newSpace,
     this.newSpaceIsValid,
-    
   );
 
   @override
   void paint(Canvas canvas, Size size) {
     Paint newSpacePaint = Paint()
-      ..color = newSpaceIsValid ? Color.fromARGB(255, 134, 159, 249) : Color.fromARGB(255, 239, 141, 141)
+      ..color = newSpaceIsValid
+          ? Color.fromARGB(255, 134, 159, 249)
+          : Color.fromARGB(255, 239, 141, 141)
       ..style = PaintingStyle.fill;
 
     Paint defaultPaint = Paint()
       ..color = Color.fromARGB(255, 135, 235, 151)
       ..style = PaintingStyle.fill;
 
-    
     canvas.drawPath(
       newSpace,
       newSpacePaint,
@@ -123,7 +119,7 @@ class _FloorPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;

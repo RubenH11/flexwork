@@ -27,19 +27,21 @@ class _CoordinateInterfaceState extends State<NewSpaceMenuCoordinates> {
 
   void setX() {
     final value = horizontalController.text;
+    final yCoord = newSpace.getYCoordinate();
     if (value == "") {
-      newSpace.setCoordinate(x: 0);
+      newSpace.setCoordinate(0, yCoord);
     } else {
-      newSpace.setCoordinate(x: double.parse(value));
+      newSpace.setCoordinate(double.parse(value), yCoord);
     }
   }
 
   void setY() {
     final value = verticalController.text;
+    final xCoord = newSpace.getXCoordinate();
     if (value == "") {
-      newSpace.setCoordinate(y: 0);
+      newSpace.setCoordinate(xCoord, 0);
     } else {
-      newSpace.setCoordinate(y: double.parse(value));
+      newSpace.setCoordinate(xCoord, double.parse(value));
     }
   }
 

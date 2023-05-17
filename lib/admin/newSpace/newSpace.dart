@@ -143,16 +143,22 @@ class _NewSpaceFloorState extends State<NewSpace> {
     setState(() {});
   }
 
+  // state
+  var isValid = true;
+  var floor = Floors.f10;
+
   @override
   Widget build(BuildContext context) {
+    print("build newSpace");
     final newSpace = Provider.of<NewSpaceNotifier>(context);
+    isValid = newSpace.isValid(floor);
 
     return RawKeyboardListener(
       focusNode: focusNode,
       onKey: (keyEvent) => _handleKeyEvent(newSpace, keyEvent),
       child: Layout(
-        menu: NewSpaceMenu(newSpaceFocusNode: focusNode, updateMenu: update, floor: Floors.f10),
-        content: NewSpaceContent(floor: Floors.f10),
+        menu: NewSpaceMenu(newSpaceFocusNode: focusNode, updateMenu: update, floor: floor, isValid: isValid),
+        content: NewSpaceContent(floor: floor, isValid: isValid),
       ),
     );
   }

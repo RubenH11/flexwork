@@ -1,5 +1,5 @@
-
 import "package:flexwork/admin/newSpace/menuCoordinates.dart";
+import "package:flexwork/admin/newSpace/menuInfiniteCoords.dart";
 import "package:flexwork/admin/newSpace/menuRotation.dart";
 import "package:flexwork/admin/newSpace/menuSize.dart";
 import "package:flexwork/helpers/firebase.dart";
@@ -10,16 +10,25 @@ import "../../widgets/menu_item.dart";
 import "package:provider/provider.dart";
 import "../../models/floors.dart";
 
-class NewSpaceMenu extends StatelessWidget {
-  FocusNode newSpaceFocusNode;
-  Function updateMenu;
-  Floors floor;
-  NewSpaceMenu({
+class NewSpaceMenu extends StatefulWidget {
+  final FocusNode newSpaceFocusNode;
+  final Function updateMenu;
+  final Floors floor;
+  final bool isValid;
+  const NewSpaceMenu({
     required this.newSpaceFocusNode,
     required this.updateMenu,
     required this.floor,
+    required this.isValid,
     super.key,
   });
+
+  @override
+  State<NewSpaceMenu> createState() => _NewSpaceMenuState();
+}
+
+class _NewSpaceMenuState extends State<NewSpaceMenu> {
+  var isRectangularSpace = true;
 
   @override
   Widget build(BuildContext context) {
@@ -30,56 +39,92 @@ class NewSpaceMenu extends StatelessWidget {
       print("add");
       final identifier = newSpace.getIdentifier();
       final space = newSpace.getPath();
-      // final service = FirebaseService();
-      // service.addSpace(identifier, space);
+
+      FirebaseService().addSpace(identifier, newSpace);
     }
 
     return Column(
       children: [
-        MenuItem(
-            icon: Icon(Icons.photo_size_select_small),
-            title: "Size",
-            child: NewSpaceMenuSize(
-              newSpace: newSpace,
-              newSpaceFocusNode: newSpaceFocusNode,
-            )),
-        const Divider(),
-        MenuItem(
-          // key: UniqueKey(),
-          icon: Icon(Icons.compare_arrows),
-          title: "Coordinates",
-          child: NewSpaceMenuCoordinates(
-            newSpaceFocusNode: newSpaceFocusNode,
-          ),
+        Row(
+          children: [
+            CustomElevatedButton(
+              onPressed: () => setState(() => isRectangularSpace = true),
+              active: !isRectangularSpace,
+              selected: isRectangularSpace,
+              text: "rectangular",
+            ),
+            CustomElevatedButton(
+              onPressed: () => setState(() => isRectangularSpace = false),
+              active: isRectangularSpace,
+              selected: !isRectangularSpace,
+              text: "advanced",
+            ),
+          ],
         ),
-        const Divider(),
-        MenuItem(
-          icon: Icon(Icons.rotate_90_degrees_ccw),
-          title: "Rotation",
-          child: NewSpaceMenuRotation(
-            newSpace: newSpace,
-            newSpaceFocusNode: newSpaceFocusNode,
-            updateMenu: updateMenu,
-          ),
+        Divider(),
+        Expanded(
+          child: isRectangularSpace
+              ? Column(
+                  children: [
+                    MenuItem(
+                        icon: Icon(Icons.photo_size_select_small),
+                        title: "Size",
+                        child: NewSpaceMenuSize(
+                          newSpace: newSpace,
+                          newSpaceFocusNode: widget.newSpaceFocusNode,
+                        )),
+                    const Divider(),
+                    MenuItem(
+                      // key: UniqueKey(),
+                      icon: Icon(Icons.compare_arrows),
+                      title: "Coordinates",
+                      child: NewSpaceMenuCoordinates(
+                        newSpaceFocusNode: widget.newSpaceFocusNode,
+                      ),
+                    ),
+                    const Divider(),
+                    MenuItem(
+                      icon: Icon(Icons.rotate_90_degrees_ccw),
+                      title: "Rotation",
+                      child: NewSpaceMenuRotation(
+                        newSpace: newSpace,
+                        newSpaceFocusNode: widget.newSpaceFocusNode,
+                        updateMenu: widget.updateMenu,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    NewSpaceMenuInfiniteCoordinates(
+                      newSpace: newSpace,
+                      newSpaceFocusNode: widget.newSpaceFocusNode,
+                    ),
+                    const Divider(),
+                  ],
+                ),
         ),
-        const Spacer(),
         const Divider(),
         Row(
           children: [
             CustomElevatedButton(
-              onPressed: () {print("tt");},
+              onPressed: () {
+                print("cancel");
+              },
               active: true,
+              selected: false,
               text: "cancel",
             ),
             SizedBox(
               width: 10,
             ),
             CustomElevatedButton(
-              onPressed: (){
-                print("test");
+              onPressed: () {
+                print("add");
                 addRoom();
               },
-              active: newSpace.isValid(floor),
+              active: widget.isValid,
+              selected: true,
               text: "add",
             ),
           ],

@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 
 class CustomElevatedButton extends StatefulWidget {
   bool active;
+  bool selected;
   String text;
   Function onPressed;
   bool? alignLeft;
@@ -9,6 +10,7 @@ class CustomElevatedButton extends StatefulWidget {
   CustomElevatedButton({
     required this.onPressed,
     required this.active,
+    required this.selected,
     required this.text,
     this.alignLeft,
     super.key,
@@ -20,24 +22,27 @@ class CustomElevatedButton extends StatefulWidget {
 
 class _CustomTextButtonState extends State<CustomElevatedButton> {
   var tapDown = false;
-
   Color getTextColor(BuildContext context) {
-    if (widget.active) {
+    if(!widget.selected && widget.active){
+      return Theme.of(context).colorScheme.onSecondary;
+    }
+    if(!widget.selected && !widget.active){
+      return Theme.of(context).colorScheme.secondary;
+    }
+    else{
       return Theme.of(context).colorScheme.onPrimary;
-    } else {
-      return Theme.of(context).colorScheme.onBackground;
     }
   }
 
   Color getBackgroundColor(BuildContext context) {
-    if (!widget.active) {
-      return Theme.of(context).colorScheme.background;
-    }
-
-    if (tapDown) {
-      return Theme.of(context).colorScheme.primary.withOpacity(0.8);
-    } else {
+    if(widget.selected && widget.active){
       return Theme.of(context).colorScheme.primary;
+    }
+    else if(widget.selected && !widget.active){
+      return  Theme.of(context).colorScheme.primary.withOpacity(0.5);
+    }
+    else{
+      return  Theme.of(context).colorScheme.background;
     }
   }
 

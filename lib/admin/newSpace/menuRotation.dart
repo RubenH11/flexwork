@@ -26,6 +26,7 @@ class _RotationInterfaceState extends State<NewSpaceMenuRotation> {
   late NewSpaceNotifier newSpace;
 
   void updateController() {
+    // print("updating controller in rotation to ${widget.newSpace.getAngleDegrees()}");
     angleController.text = widget.newSpace.getAngleDegrees().toString();
   }
 
@@ -83,7 +84,7 @@ class _RotationInterfaceState extends State<NewSpaceMenuRotation> {
             CustomTextButton(
               key: UniqueKey(),
               onPressed: () {
-                widget.newSpace.setAngle(math.atan(4/18) * 180/math.pi);
+                widget.newSpace.setAngle(math.atan(4/18));
                 // updateController();
                 widget.updateMenu();
               },
@@ -93,7 +94,41 @@ class _RotationInterfaceState extends State<NewSpaceMenuRotation> {
             CustomTextButton(
               key: UniqueKey(),
               onPressed: () {
-                widget.newSpace.setAngle(15);
+                widget.newSpace.setAngle(math.atan(3/4));
+                // updateController();
+                widget.updateMenu();
+              },
+              selected: widget.newSpace.getAngleDegrees() == 15,
+              text: "36.87 degrees",
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            CustomTextButton(
+              key: UniqueKey(),
+              onPressed: () {
+                widget.newSpace.setAngle(1.5*math.pi);
+                // updateController();
+                widget.updateMenu();
+              },
+              selected: widget.newSpace.getAngleDegrees() == 0,
+              text: "-90 degrees",
+            ),
+            CustomTextButton(
+              key: UniqueKey(),
+              onPressed: () {
+                widget.newSpace.setAngle(math.atan(4/18) + 1.5*math.pi);
+                // updateController();
+                widget.updateMenu();
+              },
+              selected: widget.newSpace.getAngleDegrees() == 10,
+              text: "12.52 degrees",
+            ),
+            CustomTextButton(
+              key: UniqueKey(),
+              onPressed: () {
+                widget.newSpace.setAngle(math.atan(3/4) + 1.5*math.pi);
                 // updateController();
                 widget.updateMenu();
               },
