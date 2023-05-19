@@ -1,8 +1,9 @@
+import "package:firebase_core/firebase_core.dart";
 import "package:flexwork/admin/newSpace/menuCoordinates.dart";
 import "package:flexwork/admin/newSpace/menuInfiniteCoords.dart";
 import "package:flexwork/admin/newSpace/menuRotation.dart";
 import "package:flexwork/admin/newSpace/menuSize.dart";
-import "package:flexwork/helpers/firebase.dart";
+import "package:flexwork/helpers/firebaseService.dart";
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flutter/material.dart";
@@ -13,12 +14,10 @@ import "../../models/floors.dart";
 class NewSpaceMenu extends StatefulWidget {
   final FocusNode newSpaceFocusNode;
   final Function updateMenu;
-  final Floors floor;
   final bool isValid;
   const NewSpaceMenu({
     required this.newSpaceFocusNode,
     required this.updateMenu,
-    required this.floor,
     required this.isValid,
     super.key,
   });
@@ -35,12 +34,12 @@ class _NewSpaceMenuState extends State<NewSpaceMenu> {
     print("rebuild whole menu");
     final newSpace = Provider.of<NewSpaceNotifier>(context);
 
-    void addRoom() {
+    void addRoom() async {
       print("add");
       final identifier = newSpace.getIdentifier();
       final space = newSpace.getPath();
 
-      FirebaseService().addSpace(identifier, newSpace);
+      await FirebaseService().addNewWorkspaceToDB(identifier, newSpace);
     }
 
     return Column(
@@ -119,10 +118,7 @@ class _NewSpaceMenuState extends State<NewSpaceMenu> {
               width: 10,
             ),
             CustomElevatedButton(
-              onPressed: () {
-                print("add");
-                addRoom();
-              },
+              onPressed: addRoom,
               active: widget.isValid,
               selected: true,
               text: "add",

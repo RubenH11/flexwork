@@ -1,4 +1,5 @@
 import "package:flexwork/helpers/floorSketcher.dart";
+import "package:flexwork/models/workspace.dart";
 import "package:flutter/material.dart";
 import "dart:math" as math;
 import "../../models/floors.dart";
@@ -8,14 +9,23 @@ class NewSpaceNotifier extends ChangeNotifier {
   var _identifier = "";
 
   //coordinates are clockwise
-  List<Tuple2<double, double>> coordinates = [
-    const Tuple2(0, 0),
-    const Tuple2(12, 0),
-    const Tuple2(12, 18),
-    const Tuple2(0, 18),
-  ];
-  final defaultAngle = 90 * math.pi/180;
-  var currAngle = 90 * math.pi/180;
+  late Workspace workspace;
+
+  NewSpaceNotifier(Floors floor) {
+    workspace = Workspace(
+      [
+        const Tuple2(0, 0),
+        const Tuple2(12, 0),
+        const Tuple2(12, 18),
+        const Tuple2(0, 18),
+      ],
+      "",
+      floor,
+    );
+  }
+
+  final _defaultAngle = 90 * math.pi / 180;
+  var _currAngle = 90 * math.pi / 180;
   static const int _MAX_X = 321;
   static const int _MAX_Y = 144;
 
@@ -28,36 +38,89 @@ class NewSpaceNotifier extends ChangeNotifier {
     _identifier = identifier;
   }
 
-  //V
-  bool setCoordinate(double x, double y) {
-    // print("== newSpaceNotifer: set coord");
-    List<Tuple2<double, double>> newCoords = [];
-    final origin = coordinates[0];
+  List<Tuple2<double, double>> getCoords() {
+    return [...workspace.getCoords()];
+  }
 
-    for (var coord in coordinates) {
-      final xOffset = coord.item1 - origin.item1;
-      final yOffset = coord.item2 - origin.item2;
-      final newCoord = Tuple2(x + xOffset, y + yOffset);
-      if (!_isWithinBounds(newCoord)) {
-        return false;
-      }
-      newCoords.add(newCoord);
+  Floors getFloor(){
+    return workspace.getFloor();
+  }
+
+  bool setOneCoord({required double x, required double y, required numOfCoord}){
+    final set = _setOneCoordinate(x: x, y: y, numOfCoord: numOfCoord);
+    if(set == null){
+      return false;
     }
-    coordinates = newCoords;
+    workspace.setOneCoord(numOfCoord: numOfCoord, coord: set);
     notifyListeners();
     return true;
   }
 
-  //V
-  double getXCoordinate() {
-    // print("== newSpaceNotifer: get x");
-    return coordinates[0].item1;
+  bool attemptSetOneCoord({required double x, required double y, required numOfCoord}){
+    final attempt = _setOneCoordinate(x: x, y: y, numOfCoord: numOfCoord);
+    if(attempt == null){
+      return false;
+    }
+    return true;
+  }
+
+  Tuple2<double, double>? _setOneCoordinate({required double x, required double y, required numOfCoord}){
+    if(numOfCoord < 0 || numOfCoord > workspace.getCoords().length){
+      return null;
+    }
+    final coord = Tuple2(x, y);
+    if(!_isWithinBounds(coord)){
+      return null;
+    }
+    return coord;
   }
 
   //V
-  double getYCoordinate() {
+  bool setCoordinate(double x, double y) {
+    final set = _setCoordinate(x, y);
+    if(set == null){
+      return false;
+    }
+    workspace.setCoords(set);
+    notifyListeners();
+    return true;
+  }
+
+  bool attemptSetCoordinate(double x, double y){
+    final attempt = _setCoordinate(x, y);
+    if(attempt == null){
+      return false;
+    }
+    return true;
+  }
+
+  List<Tuple2<double, double>>? _setCoordinate(double x, double y) {
+    // print("== newSpaceNotifer: set coord");
+    List<Tuple2<double, double>> newCoords = [];
+    final origin = workspace.getCoords()[0];
+
+    for (var coord in workspace.getCoords()) {
+      final xOffset = coord.item1 - origin.item1;
+      final yOffset = coord.item2 - origin.item2;
+      final newCoord = Tuple2(x + xOffset, y + yOffset);
+      if (!_isWithinBounds(newCoord)) {
+        return null;
+      }
+      newCoords.add(newCoord);
+    }
+    return newCoords;
+  }
+
+  //V
+  double getXCoordinate({int? numOfCoord}) {
+    // print("== newSpaceNotifer: get x");
+    return workspace.getCoords()[numOfCoord ?? 0].item1;
+  }
+
+  //V
+  double getYCoordinate({int? numOfCoord}) {
     // print("== newSpaceNotifer: get y");
-    return coordinates[0].item2;
+    return workspace.getCoords()[numOfCoord ?? 0].item2;
   }
 
   //V
@@ -66,24 +129,25 @@ class NewSpaceNotifier extends ChangeNotifier {
     List<Tuple2<double, double>> newCoords = [];
 
     // if angle is negligable
-    if (currAngle > defaultAngle - 0.001 && currAngle < defaultAngle + 0.001) {
-      print("angle was negligable at $currAngle");
-      for (var coord in coordinates) {
+    if (_currAngle > _defaultAngle - 0.001 &&
+        _currAngle < _defaultAngle + 0.001) {
+      print("angle was negligable at $_currAngle");
+      for (var coord in workspace.getCoords()) {
         final newCoord = Tuple2(coord.item1 + x, coord.item2 + y);
         if (!_isWithinBounds(newCoord)) {
           return false;
         }
         newCoords.add(newCoord);
       }
-      coordinates = newCoords;
+      workspace.setCoords(newCoords);
       notifyListeners();
       return true;
     }
-    print("angle was not negligable at $currAngle");
+    print("angle was not negligable at $_currAngle");
     // if there is an angle and an x offset
     if (x != 0) {
-      for (var coord in coordinates) {
-        final newCoord = _rotateOffset(coord, currAngle, x);
+      for (var coord in workspace.getCoords()) {
+        final newCoord = _rotateOffset(coord, _currAngle, x);
         if (!_isWithinBounds(newCoord)) {
           return false;
         }
@@ -92,166 +156,229 @@ class NewSpaceNotifier extends ChangeNotifier {
     }
     // if there is an angle and a y offset
     if (y != 0) {
-      for (var coord in coordinates) {
-        final newCoord = _rotateOffset(coord, currAngle + math.pi / 2, y);
+      for (var coord in workspace.getCoords()) {
+        final newCoord = _rotateOffset(coord, _currAngle + math.pi / 2, y);
         if (!_isWithinBounds(newCoord)) {
           return false;
         }
         newCoords.add(newCoord);
       }
     }
-    coordinates = newCoords;
+    workspace.setCoords(newCoords);
     notifyListeners();
+    return true;
+  }
+
+  bool setWidth(double width){
+    print("== newSpaceNotifer: set width to $width");
+    final set = _setWidth(width);
+    if(set == null){
+      return false;
+    }
+    workspace.setCoords(set);
+    notifyListeners();
+    return true;
+  }
+
+  bool attemptSetWidth(double width){
+    print("== newSpaceNotifer: attempt set width to $width");
+    final attempt = _setWidth(width);
+    if(attempt == null){
+      return false;
+    }
     return true;
   }
 
   //V
   // Note: this can only be applied to spaces with 4 coordinates
-  bool setWidth(double width) {
-    print("== newSpaceNotifer: set width to $width");
+  List<Tuple2<double, double>>? _setWidth(double width) {
 
-    final topLeft = coordinates[0];
-    final topRight = coordinates[1];
-    final bottomRight = coordinates[2];
-    final bottomLeft = coordinates[3];
+    final topLeft = workspace.getCoords()[0];
+    final topRight = workspace.getCoords()[1];
+    final bottomRight = workspace.getCoords()[2];
+    final bottomLeft = workspace.getCoords()[3];
     late final Tuple2<double, double> newTopRight;
     late final Tuple2<double, double> newBottomRight;
 
     // if angle is negligable
-    if (currAngle > defaultAngle - 0.001 && currAngle < defaultAngle + 0.001) {
+    if (_currAngle > _defaultAngle - 0.001 &&
+        _currAngle < _defaultAngle + 0.001) {
       newTopRight = Tuple2(topLeft.item1 + width, topRight.item2);
       newBottomRight = Tuple2(bottomLeft.item1 + width, bottomRight.item2);
     } else {
-      newTopRight = _rotateOffset(topLeft, currAngle, width);
-      newBottomRight = _rotateOffset(bottomLeft, currAngle, width);
+      newTopRight = _rotateOffset(topLeft, _currAngle, width);
+      newBottomRight = _rotateOffset(bottomLeft, _currAngle, width);
     }
 
     if (!_isWithinBounds(newTopRight) || !_isWithinBounds(newBottomRight)) {
-      return false;
+      return null;
     }
-    coordinates = [
+    return [
       topLeft,
       newTopRight,
       newBottomRight,
       bottomLeft,
     ];
-    notifyListeners();
-    return true;
   }
 
   // Note: this can only be applied to spaces with 4 coordinates
   double getWidth() {
     // print("== newSpaceNotifer: get width");
-    final xDifference = coordinates[1].item1 - coordinates[0].item1;
-    final yDifference = coordinates[0].item2 - coordinates[1].item2;
+    final xDifference = workspace.getCoords()[1].item1 - workspace.getCoords()[0].item1;
+    final yDifference = workspace.getCoords()[0].item2 - workspace.getCoords()[1].item2;
 
     return math.sqrt(xDifference * xDifference + yDifference * yDifference);
   }
 
-  //V
-  bool setHeight(double height) {
-    // print("== newSpaceNotifer: set height");
+  bool setHeight(double height){
+    print("== newSpaceNotifer: set height to $height");
+    final set = _setHeight(height);
+    if(set == null){
+      return false;
+    }
+    workspace.setCoords(set);
+    notifyListeners();
+    return true;
+  }
 
-    final topLeft = coordinates[0];
-    final topRight = coordinates[1];
-    final bottomRight = coordinates[2];
-    final bottomLeft = coordinates[3];
+  bool attemptSetHeight(double height){
+    print("== newSpaceNotifer: attempt set height to $height");
+    final attempt = _setHeight(height);
+    if(attempt == null){
+      return false;
+    }
+    return true;
+  }
+
+  //V
+  List<Tuple2<double, double>>? _setHeight(double height) {
+    final topLeft = workspace.getCoords()[0];
+    final topRight = workspace.getCoords()[1];
+    final bottomRight = workspace.getCoords()[2];
+    final bottomLeft = workspace.getCoords()[3];
     late final Tuple2<double, double> newBottomLeft;
     late final Tuple2<double, double> newBottomRight;
 
     // if angle is negligable
-    if (currAngle > defaultAngle - 0.001 && currAngle < defaultAngle + 0.001) {
+    if (_currAngle > _defaultAngle - 0.001 &&
+        _currAngle < _defaultAngle + 0.001) {
       newBottomLeft = Tuple2(bottomLeft.item1, topLeft.item2 + height);
       newBottomRight = Tuple2(bottomRight.item1, topRight.item2 + height);
     } else {
-      newBottomLeft = _rotateOffset(topLeft, currAngle + math.pi / 2, height);
+      newBottomLeft = _rotateOffset(topLeft, _currAngle + math.pi / 2, height);
       newBottomRight =
-          _rotateOffset(bottomLeft, currAngle + math.pi / 2, height);
+          _rotateOffset(bottomLeft, _currAngle + math.pi / 2, height);
     }
 
     if (!_isWithinBounds(newBottomLeft) || !_isWithinBounds(newBottomRight)) {
-      return false;
+      return null;
     }
-    coordinates = [
+    return [
       topLeft,
       topRight,
       newBottomRight,
       newBottomLeft,
     ];
-    notifyListeners();
-    return true;
   }
 
   double getHeight() {
     // print("== newSpaceNotifer: get height");
-    final xDifference = coordinates[3].item1 - coordinates[0].item1;
-    final yDifference = coordinates[3].item2 - coordinates[0].item2;
+    final xDifference = workspace.getCoords()[3].item1 - workspace.getCoords()[0].item1;
+    final yDifference = workspace.getCoords()[3].item2 - workspace.getCoords()[0].item2;
     return math.sqrt(xDifference * xDifference + yDifference * yDifference);
   }
 
-  //V
-  bool setAngle(double angleInRadians) {
-    print("== newSpaceNotifer: set angle");
-    final pivot = coordinates[0];
-    final List<Tuple2<double, double>> newCoords = [coordinates[0]];
+  bool setAngleInDegrees(double angle){
+    print("== newSpaceNotifer: set angel in degrees to $angle");
+    return setAngleInRadians(angle * math.pi/180);
+  }
 
-    final angleOfCurrentSpace = _getAngleBetweenCoords(pivot, coordinates[1]);
-    if (angleOfCurrentSpace == angleInRadians + 0.5 * math.pi) {
+  bool attemptSetAngleInDegrees(double angle){
+    print("== newSpaceNotifer: attempt set angel in degrees to $angle");
+    return attemptSetAngleRadians(angle * math.pi/180);
+  }
+
+  bool attemptSetAngleRadians(double angle){
+    print("== newSpaceNotifer: attempt set angel in radians to $angle");
+    final attempt = _setAngleInRadians(angle);
+    if(attempt == null){
       return false;
     }
+    return true;
+  }
 
-    for (var i = 1; i < coordinates.length; i++) {
-      final coord = coordinates[i];
-      final angle = angleInRadians + 0.5*math.pi - angleOfCurrentSpace;
+  bool setAngleInRadians(double angle){
+    print("== newSpaceNotifer: set angel in radians to $angle");
+    final set = _setAngleInRadians(angle);
+    if(set == null){
+      return false;
+    }
+    workspace.setCoords(set);
+    _currAngle = _getAngleBetweenCoords(workspace.getCoords()[0], workspace.getCoords()[1]);
+    // print("during set angle: ${_currAngle * 180 / math.pi}");
+    notifyListeners();
+    return true;
+  }
+
+  //V
+  List<Tuple2<double, double>>? _setAngleInRadians(double angle) {
+    // print("== newSpaceNotifer: set angle");
+    final pivot = workspace.getCoords()[0];
+    final List<Tuple2<double, double>> newCoords = [workspace.getCoords()[0]];
+
+    final angleOfCurrentSpace = _getAngleBetweenCoords(pivot, workspace.getCoords()[1]);
+    if (angleOfCurrentSpace == angle + 0.5 * math.pi) {
+      return null;
+    }
+
+    for (var i = 1; i < workspace.getCoords().length; i++) {
+      final coord = workspace.getCoords()[i];
+      final newAngle = angle + 0.5 * math.pi - angleOfCurrentSpace;
 
       final newCoord = _rotateAlongPivot(
-        angle,
+        newAngle,
         pivot,
         coord,
       );
 
       if (!_isWithinBounds(newCoord)) {
-        return false;
+        return null;
       }
       newCoords.add(newCoord);
     }
-    coordinates = newCoords;
-    currAngle = _getAngleBetweenCoords(coordinates[0], coordinates[1]);
-    // print("during set angle: ${currAngle * 180 / math.pi}");
-    notifyListeners();
-    return true;
+    return newCoords;
   }
 
   double getAngleDegrees() {
     // print("== newSpaceNotifer: get angle degrees");
-    // print("getting angle in degrees. It is ${currAngle * 180 / math.pi}");
-    final toDegrees = (currAngle * 180 / math.pi).abs();
+    // print("getting angle in degrees. It is ${_currAngle * 180 / math.pi}");
+    final toDegrees = (_currAngle * 180 / math.pi).abs();
 
     return toDegrees - 90;
   }
 
   Path getPath() {
     // print("== newSpaceNotifer: get path");
-    if (coordinates.length <= 2) {
+    if (workspace.getCoords().length <= 2) {
       print(
           "ERROR: in getPath() in newSpaceNotifier. There were not enough coords");
     }
     // start path
-    final path = Path()..moveTo(coordinates[0].item1, coordinates[0].item2);
+    final path = Path()..moveTo(workspace.getCoords()[0].item1, workspace.getCoords()[0].item2);
     // traverse path
-    for (var i = 1; i < coordinates.length; i++) {
-      path.lineTo(coordinates[i].item1, coordinates[i].item2);
+    for (var i = 1; i < workspace.getCoords().length; i++) {
+      path.lineTo(workspace.getCoords()[i].item1, workspace.getCoords()[i].item2);
     }
     // complete path
-    path.lineTo(coordinates[0].item1, coordinates[0].item2);
+    path.lineTo(workspace.getCoords()[0].item1, workspace.getCoords()[0].item2);
     return path;
   }
 
-  bool isValid(Floors floor) {
+  bool isValid() {
     final outterWalls = FloorSketcher.getOutterWalls();
 
     late final Path innerWalls;
-    switch (floor) {
+    switch (workspace.getFloor()) {
       case Floors.f9:
         innerWalls = FloorSketcher.getFloor9InnerWalls();
         break;
@@ -266,7 +393,7 @@ class NewSpaceNotifier extends ChangeNotifier {
         break;
     }
 
-    for (var coord in coordinates) {
+    for (var coord in workspace.getCoords()) {
       if (!outterWalls.contains(Offset(coord.item1, coord.item2))) {
         print("not within outter walls");
         return false;
@@ -295,14 +422,15 @@ class NewSpaceNotifier extends ChangeNotifier {
     const padding = 1.0;
     var newSpaceWoPadding = Path();
     final firstPaddingAngle =
-        _getAngleBetweenCoords(coordinates[0], _getCenter());
+        _getAngleBetweenCoords(workspace.getCoords()[0], _getCenter());
     final firstNewCoord =
-        _rotateOffset(coordinates[0], firstPaddingAngle, padding);
+        _rotateOffset(workspace.getCoords()[0], firstPaddingAngle, padding);
     newSpaceWoPadding.moveTo(firstNewCoord.item1, firstNewCoord.item2);
 
-    for (var i = 1; i < coordinates.length; i++) {
-      final paddingAngle = _getAngleBetweenCoords(coordinates[i], _getCenter());
-      final newCoord = _rotateOffset(coordinates[i], paddingAngle, padding);
+    for (var i = 1; i < workspace.getCoords().length; i++) {
+      final paddingAngle =
+          _getAngleBetweenCoords(workspace.getCoords()[i], _getCenter());
+      final newCoord = _rotateOffset(workspace.getCoords()[i], paddingAngle, padding);
       newSpaceWoPadding.lineTo(newCoord.item1, newCoord.item2);
     }
     newSpaceWoPadding.lineTo(firstNewCoord.item1, firstNewCoord.item2);
@@ -321,12 +449,12 @@ class NewSpaceNotifier extends ChangeNotifier {
     var sumX = 0.0;
     var sumY = 0.0;
 
-    for (var coord in coordinates) {
+    for (var coord in workspace.getCoords()) {
       sumX += coord.item1;
       sumY += coord.item2;
     }
 
-    return Tuple2(sumX / coordinates.length, sumY / coordinates.length);
+    return Tuple2(sumX / workspace.getCoords().length, sumY / workspace.getCoords().length);
   }
 
   double _degreesToRadians(double degrees) {
@@ -396,10 +524,10 @@ class NewSpaceNotifier extends ChangeNotifier {
   void _printCoords(String title) {
     print(" ");
     print(" ------- Coords: $title ----------");
-    for (var i = 0; i < coordinates.length; i++) {
-      print("$i: (${coordinates[i].item1}, ${coordinates[i].item2})");
+    for (var i = 0; i < workspace.getCoords().length; i++) {
+      print("$i: (${workspace.getCoords()[i].item1}, ${workspace.getCoords()[i].item2})");
     }
-    print("current angle: $currAngle");
+    print("current angle: $_currAngle");
     print(" --------------- $title -----------");
   }
 }

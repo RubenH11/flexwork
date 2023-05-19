@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import "dart:math" as math;
-import './flexwork.dart';
+import "./helpers/firebaseService.dart";
 import "./admin/admin.dart";
 import "package:provider/provider.dart";
 import 'models/newReservationNotifier.dart';
@@ -11,26 +10,51 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   // Hook up to Firestore database
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyBK9xQzpEgGfGxljk6L7oq1OUDQ10w7Kd0",
-      appId: "1:598691515878:web:f30e1a8f34a75d16d45a27",
-      messagingSenderId: "598691515878",
-      projectId: "nu-flex-app",
-      storageBucket: "nu-flex-app.appspot.com",
-    ),
-  );
+  await FirebaseService.initializeApp();
 
   // Provide NewReservationNotifier (should only be for users)
-  runApp(ChangeNotifierProvider(
-    create: (_) => NewReservationNotifier(),
-    child: MyApp(),
-  ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => NewReservationNotifier(),
+      child: StreamBuilder<QuerySnapshot>(
+        //Stream accepts all workspaces (just their idetifiers)
+        stream: FirebaseService().getAllSpacesStreamFromDB(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text("An error occurred, please reload the page.");
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary),
+            );
+          }
+          //Future accepts the coordinates that come with the workspaces, such that the Workspace objects can be created
+          return FutureBuilder(
+            future: FirebaseService().getAllWorkspacesFromDB(snapshot.data!.docs),
+            builder: (_, workspaces) {
+              if (workspaces.hasError) {
+                return const Text("An error occurred, please reload the page.");
+              }
+
+              if (workspaces.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary),
+                );
+              }
+              // FirebaseService().printWorkspaces();
+              return MyApp();
+            },
+          );
+        },
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
   MyApp({super.key});
 
   // This widget is the root of your application.

@@ -1,8 +1,9 @@
 import "package:flutter/material.dart";
+import "package:flutter/rendering.dart";
 import '../../models/newSpaceNotifier.dart';
 import "../../widgets/customTextButton.dart";
-import "package:number_text_input_formatter/number_text_input_formatter.dart";
 import "package:provider/provider.dart";
+import "../../widgets/newSpaceTextField.dart";
 
 class NewSpaceMenuSize extends StatefulWidget {
   NewSpaceNotifier newSpace;
@@ -14,109 +15,52 @@ class NewSpaceMenuSize extends StatefulWidget {
   });
 
   @override
-  State<NewSpaceMenuSize> createState() => _SizeButtonsState();
+  State<NewSpaceMenuSize> createState() => _NewSpaceMenuSizeState();
 }
 
-class _SizeButtonsState extends State<NewSpaceMenuSize> {
-  final widthController = TextEditingController();
-  final heightController = TextEditingController();
-  final widthFocusNode = FocusNode();
-  final heightFocusNode = FocusNode();
-  var heightCursorOffset = 0;
-  var widthCursorOffset = 0;
-
-  late NewSpaceNotifier newSpace;
-
-  void setHeight() {
-    final value = heightController.text;
-    if (value == "") {
-      newSpace.setHeight(0);
-    } else {
-      newSpace.setHeight(double.parse(value));
-    }
+class _NewSpaceMenuSizeState extends State<NewSpaceMenuSize> {
+  String getHeight(NewSpaceNotifier newSpace) {
+    return newSpace.getHeight().toString();
   }
 
-  void setWidth() {
-    final value = widthController.text;
-    if (value == "") {
-      newSpace.setWidth(0);
-    } else {
-      newSpace.setWidth(double.parse(value));
-    }
-  }
-
-  void restoreCursorOffsets() {
-    if (widthController.text.length >= widthCursorOffset) {
-      widthController.selection =
-          TextSelection.fromPosition(TextPosition(offset: widthCursorOffset));
-    } else {
-      widthController.selection = TextSelection.fromPosition(
-          TextPosition(offset: widthCursorOffset - 1));
-    }
-    if (heightController.text.length >= heightCursorOffset) {
-      heightController.selection =
-          TextSelection.fromPosition(TextPosition(offset: heightCursorOffset));
-    } else {
-      heightController.selection = TextSelection.fromPosition(
-          TextPosition(offset: heightCursorOffset - 1));
-    }
-  }
-
-  void updateControllers() {
-    heightController.text = newSpace.getHeight().toString();
-    widthController.text = newSpace.getWidth().toString();
-  }
-
-  @override
-  void initState() {
-    newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
-    widthController.text = newSpace.getWidth().toString();
-    heightController.text = newSpace.getHeight().toString();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widthController.dispose();
-    heightController.dispose();
-    super.dispose();
+  String getWidth(NewSpaceNotifier newSpace) {
+    return newSpace.getWidth().toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    updateControllers();
-    restoreCursorOffsets();
+    final newSpace = Provider.of<NewSpaceNotifier>(context);
     print("build size");
     return Column(
       children: [
         Row(
           children: [
             CustomTextButton(
-                key: UniqueKey(),
-                onPressed: () {
-                  newSpace.setHeight(18);
-                  newSpace.setWidth(12);
-                  updateControllers();
-                },
-                selected:
-                    newSpace.getHeight() == 18 && newSpace.getWidth() == 12,
-                text: "small office"),
+              onPressed: () {
+                print("small office");
+                newSpace.setHeight(18);
+                newSpace.setWidth(12);
+                // updateControllers();
+              },
+              selected: newSpace.getHeight() == 18 && newSpace.getWidth() == 12,
+              text: "small office",
+            ),
             CustomTextButton(
-                key: UniqueKey(),
                 onPressed: () {
+                  print("set to large office");
                   newSpace.setHeight(18);
                   newSpace.setWidth(24);
-                  updateControllers();
+                  setState(() {});
+                  // updateControllers();
                 },
                 selected:
                     newSpace.getHeight() == 18 && newSpace.getWidth() == 24,
                 text: "large office"),
             CustomTextButton(
-                key: UniqueKey(),
                 onPressed: () {
                   newSpace.setHeight(4);
                   newSpace.setWidth(6);
-                  updateControllers();
+                  // updateControllers();
                 },
                 selected: newSpace.getHeight() == 4 && newSpace.getWidth() == 6,
                 text: "single desk"),
@@ -125,7 +69,9 @@ class _SizeButtonsState extends State<NewSpaceMenuSize> {
         Row(
           children: [
             CustomTextButton(
-              onPressed: () {},
+              onPressed: () {
+                // debugDumpFocusTree();
+              },
               selected: false,
               text: "1x2 desks",
             ),
@@ -145,30 +91,21 @@ class _SizeButtonsState extends State<NewSpaceMenuSize> {
           children: [
             SizedBox(width: 100, child: Text("Height")),
             Expanded(
-              child: TextField(
-                controller: heightController,
-                focusNode: heightFocusNode,
-                onTap: () =>
-                    heightCursorOffset = heightController.selection.baseOffset,
-                onChanged: (_) {
-                  heightCursorOffset = heightController.selection.baseOffset;
-                  setHeight();
+              child: NewSpaceTextField(
+                inputCheck: (value) {
+                  if (value == "") {
+                    return newSpace.attemptSetHeight(0.0);
+                  }
+                  return newSpace.attemptSetHeight(value);
                 },
-                onTapOutside: (event) =>
-                    widget.newSpaceFocusNode.requestFocus(),
-                inputFormatters: [
-                  NumberTextInputFormatter(
-                    integerDigits: 10,
-                    maxValue: '100000.00',
-                    decimalSeparator: '.',
-                    groupDigits: 3,
-                    groupSeparator: ' ',
-                    allowNegative: false,
-                    overrideDecimalPoint: true,
-                    insertDecimalPoint: false,
-                    insertDecimalDigits: false,
-                  ),
-                ],
+                setOnRebuild: getHeight,
+                onSubmit: (value) {
+                  widget.newSpaceFocusNode.requestFocus();
+                  if (value == "") {
+                    return newSpace.setHeight(0.0);
+                  }
+                  return newSpace.setHeight(double.parse(value));
+                },
               ),
             )
           ],
@@ -177,35 +114,50 @@ class _SizeButtonsState extends State<NewSpaceMenuSize> {
           children: [
             SizedBox(width: 100, child: Text("Width")),
             Expanded(
-              child: TextField(
-                controller: widthController,
-                focusNode: widthFocusNode,
-                onTap: () =>
-                    widthCursorOffset = widthController.selection.baseOffset,
-                onChanged: (_) {
-                  widthCursorOffset = widthController.selection.baseOffset;
-                  setWidth();
+              child: NewSpaceTextField(
+                inputCheck: (value) {
+                  if (value == "") {
+                    return newSpace.attemptSetWidth(0.0);
+                  }
+                  return newSpace.attemptSetWidth(value);
                 },
-                onTapOutside: (event) =>
-                    widget.newSpaceFocusNode.requestFocus(),
-                inputFormatters: [
-                  NumberTextInputFormatter(
-                    integerDigits: 10,
-                    maxValue: '1000.00',
-                    decimalSeparator: '.',
-                    groupDigits: 3,
-                    groupSeparator: ' ',
-                    allowNegative: false,
-                    overrideDecimalPoint: true,
-                    insertDecimalPoint: false,
-                    insertDecimalDigits: false,
-                  ),
-                ],
+                setOnRebuild: getWidth,
+                onSubmit: (value) {
+                  widget.newSpaceFocusNode.requestFocus();
+                  if (value == "") {
+                    return newSpace.setWidth(0.0);
+                  }
+                  return newSpace.setWidth(double.parse(value));
+                },
               ),
             )
           ],
         )
       ],
+    );
+  }
+}
+
+class NewSpaceCustomTextButton extends StatelessWidget {
+  final Function onPressed;
+  final bool Function() selected;
+  final String text;
+  const NewSpaceCustomTextButton({
+    required this.onPressed,
+    required this.selected,
+    required this.text,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Provider.of<NewSpaceNotifier>(context);
+    print("rebuild button that is ${selected()}");
+
+    return CustomTextButton(
+      onPressed: onPressed,
+      selected: selected(),
+      text: text,
     );
   }
 }
