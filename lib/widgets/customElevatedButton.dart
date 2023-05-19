@@ -23,26 +23,23 @@ class CustomElevatedButton extends StatefulWidget {
 class _CustomTextButtonState extends State<CustomElevatedButton> {
   var tapDown = false;
   Color getTextColor(BuildContext context) {
-    if(!widget.selected && widget.active){
+    if (!widget.selected && widget.active) {
       return Theme.of(context).colorScheme.onSecondary;
     }
-    if(!widget.selected && !widget.active){
+    if (!widget.selected && !widget.active) {
       return Theme.of(context).colorScheme.secondary;
-    }
-    else{
+    } else {
       return Theme.of(context).colorScheme.onPrimary;
     }
   }
 
   Color getBackgroundColor(BuildContext context) {
-    if(widget.selected && widget.active){
+    if (widget.selected && widget.active) {
       return Theme.of(context).colorScheme.primary;
-    }
-    else if(widget.selected && !widget.active){
-      return  Theme.of(context).colorScheme.primary.withOpacity(0.5);
-    }
-    else{
-      return  Theme.of(context).colorScheme.background;
+    } else if (widget.selected && !widget.active) {
+      return Theme.of(context).colorScheme.primary.withOpacity(0.5);
+    } else {
+      return Theme.of(context).colorScheme.background;
     }
   }
 
@@ -51,30 +48,35 @@ class _CustomTextButtonState extends State<CustomElevatedButton> {
     final textColor = getTextColor(context);
     final backgroundColor = getBackgroundColor(context);
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: widget.active ? () => widget.onPressed() : null,
-        onTapDown: (details) {
-          setState(() {
-            tapDown = true;
-          });
-        },
-        onTapUp: (details) {
-          setState(() {
-            tapDown = false;
-          });
-        },
-        child: Container(
-          color: backgroundColor,
-          width: double.infinity,
-          height: 30,
-          child: Center(
-            child: Text(widget.text,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: textColor)),
-          ),
+    return GestureDetector(
+      onTap: widget.active ? () => widget.onPressed() : null,
+      onTapDown: (details) {
+        setState(() {
+          tapDown = true;
+        });
+      },
+      onTapUp: (details) {
+        setState(() {
+          tapDown = false;
+        });
+      },
+      child: Container(
+        color: backgroundColor,
+        width: double.infinity,
+        height: 30,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              widget.text,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: textColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

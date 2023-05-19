@@ -45,18 +45,25 @@ class _NewSpaceMenuState extends State<NewSpaceMenu> {
     return Column(
       children: [
         Row(
+          // mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CustomElevatedButton(
-              onPressed: () => setState(() => isRectangularSpace = true),
-              active: !isRectangularSpace,
-              selected: isRectangularSpace,
-              text: "rectangular",
+            Expanded(
+              child: CustomElevatedButton(
+                onPressed: () => setState(() => isRectangularSpace = true),
+                active: !isRectangularSpace,
+                selected: isRectangularSpace,
+                text: "rectangular",
+              ),
             ),
-            CustomElevatedButton(
-              onPressed: () => setState(() => isRectangularSpace = false),
-              active: isRectangularSpace,
-              selected: !isRectangularSpace,
-              text: "advanced",
+            Expanded(
+              child: CustomElevatedButton(
+                onPressed: () => setState(() => isRectangularSpace = false),
+                active: isRectangularSpace,
+                selected: !isRectangularSpace,
+                text: "advanced",
+              ),
             ),
           ],
         ),
@@ -105,23 +112,28 @@ class _NewSpaceMenuState extends State<NewSpaceMenu> {
         ),
         const Divider(),
         Row(
+          // mainAxisSize: MainAxisSize.max,
           children: [
-            CustomElevatedButton(
-              onPressed: () {
-                print("cancel");
-              },
-              active: true,
-              selected: false,
-              text: "cancel",
+            Expanded(
+              child: CustomElevatedButton(
+                onPressed: () {
+                  print("cancel");
+                },
+                active: true,
+                selected: false,
+                text: "cancel",
+              ),
             ),
             SizedBox(
               width: 10,
             ),
-            CustomElevatedButton(
-              onPressed: addRoom,
-              active: widget.isValid,
-              selected: true,
-              text: "add",
+            Expanded(
+              child: CustomElevatedButton(
+                onPressed: addRoom,
+                active: widget.isValid,
+                selected: true,
+                text: "add",
+              ),
             ),
           ],
         )

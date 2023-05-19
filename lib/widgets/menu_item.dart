@@ -4,10 +4,12 @@ class MenuItem extends StatelessWidget {
   final Icon icon;
   final String title;
   final Widget child;
+  final Widget? trailing;
   const MenuItem(
       {required this.icon,
       required this.title,
       required this.child,
+      this.trailing,
       super.key});
 
   @override
@@ -21,6 +23,8 @@ class MenuItem extends StatelessWidget {
               width: 4,
             ),
             Text(title),
+            Spacer(),
+            if(trailing != null) trailing!,
           ],
         ),
         SizedBox(

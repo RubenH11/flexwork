@@ -34,6 +34,15 @@ class Workspace {
     _coordinates[numOfCoord] = coord;
   }
 
+  void addCoordinateFromLast(){
+    final numCoords = _coordinates.length;
+    _coordinates.add(_coordinates[numCoords-1]);
+  }
+
+  void deleteCoordinate(int numOfCoord){
+    _coordinates.removeAt(numOfCoord);
+  }
+
   Floors getFloor(){
     return _floor;
   }
