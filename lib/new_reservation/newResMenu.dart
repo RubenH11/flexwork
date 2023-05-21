@@ -9,10 +9,10 @@ import "./newResTimeFrame.dart";
 import "./newResFloors.dart";
 import "./newResButton.dart";
 
-const LABEL_INDENT = 10.0;
-
 class NewReservationMenu extends StatelessWidget {
   NewReservationMenu({super.key});
+
+  final LABEL_INDENT = 10.0;
 
   @override
   Widget build(BuildContext context) {

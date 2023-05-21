@@ -8,11 +8,9 @@ import "dart:math" as math;
 class NewSpaceMenuRotation extends StatelessWidget {
   NewSpaceNotifier newSpace;
   FocusNode newSpaceFocusNode;
-  Function updateMenu;
   NewSpaceMenuRotation({
     required this.newSpace,
     required this.newSpaceFocusNode,
-    required this.updateMenu,
     super.key,
   });
 
@@ -23,68 +21,68 @@ class NewSpaceMenuRotation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
-    print("build rotation");
+    // print("build rotation");
     return Column(
       children: [
         Row(
           children: [
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(0);
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 0,
-              text: "0\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(0);
+                },
+                selected: newSpace.getAngleDegrees() > -0.00001 && newSpace.getAngleDegrees() < 0.00001,
+                text: "0\u00B0",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(math.atan(4 / 18));
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 10,
-              text: "12.52\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(math.atan(4 / 18));
+                },
+                selected: newSpace.getAngleDegrees() > 12.52 && newSpace.getAngleDegrees() < 12.53,
+                text: "12.53\u00B0",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(math.atan(3 / 4));
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 15,
-              text: "36.87\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(math.atan(3 / 4));
+                },
+                selected: newSpace.getAngleDegrees() > 36.86 && newSpace.getAngleDegrees() < 36.87,
+                text: "36.87\u00B0",
+              ),
             ),
           ],
         ),
         Row(
           children: [
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(0.5 * math.pi);
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 0,
-              text: "90\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(0.5 * math.pi);
+                },
+                selected: newSpace.getAngleDegrees() > 89.9999 && newSpace.getAngleDegrees() < 90.0001,
+                text: "90\u00B0",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(math.atan(4 / 18) + 0.5 * math.pi);
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 10,
-              text: "12.52\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(math.atan(4 / 18) + 0.5 * math.pi);
+                },
+                selected: newSpace.getAngleDegrees() > 102.52 && newSpace.getAngleDegrees() < 102.53,
+                text: "102.53\u00B0",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {
-                newSpace.setAngleInRadians(math.atan(3 / 4) + 0.5 * math.pi);
-                // updateController();
-                updateMenu();
-              },
-              selected: newSpace.getAngleDegrees() == 15,
-              text: "15\u00B0",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  newSpace.setAngleInRadians(math.atan(3 / 4) + 0.5 * math.pi);
+                },
+                selected: newSpace.getAngleDegrees() > 126.86 && newSpace.getAngleDegrees() < 126.87,
+                text: "126.87\u00B0",
+              ),
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "../../models/floors.dart";
 import "package:provider/provider.dart";
-import "../../widgets/adminFloor.dart";
+import '../../widgets/newSpaceFloor.dart';
 import '../../models/newSpaceNotifier.dart';
 
 class NewSpaceContent extends StatelessWidget {

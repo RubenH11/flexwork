@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import "./floors.dart";
 
 class NewReservationNotifier extends ChangeNotifier{
-  var _floor = Floors.f9;
   DateTime? _startTime;
   DateTime? _endTime;
   String? _roomNumber;
@@ -15,15 +14,6 @@ class NewReservationNotifier extends ChangeNotifier{
     _startTime = null;
     _endTime = null;
     _roomNumber = null;
-    notifyListeners();
-  }
-
-  Floors getFloor(){
-    return _floor;
-  }
-
-  void setFloor(Floors floor){
-    _floor = floor;
     notifyListeners();
   }
 

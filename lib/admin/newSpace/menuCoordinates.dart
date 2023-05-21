@@ -26,7 +26,7 @@ class NewSpaceMenuCoordinates extends StatelessWidget {
   Widget build(BuildContext context) {
     final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
 
-    print("build coords");
+    // print("build coords");
     return Column(
       children: [
         Row(

@@ -51,8 +51,9 @@ class FirebaseService {
   // Workspaces
   List<Workspace> _workspaces = [];
 
-  List<Workspace> getWorkspaces() {
-    return [..._workspaces];
+  List<Workspace> getWorkspaces(Floors floor) {
+    final workspacesOnFloor = _workspaces.where((workspace) => workspace.getFloor() == floor).toList();
+    return workspacesOnFloor;
   }
 
   Future<String?> addNewWorkspaceToDB(
@@ -106,7 +107,7 @@ class FirebaseService {
   Future<List<Workspace>?> _getAllWorkspacesFromDB(
       List<QueryDocumentSnapshot<Object?>> docs) async {
     try {
-      print("cannot execute getting all spaces yet");
+      // print("cannot execute getting all spaces yet");
 
       final List<Workspace> workspaces = [];
 
@@ -137,11 +138,11 @@ class FirebaseService {
             .collection("coordinates")
             .get();
 
-        print("snapshot docs: ${coordsSnapshot.docs.length} from ${doc.id}");
+        // print("snapshot docs: ${coordsSnapshot.docs.length} from ${doc.id}");
         List<Tuple2<double, double>> coords = [];
         for (var coordDoc in coordsSnapshot.docs) {
           coords.add(Tuple2(coordDoc.data()["x"], coordDoc.data()["y"]));
-          print("just added ${coords.last} to coords");
+          // print("just added ${coords.last} to coords");
         }
         workspaces.add(Workspace(coords, identifier, floor));
       }

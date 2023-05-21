@@ -48,15 +48,16 @@ class _NewSpaceTextFieldState extends State<NewSpaceTextField> {
     final borderColor = error
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
-    print("building in with error? $error}");
 
     return TextField(
       controller: controller,
       focusNode: focusNode,
-      style: Theme.of(context).textTheme.bodyMedium!.merge(TextStyle(color: borderColor, fontWeight: FontWeight.bold),),//TextStyle(color: borderColor, fontWeight: FontWeight.bold, fontSize: 12),
+      style: Theme.of(context).textTheme.bodyMedium!.merge(
+            TextStyle(color: borderColor, fontWeight: FontWeight.bold),
+          ), //TextStyle(color: borderColor, fontWeight: FontWeight.bold, fontSize: 12),
       textAlign: TextAlign.center,
       decoration: InputDecoration(
-        isDense: true,
+          isDense: true,
           // labelStyle: TextStyle(color: borderColor),
           // fillColor: borderColor,
           // filled: true,
@@ -64,10 +65,13 @@ class _NewSpaceTextFieldState extends State<NewSpaceTextField> {
               OutlineInputBorder(borderSide: BorderSide(color: borderColor)),
           focusedBorder:
               OutlineInputBorder(borderSide: BorderSide(color: borderColor))),
-      onTapOutside: (_) => submit(),
+      onTapOutside: (_) {
+        if (focusNode.hasFocus) {
+          submit();
+        }
+      },
       onChanged: (value) {
         setState(() {
-          // print("set cursorPos to ${controller.selection.baseOffset}");
           setStateWasCalled = true;
           cursorPos = controller.selection.baseOffset;
           if (value == "") {

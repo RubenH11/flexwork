@@ -107,3 +107,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+// TODO:
+// From advanced newSpace to rectangular newSpace disapearance
+// From advanced newSpace to rectangular newSpace warning of disapearance

@@ -27,9 +27,6 @@ class MenuItem extends StatelessWidget {
             if(trailing != null) trailing!,
           ],
         ),
-        SizedBox(
-          height: 10,
-        ),
         Padding(
           padding: EdgeInsets.only(left: 10),
           child: child,

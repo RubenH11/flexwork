@@ -26,7 +26,7 @@ class NewSpaceNotifier extends ChangeNotifier {
   }
 
   final _defaultAngle = 90 * math.pi / 180;
-  var _currAngle = 90 * math.pi / 180;
+  var _currAngle = 90.0;
   static const int _MAX_X = 321;
   static const int _MAX_Y = 144;
 
@@ -138,40 +138,25 @@ class NewSpaceNotifier extends ChangeNotifier {
   }
 
   //V
-  bool offsetCoordinates({required double x, required double y}) {
+  bool offsetCoordinates(
+      {required double horizontal, required double vertical}) {
     print("== newSpaceNotifer: offset coord");
     List<Tuple2<double, double>> newCoords = [];
 
-    // if angle is negligable
-    if (_currAngle > _defaultAngle - 0.001 &&
-        _currAngle < _defaultAngle + 0.001) {
-      print("angle was negligable at $_currAngle");
+    if (horizontal != 0) {
+      print("horizontal is called while angle = $_currAngle");
       for (var coord in workspace.getCoords()) {
-        final newCoord = Tuple2(coord.item1 + x, coord.item2 + y);
-        if (!_isWithinBounds(newCoord)) {
-          return false;
-        }
-        newCoords.add(newCoord);
-      }
-      workspace.setCoords(newCoords);
-      notifyListeners();
-      return true;
-    }
-    print("angle was not negligable at $_currAngle");
-    // if there is an angle and an x offset
-    if (x != 0) {
-      for (var coord in workspace.getCoords()) {
-        final newCoord = _rotateOffset(coord, _currAngle, x);
+        final newCoord = _rotateOffset(coord, _currAngle, horizontal);
         if (!_isWithinBounds(newCoord)) {
           return false;
         }
         newCoords.add(newCoord);
       }
     }
-    // if there is an angle and a y offset
-    if (y != 0) {
+    if (vertical != 0) {
+      print("vertical is called while angle = $_currAngle");
       for (var coord in workspace.getCoords()) {
-        final newCoord = _rotateOffset(coord, _currAngle + math.pi / 2, y);
+        final newCoord = _rotateOffset(coord, _currAngle + 90, vertical);
         if (!_isWithinBounds(newCoord)) {
           return false;
         }
@@ -207,21 +192,10 @@ class NewSpaceNotifier extends ChangeNotifier {
   // Note: this can only be applied to spaces with 4 coordinates
   List<Tuple2<double, double>>? _setWidth(double width) {
     final topLeft = workspace.getCoords()[0];
-    final topRight = workspace.getCoords()[1];
-    final bottomRight = workspace.getCoords()[2];
     final bottomLeft = workspace.getCoords()[3];
-    late final Tuple2<double, double> newTopRight;
-    late final Tuple2<double, double> newBottomRight;
 
-    // if angle is negligable
-    if (_currAngle > _defaultAngle - 0.001 &&
-        _currAngle < _defaultAngle + 0.001) {
-      newTopRight = Tuple2(topLeft.item1 + width, topRight.item2);
-      newBottomRight = Tuple2(bottomLeft.item1 + width, bottomRight.item2);
-    } else {
-      newTopRight = _rotateOffset(topLeft, _currAngle, width);
-      newBottomRight = _rotateOffset(bottomLeft, _currAngle, width);
-    }
+    final newTopRight = _rotateOffset(topLeft, _currAngle, width);
+    final newBottomRight = _rotateOffset(bottomLeft, _currAngle, width);
 
     if (!_isWithinBounds(newTopRight) || !_isWithinBounds(newBottomRight)) {
       return null;
@@ -269,21 +243,9 @@ class NewSpaceNotifier extends ChangeNotifier {
   List<Tuple2<double, double>>? _setHeight(double height) {
     final topLeft = workspace.getCoords()[0];
     final topRight = workspace.getCoords()[1];
-    final bottomRight = workspace.getCoords()[2];
-    final bottomLeft = workspace.getCoords()[3];
-    late final Tuple2<double, double> newBottomLeft;
-    late final Tuple2<double, double> newBottomRight;
 
-    // if angle is negligable
-    if (_currAngle > _defaultAngle - 0.001 &&
-        _currAngle < _defaultAngle + 0.001) {
-      newBottomLeft = Tuple2(bottomLeft.item1, topLeft.item2 + height);
-      newBottomRight = Tuple2(bottomRight.item1, topRight.item2 + height);
-    } else {
-      newBottomLeft = _rotateOffset(topLeft, _currAngle + math.pi / 2, height);
-      newBottomRight =
-          _rotateOffset(bottomLeft, _currAngle + math.pi / 2, height);
-    }
+    final newBottomLeft = _rotateOffset(topLeft, _currAngle + 90, height);
+    final newBottomRight = _rotateOffset(topRight, _currAngle + 90, height);
 
     if (!_isWithinBounds(newBottomLeft) || !_isWithinBounds(newBottomRight)) {
       return null;
@@ -306,59 +268,67 @@ class NewSpaceNotifier extends ChangeNotifier {
   }
 
   bool setAngleInDegrees(double angle) {
-    print("== newSpaceNotifer: set angel in degrees to $angle");
-    return setAngleInRadians(angle * math.pi / 180);
-  }
-
-  bool attemptSetAngleInDegrees(double angle) {
-    print("== newSpaceNotifer: attempt set angel in degrees to $angle");
-    return attemptSetAngleRadians(angle * math.pi / 180);
-  }
-
-  bool attemptSetAngleRadians(double angle) {
-    print("== newSpaceNotifer: attempt set angel in radians to $angle");
-    final attempt = _setAngleInRadians(angle);
-    if (attempt == null) {
-      return false;
-    }
-    return true;
-  }
-
-  bool setAngleInRadians(double angle) {
-    print("== newSpaceNotifer: set angel in radians to $angle");
-    final set = _setAngleInRadians(angle);
+    final set = _setAngle(angle);
     if (set == null) {
       return false;
     }
     workspace.setCoords(set);
     _currAngle = _getAngleBetweenCoords(
         workspace.getCoords()[0], workspace.getCoords()[1]);
-    // print("during set angle: ${_currAngle * 180 / math.pi}");
     notifyListeners();
     return true;
   }
 
+  bool attemptSetAngleInDegrees(double angle) {
+    // final normalizedAngle = angle % 360;
+    // print(
+    //     "== newSpaceNotifer: ATTEMPT set angel in degrees to $normalizedAngle from $angle");
+    final attempt = _setAngle(angle);
+    if (attempt == null) {
+      return false;
+    }
+    return true;
+  }
+
+  bool attemptSetAngleRadians(double angle) {
+    print("== newSpaceNotifer: attempt set angle in radians to $angle");
+    return attemptSetAngleInDegrees(_radiansToDegrees(angle));
+  }
+
+  bool setAngleInRadians(double angle) {
+    print("== newSpaceNotifer: set angle in radians to $angle");
+    return setAngleInDegrees(_radiansToDegrees(angle));
+  }
+
   //V
-  List<Tuple2<double, double>>? _setAngleInRadians(double angle) {
-    // print("== newSpaceNotifer: set angle");
+  List<Tuple2<double, double>>? _setAngle(double angle) {
+    print("== newSpaceNotifer: set angle with $angle");
+    final normalizedAngle = (angle + 90) % 360;
     final pivot = workspace.getCoords()[0];
-    final List<Tuple2<double, double>> newCoords = [workspace.getCoords()[0]];
+    final newCoords = [pivot];
 
     final angleOfCurrentSpace =
         _getAngleBetweenCoords(pivot, workspace.getCoords()[1]);
-    if (angleOfCurrentSpace == angle + 0.5 * math.pi) {
+    if (angleOfCurrentSpace > normalizedAngle - 0.00001 &&
+        angleOfCurrentSpace < normalizedAngle + 0.00001) {
+      print("angle is the same: $angleOfCurrentSpace == $normalizedAngle");
       return null;
     }
 
+    print("\n -- \n");
+
     for (var i = 1; i < workspace.getCoords().length; i++) {
       final coord = workspace.getCoords()[i];
-      final newAngle = angle + 0.5 * math.pi - angleOfCurrentSpace;
+      print("about to rotate $coord along $pivot");
+      final newAngle = normalizedAngle - angleOfCurrentSpace;
+      print("which means this new angle should be $newAngle");
 
       final newCoord = _rotateAlongPivot(
         newAngle,
         pivot,
         coord,
       );
+      print("resulting in $newCoord");
 
       if (!_isWithinBounds(newCoord)) {
         return null;
@@ -369,11 +339,7 @@ class NewSpaceNotifier extends ChangeNotifier {
   }
 
   double getAngleDegrees() {
-    // print("== newSpaceNotifer: get angle degrees");
-    // print("getting angle in degrees. It is ${_currAngle * 180 / math.pi}");
-    final toDegrees = (_currAngle * 180 / math.pi).abs();
-
-    return toDegrees - 90;
+    return (_currAngle - 90) % 360;
   }
 
   Path getPath() {
@@ -395,7 +361,7 @@ class NewSpaceNotifier extends ChangeNotifier {
     return path;
   }
 
-  bool isValid() {
+  bool isValid(Floors floor) {
     final outterWalls = FloorSketcher.getOutterWalls();
 
     late final Path innerWalls;
@@ -429,7 +395,7 @@ class NewSpaceNotifier extends ChangeNotifier {
             pointMetric.getTangentForOffset(offset)!.position;
 
         if (_pointIsWithinNewSpace(currPointToCheck, newSpaceWoPadding)) {
-          print("on top of inner walls");
+          // print("on top of inner walls");
           return false;
         }
       }
@@ -442,7 +408,7 @@ class NewSpaceNotifier extends ChangeNotifier {
         final currPointToCheck =
             newSpacepointMetric.getTangentForOffset(offset)!.position;
         // for all other workspaces
-        for (var otherWorkspace in FirebaseService().getWorkspaces()) {
+        for (var otherWorkspace in FirebaseService().getWorkspaces(floor)) {
           final otherWorkspacePath = otherWorkspace.getPath();
           if (otherWorkspacePath.contains(currPointToCheck)) {
             return false;
@@ -477,10 +443,12 @@ class NewSpaceNotifier extends ChangeNotifier {
 
   double _getAngleBetweenCoords(
       Tuple2<double, double> from, Tuple2<double, double> to) {
-    final xDifference = to.item1 - from.item1;
-    final yDifference = to.item2 - from.item2;
-    final angle = math.atan2(yDifference, xDifference) + math.pi / 2;
-    return angle >= 0 ? angle : (2 * math.pi) + angle;
+    double xDifference = to.item1 - from.item1;
+    double yDifference = from.item2 - to.item2;
+
+    double radians = math.atan2(xDifference, yDifference);
+    double degrees = _radiansToDegrees(radians) % 360;
+    return degrees;
   }
 
   Tuple2<double, double> _getCenter() {
@@ -496,10 +464,6 @@ class NewSpaceNotifier extends ChangeNotifier {
         sumY / workspace.getCoords().length);
   }
 
-  double _degreesToRadians(double degrees) {
-    return (degrees * math.pi / 180);
-  }
-
   bool _isWithinBounds(Tuple2<double, double> coord) {
     return (coord.item1 <= _MAX_X && coord.item1 >= 0) &&
         (coord.item2 <= _MAX_Y && coord.item2 >= 0);
@@ -513,11 +477,13 @@ class NewSpaceNotifier extends ChangeNotifier {
   }
 
   //V
-  Tuple2<double, double> _rotateAlongPivot(double angleInRadians,
+  Tuple2<double, double> _rotateAlongPivot(double angle,
       Tuple2<double, double> pivot, Tuple2<double, double> coordToRotate) {
     // print("== newSpaceNotifer: rotate along pivot");
 
-    // Translate to pivot pointdsdsds
+    final angleInRadians = _degreesToRadians(angle);
+
+    // Translate to pivot point
     final movedCoord = Tuple2(
         coordToRotate.item1 - pivot.item1, coordToRotate.item2 - pivot.item2);
 
@@ -535,26 +501,60 @@ class NewSpaceNotifier extends ChangeNotifier {
 
   //V
   Tuple2<double, double> _rotateOffset(
-      Tuple2<double, double> coord, double angleRadians, double offset) {
+      Tuple2<double, double> coord, double angle, double offset) {
     late final double newX;
     late final double newY;
 
-    if (angleRadians > 0 && angleRadians < 0.5 * math.pi) {
-      // print("0-90");
-      newX = coord.item1 + math.sin(angleRadians) * offset;
-      newY = coord.item2 - math.cos(angleRadians) * offset;
-    } else if (angleRadians > 0.5 * math.pi && angleRadians < math.pi) {
-      // print("90-180");
-      newX = coord.item1 + math.cos(angleRadians - 0.5 * math.pi) * offset;
-      newY = coord.item2 + math.sin(angleRadians - 0.5 * math.pi) * offset;
-    } else if (angleRadians > math.pi && angleRadians < 1.5 * math.pi) {
-      // print("180-270");
-      newX = coord.item1 - math.sin(angleRadians - math.pi) * offset;
-      newY = coord.item2 + math.cos(angleRadians - math.pi) * offset;
+    final normalizedAngle = angle % 360;
+
+    print("rotateOffset angle: $normalizedAngle");
+
+    // light calculation for 90 degree angles
+    if (normalizedAngle > 90 - 0.0000000000001 &&
+        normalizedAngle < 90 + 0.0000000000001) {
+      print("light calculation at normalizedAngle: $normalizedAngle");
+      newX = coord.item1 + offset;
+      newY = coord.item2;
+    } else if (normalizedAngle > 180 - 0.0000000000001 &&
+        normalizedAngle < 180 + 0.0000000000001) {
+      print("light calculation at normalizedAngle: $normalizedAngle");
+      newX = coord.item1;
+      newY = coord.item2 + offset;
+    } else if (normalizedAngle > 270 - 0.0000000000001 &&
+        normalizedAngle < 270 + 0.0000000000001) {
+      print("light calculation at normalizedAngle: $normalizedAngle");
+      newX = coord.item1 - offset;
+      newY = coord.item2;
+    } else if (normalizedAngle > -0.0000000000001 && normalizedAngle < 0.0000000000001) {
+      print("light calculation at normalizedAngle: $normalizedAngle");
+      newX = coord.item1;
+      newY = coord.item2 - offset;
+    }
+    // more complex calculation for more complex normalizedAngles
+    else if (normalizedAngle > 0 && normalizedAngle < 90) {
+      print("complex calculation with normalizedAngle between 0-90");
+      newX =
+          coord.item1 + math.sin(_degreesToRadians(normalizedAngle)) * offset;
+      newY =
+          coord.item2 - math.cos(_degreesToRadians(normalizedAngle)) * offset;
+    } else if (normalizedAngle > 90 && normalizedAngle < 180) {
+      print("complex calculation with normalizedAngle between 90-180");
+      newX = coord.item1 +
+          math.cos(_degreesToRadians(normalizedAngle - 90)) * offset;
+      newY = coord.item2 +
+          math.sin(_degreesToRadians(normalizedAngle - 90)) * offset;
+    } else if (normalizedAngle > 180 && normalizedAngle < 270) {
+      print("complex calculation with normalizedAngle between 180-270");
+      newX = coord.item1 -
+          math.sin(_degreesToRadians(normalizedAngle - 180)) * offset;
+      newY = coord.item2 +
+          math.cos(_degreesToRadians(normalizedAngle - 180)) * offset;
     } else {
-      // print("270-360");
-      newX = coord.item1 - math.sin(angleRadians - 1.5 * math.pi) * offset;
-      newY = coord.item2 - math.cos(angleRadians - 1.5 * math.pi) * offset;
+      print("complex calculation with normalizedAngle between 270-360");
+      newX = coord.item1 -
+          math.cos(_degreesToRadians(normalizedAngle - 270)) * offset;
+      newY = coord.item2 -
+          math.sin(_degreesToRadians(normalizedAngle - 270)) * offset;
     }
 
     return Tuple2(newX, newY);
@@ -569,5 +569,13 @@ class NewSpaceNotifier extends ChangeNotifier {
     }
     print("current angle: $_currAngle");
     print(" --------------- $title -----------");
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * math.pi / 180;
+  }
+
+  double _radiansToDegrees(double radians) {
+    return radians * 180 / math.pi;
   }
 }

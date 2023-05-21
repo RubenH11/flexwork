@@ -3,20 +3,25 @@ import "package:flutter/services.dart";
 import "dart:async";
 import "package:provider/provider.dart";
 import '../../models/newSpaceNotifier.dart';
-import "./menu.dart";
+import 'rectMenu.dart';
 import "./content.dart";
 import "../../widgets/layout.dart";
 import "../../models/floors.dart";
+import "../../widgets/customElevatedButton.dart";
+import "./menuInfiniteCoords.dart";
 
 class NewSpaceKeyboardListener extends StatefulWidget {
-  const NewSpaceKeyboardListener({super.key});
+  final Floors floor;
+  final FocusNode focusNode;
+  const NewSpaceKeyboardListener({required this.floor, required this.focusNode,
+  super.key});
 
   @override
   State<NewSpaceKeyboardListener> createState() => _KeyboardListenerState();
 }
 
 class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
-  final focusNode = FocusNode(debugLabel: "==keyboard for the floorplan==");
+  var isRectangularSpace = true;
 
   var _upDebounce = Timer(Duration(milliseconds: 0), () {});
 
@@ -36,13 +41,12 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
 
   @override
   void initState() {
-    focusNode.requestFocus();
+    widget.focusNode.requestFocus();
     super.initState();
   }
 
   @override
   void dispose() {
-    focusNode.dispose();
     _upDebounce.cancel();
     _rightDebounce.cancel();
     _leftDebounce.cancel();
@@ -54,10 +58,9 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
     final numMiliSecondsBeforeHoldDown = 200;
     // print("key pressed");
     if (keyEvent is RawKeyDownEvent) {
-
       if (keyEvent.logicalKey == LogicalKeyboardKey.keyW &&
           !_upAlreadyPressed) {
-        newSpace.offsetCoordinates(x: 0, y: -1);
+        newSpace.offsetCoordinates(horizontal: 0, vertical: -1);
         _upAlreadyPressed = true;
         _upDebounce = Timer(
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
@@ -65,7 +68,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
       }
       if (keyEvent.logicalKey == LogicalKeyboardKey.keyD &&
           !_rightAlreadyPressed) {
-        newSpace.offsetCoordinates(x: 1, y: 0);
+        newSpace.offsetCoordinates(horizontal: 1, vertical: 0);
         _rightAlreadyPressed = true;
         _rightDebounce = Timer(
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
@@ -73,7 +76,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
       }
       if (keyEvent.logicalKey == LogicalKeyboardKey.keyA &&
           !_leftAlreadyPressed) {
-        newSpace.offsetCoordinates(x: -1, y: 0);
+        newSpace.offsetCoordinates(horizontal: -1, vertical: 0);
         _leftAlreadyPressed = true;
         _leftDebounce = Timer(
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
@@ -81,7 +84,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
       }
       if (keyEvent.logicalKey == LogicalKeyboardKey.keyS &&
           !_downAlreadyPressed) {
-        newSpace.offsetCoordinates(x: 0, y: 1);
+        newSpace.offsetCoordinates(horizontal: 0, vertical: 1);
         _downAlreadyPressed = true;
         _downDebounce = Timer(
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
@@ -109,7 +112,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
 
   void _handleUpHoldDownEvent(NewSpaceNotifier newSpace) {
     if (_upAlreadyPressed) {
-      newSpace.offsetCoordinates(x: 0, y: -1);
+      newSpace.offsetCoordinates(horizontal: 0, vertical: -1);
     }
     _upDebounce = Timer(
         Duration(milliseconds: 5), () => _handleUpHoldDownEvent(newSpace));
@@ -117,7 +120,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
 
   void _handleRightHoldDownEvent(NewSpaceNotifier newSpace) {
     if (_rightAlreadyPressed) {
-      newSpace.offsetCoordinates(x: 1, y: 0);
+      newSpace.offsetCoordinates(horizontal: 1, vertical: 0);
     }
     _rightDebounce = Timer(
         Duration(milliseconds: 5), () => _handleRightHoldDownEvent(newSpace));
@@ -125,7 +128,7 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
 
   void _handleLeftHoldDownEvent(NewSpaceNotifier newSpace) {
     if (_leftAlreadyPressed) {
-      newSpace.offsetCoordinates(x: -1, y: 0);
+      newSpace.offsetCoordinates(horizontal: -1, vertical: 0);
     }
     _leftDebounce = Timer(
         Duration(milliseconds: 5), () => _handleLeftHoldDownEvent(newSpace));
@@ -133,13 +136,13 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
 
   void _handleDownHoldDownEvent(NewSpaceNotifier newSpace) {
     if (_downAlreadyPressed) {
-      newSpace.offsetCoordinates(x: 0, y: 1);
+      newSpace.offsetCoordinates(horizontal: 0, vertical: 1);
     }
     _downDebounce = Timer(
         Duration(milliseconds: 5), () => _handleDownHoldDownEvent(newSpace));
   }
 
-  void update(){
+  void update() {
     setState(() {});
   }
 
@@ -149,15 +152,12 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
   Widget build(BuildContext context) {
     print("build newSpace");
     final newSpace = Provider.of<NewSpaceNotifier>(context);
-    isValid = newSpace.isValid();
+    isValid = newSpace.isValid(widget.floor);
 
     return RawKeyboardListener(
-      focusNode: focusNode,
+      focusNode: widget.focusNode,
       onKey: (keyEvent) => _handleKeyEvent(newSpace, keyEvent),
-      child: Layout(
-        menu: NewSpaceMenu(newSpaceFocusNode: focusNode, updateMenu: update, isValid: isValid),
-        content: NewSpaceContent(isValid: isValid),
-      ),
+      child: NewSpaceContent(isValid: isValid),
     );
   }
 }

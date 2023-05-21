@@ -1,7 +1,5 @@
 import "dart:typed_data";
 
-import "package:cloud_firestore/cloud_firestore.dart";
-
 import "../helpers/firebaseService.dart";
 import "package:flutter/material.dart";
 import '../helpers/floorSketcher.dart';
@@ -29,7 +27,7 @@ class NewSpaceFloor extends StatelessWidget {
       builder: (context, constraints) {
         final canvasWidth = constraints.maxWidth;
         final canvasHeight = canvasWidth / 27 * 12;
-        final angleOfWalls = math.atan(4 / 18);
+        // final angleOfWalls = math.atan(4 / 18);
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;
@@ -88,7 +86,7 @@ class _Workspaces extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Path> workspaces = [];
-    for (final workspace in FirebaseService().getWorkspaces()) {
+    for (final workspace in FirebaseService().getWorkspaces(floor)) {
       // print("adding ${workspace.toString()} to list to draw");
       workspaces.add(workspace.getPath().transform(scale));
     }
@@ -97,7 +95,7 @@ class _Workspaces extends StatelessWidget {
       size: Size(canvasWidth, canvasHeight),
       painter: _Painter(
         Paint()
-          ..color = Colors.red
+          ..color = Color.fromARGB(255, 135, 235, 151)
           ..strokeWidth = 3.0
           ..style = PaintingStyle.fill,
         workspaces,

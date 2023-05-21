@@ -30,60 +30,70 @@ class _NewSpaceMenuSizeState extends State<NewSpaceMenuSize> {
   @override
   Widget build(BuildContext context) {
     final newSpace = Provider.of<NewSpaceNotifier>(context);
-    print("build size");
+    // print("build size");
     return Column(
       children: [
         Row(
           children: [
-            CustomTextButton(
-              onPressed: () {
-                print("small office");
-                newSpace.setHeight(18);
-                newSpace.setWidth(12);
-                // updateControllers();
-              },
-              selected: newSpace.getHeight() == 18 && newSpace.getWidth() == 12,
-              text: "small office",
-            ),
-            CustomTextButton(
+            Expanded(
+              child: CustomTextButton(
                 onPressed: () {
-                  print("set to large office");
+                  print("set width throuw button");
                   newSpace.setHeight(18);
-                  newSpace.setWidth(24);
-                  setState(() {});
+                  newSpace.setWidth(12);
                   // updateControllers();
                 },
-                selected:
-                    newSpace.getHeight() == 18 && newSpace.getWidth() == 24,
-                text: "large office"),
-            CustomTextButton(
-                onPressed: () {
-                  newSpace.setHeight(4);
-                  newSpace.setWidth(6);
-                  // updateControllers();
-                },
-                selected: newSpace.getHeight() == 4 && newSpace.getWidth() == 6,
-                text: "single desk"),
+                selected: newSpace.getHeight() == 18 && newSpace.getWidth() == 12,
+                text: "small office",
+              ),
+            ),
+            Expanded(
+              child: CustomTextButton(
+                  onPressed: () {
+                    print("set width throuw button");
+                    newSpace.setHeight(18);
+                    newSpace.setWidth(24);
+                  },
+                  selected:
+                      newSpace.getHeight() == 18 && newSpace.getWidth() == 24,
+                  text: "large office"),
+            ),
+            Expanded(
+              child: CustomTextButton(
+                  onPressed: () {
+                    print("set width throuw button");
+                    newSpace.setHeight(4);
+                    newSpace.setWidth(6);
+                  },
+                  selected: newSpace.getHeight() == 4 && newSpace.getWidth() == 6,
+                  text: "single desk"),
+            ),
           ],
         ),
         Row(
           children: [
-            CustomTextButton(
-              onPressed: () {
-                // debugDumpFocusTree();
-              },
-              selected: false,
-              text: "1x2 desks",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {
+                  // debugDumpFocusTree();
+                },
+                selected: false,
+                text: "1x2 desks",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {},
-              selected: false,
-              text: "2x2 desks",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {},
+                selected: false,
+                text: "2x2 desks",
+              ),
             ),
-            CustomTextButton(
-              onPressed: () {},
-              selected: false,
-              text: "2x3 desks",
+            Expanded(
+              child: CustomTextButton(
+                onPressed: () {},
+                selected: false,
+                text: "2x3 desks",
+              ),
             ),
           ],
         ),
@@ -124,6 +134,7 @@ class _NewSpaceMenuSizeState extends State<NewSpaceMenuSize> {
                 setOnRebuild: getWidth,
                 onSubmit: (value) {
                   widget.newSpaceFocusNode.requestFocus();
+                  print("set width in size textfield");
                   if (value == "") {
                     return newSpace.setWidth(0.0);
                   }
