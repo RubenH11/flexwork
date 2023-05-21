@@ -11,7 +11,7 @@ class Layout extends StatelessWidget {
     super.key,
   });
 
-  final MENU_WIDTH = 325.0;
+  final MENU_WIDTH = 315.0;
 
   @override
   Widget build(BuildContext context) {

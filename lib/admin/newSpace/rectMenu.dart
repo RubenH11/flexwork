@@ -30,7 +30,7 @@ class NewSpaceDefaultMenu extends StatelessWidget {
       final identifier = newSpace.getIdentifier();
       final space = newSpace.getPath();
 
-      await FirebaseService().addNewWorkspaceToDB(identifier, newSpace);
+      await FirebaseService().addNewWorkspaceToDB(newSpace);
     }
 
     return Column(

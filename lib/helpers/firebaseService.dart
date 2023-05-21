@@ -52,26 +52,37 @@ class FirebaseService {
   List<Workspace> _workspaces = [];
 
   List<Workspace> getWorkspaces(Floors floor) {
-    final workspacesOnFloor = _workspaces.where((workspace) => workspace.getFloor() == floor).toList();
+    final workspacesOnFloor = _workspaces
+        .where((workspace) => workspace.getFloor() == floor)
+        .toList();
     return workspacesOnFloor;
   }
 
-  Future<String?> addNewWorkspaceToDB(
-      String identifier, NewSpaceNotifier workspace) {
-    return _lock
-        .synchronized(() => _addNewWorkspaceToDB(identifier, workspace));
+  Future<String?> addNewWorkspaceToDB(NewSpaceNotifier workspace) {
+    return _lock.synchronized(() => _addNewWorkspaceToDB(workspace));
   }
 
-  Future<String?> _addNewWorkspaceToDB(
-      String identifier, NewSpaceNotifier workspace) async {
+  Future<String?> _addNewWorkspaceToDB(NewSpaceNotifier workspace) async {
     try {
       // print("== add New Workspace To DB");
 
-      final coords = workspace.getCoords();
       final floor = workspace.getFloor();
+      final identifier = workspace.getIdentifier();
+      final nickname = workspace.getNickname();
+      final numMonitors = workspace.getNumMonitors();
+      final numWhiteboards = workspace.getNumWhiteboards();
+      final numScreens = workspace.getNumScreens();
+      final coords = workspace.getCoords();
+      final type = workspace.getType();
+
       var docRef = await firestore.collection("workspaces").add({
-        "identifier": identifier,
         "floor": floor.name.substring(1),
+        "identifier": identifier,
+        "nickname": nickname,
+        "numMonitors": numMonitors,
+        "numWhiteboards": numWhiteboards,
+        "numScreens": numScreens,
+        "type": type,
       });
       for (var i = 0; i < coords.length; i++) {
         await firestore
@@ -85,7 +96,16 @@ class FirebaseService {
         });
       }
       // add to current state
-      _workspaces.add(Workspace(coords, identifier, floor));
+      _workspaces.add(Workspace(
+        coords,
+        floor,
+        identifier,
+        nickname,
+        numMonitors,
+        numScreens,
+        numWhiteboards,
+        type,
+      ));
       // print("== END: add New Workspace To DB");
       return docRef.id;
     } catch (error) {
@@ -113,6 +133,11 @@ class FirebaseService {
 
       for (var doc in docs) {
         final identifier = doc["identifier"];
+        final nickname = doc["nickname"];
+        final numMonitors = doc["numMonitors"];
+        final numWhiteboards = doc["numWhiteboards"];
+        final numScreens = doc["numScreens"];
+        final type = doc["type"];
         late final Floors floor;
         switch (doc["floor"]) {
           case "9":
@@ -144,7 +169,16 @@ class FirebaseService {
           coords.add(Tuple2(coordDoc.data()["x"], coordDoc.data()["y"]));
           // print("just added ${coords.last} to coords");
         }
-        workspaces.add(Workspace(coords, identifier, floor));
+        workspaces.add(Workspace(
+          coords,
+          floor,
+          identifier,
+          nickname,
+          numMonitors,
+          numScreens,
+          numWhiteboards,
+          type,
+        ));
       }
 
       // print("add $workspaces in getAllWorkspacesFromDB");

@@ -54,13 +54,10 @@ class _NewSpaceTextFieldState extends State<NewSpaceTextField> {
       focusNode: focusNode,
       style: Theme.of(context).textTheme.bodyMedium!.merge(
             TextStyle(color: borderColor, fontWeight: FontWeight.bold),
-          ), //TextStyle(color: borderColor, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
       textAlign: TextAlign.center,
       decoration: InputDecoration(
           isDense: true,
-          // labelStyle: TextStyle(color: borderColor),
-          // fillColor: borderColor,
-          // filled: true,
           border:
               OutlineInputBorder(borderSide: BorderSide(color: borderColor)),
           focusedBorder:

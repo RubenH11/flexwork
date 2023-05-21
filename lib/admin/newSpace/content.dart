@@ -1,12 +1,18 @@
+import "package:flexwork/models/workspace.dart";
+import "package:flexwork/widgets/editWorkspace.dart";
 import "package:flutter/material.dart";
-import "../../models/floors.dart";
 import "package:provider/provider.dart";
 import '../../widgets/newSpaceFloor.dart';
 import '../../models/newSpaceNotifier.dart';
 
 class NewSpaceContent extends StatelessWidget {
   final bool isValid;
-  const NewSpaceContent({required this.isValid, super.key});
+  final FocusNode moveFocusNode;
+  const NewSpaceContent({
+    required this.moveFocusNode,
+    required this.isValid,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,14 +21,29 @@ class NewSpaceContent extends StatelessWidget {
     return Column(
       children: [
         NewSpaceFloor(isValid: isValid),
+        SizedBox(
+          height: 10,
+        ),
+        Expanded(
+          child: EditWorkspace(
+            selectedWorkspace: newSpaceNotifier.workspace,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
         Row(
           children: [
-            SizedBox(width: 100, child: Text("Identifier")),
             Expanded(
-              child: TextField(onChanged: (value) => newSpaceNotifier.setIdentifier(value),),
-            ),
+                child: Placeholder(
+              fallbackHeight: 30,
+            )),
+            Expanded(
+                child: Placeholder(
+              fallbackHeight: 30,
+            )),
           ],
-        )
+        ),
       ],
     );
   }

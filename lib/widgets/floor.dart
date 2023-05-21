@@ -19,17 +19,18 @@ import '../models/workspaceSelectionNotifier.dart';
 
 class Floor extends StatelessWidget {
   final Floors floor;
-  final WorkspaceSelectionNotifier notifier;
+  final Workspace? selectedWorkspace;
+  final Function(Workspace?) setSelectedWorkspace;
   const Floor(
       {required this.floor,
-      required this.notifier,
+      required this.selectedWorkspace,
+      required this.setSelectedWorkspace,
       super.key});
 
   void _handleWorkspaceTap(
     Offset tapOffset,
     List<Workspace> workspaces,
     Float64List scale,
-    WorkspaceSelectionNotifier notifier,
   ) {
     var roomWasTapped = false;
 
@@ -39,11 +40,11 @@ class Floor extends StatelessWidget {
       if (workspace.getPath().transform(scale).contains(tapOffset)) {
         roomWasTapped = true;
         print("room was tapped: ${workspace.getIdentifier()}");
-        notifier.setSelectedSpace(workspace);
+        setSelectedWorkspace(workspace);
       }
     });
     if (!roomWasTapped) {
-      notifier.setSelectedSpace(null);
+      setSelectedWorkspace(null);
     }
   }
 
@@ -53,8 +54,8 @@ class Floor extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final canvasWidth = constraints.maxWidth;
-        final canvasHeight = canvasWidth / 27 * 12;
+        final canvasHeight = constraints.maxHeight;
+        final canvasWidth = canvasHeight / 12 * 27;
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;
@@ -62,7 +63,7 @@ class Floor extends StatelessWidget {
         List<Path> scaledWorkspaces = [];
         Path? scaledSelectedWorkspace;
         for (final workspace in workspaces) {
-          if (workspace == notifier.getSelectedSpace()) {
+          if (workspace == selectedWorkspace) {
             scaledSelectedWorkspace = workspace.getPath().transform(scale);
           } else {
             scaledWorkspaces.add(workspace.getPath().transform(scale));
@@ -87,7 +88,7 @@ class Floor extends StatelessWidget {
           onTapUp: (details) {
             print("tap up");
             _handleWorkspaceTap(
-                details.localPosition, workspaces, scale, notifier);
+                details.localPosition, workspaces, scale);
           },
           child: CustomPaint(
             size: Size(canvasWidth, canvasHeight),

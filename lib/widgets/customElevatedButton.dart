@@ -3,15 +3,19 @@ import "package:flutter/material.dart";
 class CustomElevatedButton extends StatefulWidget {
   bool active;
   bool selected;
-  String text;
+  String? text;
+  Icon? icon;
   Function onPressed;
+  Color? selectedColor;
   bool? alignLeft;
 
   CustomElevatedButton({
     required this.onPressed,
     required this.active,
     required this.selected,
-    required this.text,
+    this.selectedColor,
+    this.text,
+    this.icon,
     this.alignLeft,
     super.key,
   });
@@ -35,9 +39,9 @@ class _CustomTextButtonState extends State<CustomElevatedButton> {
 
   Color getBackgroundColor(BuildContext context) {
     if (widget.selected && widget.active) {
-      return Theme.of(context).colorScheme.primary;
+      return widget.selectedColor != null ? widget.selectedColor! : Theme.of(context).colorScheme.primary;
     } else if (widget.selected && !widget.active) {
-      return Theme.of(context).colorScheme.primary.withOpacity(0.5);
+      return widget.selectedColor != null ? widget.selectedColor!.withOpacity(0.5) : Theme.of(context).colorScheme.primary.withOpacity(0.5);
     } else {
       return Theme.of(context).colorScheme.background;
     }
@@ -68,14 +72,17 @@ class _CustomTextButtonState extends State<CustomElevatedButton> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              widget.text,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: textColor,
+            if(widget.icon != null) widget.icon!,
+            if(widget.icon != null && widget.text != null) SizedBox(width: 5,),
+            if (widget.text != null)
+              Text(
+                widget.text!,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: textColor,
+                ),
               ),
-            ),
           ],
         ),
       ),

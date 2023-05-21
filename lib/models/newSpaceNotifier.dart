@@ -7,8 +7,6 @@ import "../../models/floors.dart";
 import "package:tuple/tuple.dart";
 
 class NewSpaceNotifier extends ChangeNotifier {
-  var _identifier = "";
-
   //coordinates are clockwise
   late Workspace workspace;
 
@@ -20,8 +18,13 @@ class NewSpaceNotifier extends ChangeNotifier {
         const Tuple2(12, 18),
         const Tuple2(0, 18),
       ],
-      "",
       floor,
+      "",
+      "",
+      0,
+      0,
+      0,
+      "",
     );
   }
 
@@ -31,21 +34,6 @@ class NewSpaceNotifier extends ChangeNotifier {
   static const int _MAX_Y = 144;
 
   // -------------- PUBLIC ------------------
-  String getIdentifier() {
-    return _identifier;
-  }
-
-  void setIdentifier(String identifier) {
-    _identifier = identifier;
-  }
-
-  List<Tuple2<double, double>> getCoords() {
-    return [...workspace.getCoords()];
-  }
-
-  Floors getFloor() {
-    return workspace.getFloor();
-  }
 
   bool setOneCoord(
       {required double x, required double y, required numOfCoord}) {
@@ -419,6 +407,62 @@ class NewSpaceNotifier extends ChangeNotifier {
     return true;
   }
 
+  List<Tuple2<double, double>> getCoords() {
+    return [...workspace.getCoords()];
+  }
+
+  Floors getFloor() {
+    return workspace.getFloor();
+  }
+
+  String getIdentifier() {
+    return workspace.getIdentifier();
+  }
+
+  String getNickname() {
+    return workspace.getNickname();
+  }
+
+  int getNumMonitors() {
+    return workspace.getNumMonitors();
+  }
+
+  int getNumWhiteboards() {
+    return workspace.getNumWhiteboards();
+  }
+
+  int getNumScreens() {
+    return workspace.getNumScreens();
+  }
+
+  String getType() {
+    return workspace.getType();
+  }
+
+  void setIdentifier(String identifier) {
+    workspace.setIdentifier(identifier);
+  }
+
+  void setNickname(String nickname) {
+    setNickname(nickname);
+  }
+
+  void setNumMonitors(int numMonitors) {
+    setNumMonitors(numMonitors);
+  }
+
+  void setNumWhiteboards(int numWhiteboards) {
+    setNumWhiteboards(numWhiteboards);
+  }
+
+  void setNumScreens(int numScreens) {
+    setNumScreens(numScreens);
+  }
+
+  void setType(String type) {
+    setType(type);
+  }
+
   // --------------- PRIVATE -----------------
 
   Path _getShrunkPath() {
@@ -525,7 +569,8 @@ class NewSpaceNotifier extends ChangeNotifier {
       print("light calculation at normalizedAngle: $normalizedAngle");
       newX = coord.item1 - offset;
       newY = coord.item2;
-    } else if (normalizedAngle > -0.0000000000001 && normalizedAngle < 0.0000000000001) {
+    } else if (normalizedAngle > -0.0000000000001 &&
+        normalizedAngle < 0.0000000000001) {
       print("light calculation at normalizedAngle: $normalizedAngle");
       newX = coord.item1;
       newY = coord.item2 - offset;

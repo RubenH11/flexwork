@@ -55,6 +55,10 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
   }
 
   void _handleKeyEvent(NewSpaceNotifier newSpace, RawKeyEvent keyEvent) {
+    if(FocusManager.instance.primaryFocus is IgnoreOthersFocusnode){
+      return;
+    }
+    
     final numMiliSecondsBeforeHoldDown = 200;
     // print("key pressed");
     if (keyEvent is RawKeyDownEvent) {
@@ -157,7 +161,9 @@ class _KeyboardListenerState extends State<NewSpaceKeyboardListener> {
     return RawKeyboardListener(
       focusNode: widget.focusNode,
       onKey: (keyEvent) => _handleKeyEvent(newSpace, keyEvent),
-      child: NewSpaceContent(isValid: isValid),
+      child: NewSpaceContent(isValid: isValid, moveFocusNode: widget.focusNode),
     );
   }
 }
+
+class IgnoreOthersFocusnode extends FocusNode{}

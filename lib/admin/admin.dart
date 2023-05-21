@@ -6,6 +6,7 @@ import "package:flexwork/admin/newSpace/menuInfiniteCoords.dart";
 import "package:flexwork/admin/newSpace/rectMenu.dart";
 import "package:flexwork/models/floors.dart";
 import "package:flexwork/models/newSpaceNotifier.dart";
+import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/layout.dart";
 import "package:flexwork/widgets/menu_item.dart";
@@ -28,6 +29,13 @@ class _NewReservationStructureState extends State<Admin> {
   var newSpaceInterface = false;
   var advancedMenu = false;
   final newSpaceFocusNode = FocusNode();
+  Workspace? _selectedWorkspace;
+
+  void setSelectedWorkspace(Workspace? workspace) {
+    setState(() {
+      _selectedWorkspace = workspace;
+    });
+  }
 
   void setFloor(Floors floor) {
     setState(() {
@@ -61,8 +69,6 @@ class _NewReservationStructureState extends State<Admin> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "rebuild admin with floor ${_floor.name} and advanced to $advancedMenu");
     return newSpaceInterface
         ? ChangeNotifierProvider<NewSpaceNotifier>(
             create: (_) => NewSpaceNotifier(_floor),
@@ -88,15 +94,21 @@ class _NewReservationStructureState extends State<Admin> {
           )
         : Layout(
             menu: AdminMenu(
-                floor: _floor,
-                setFloor: setFloor,
-                setNewSpaceInterface: () {
-                  setNewSpaceInterface();
-                  // debugDumpRenderTree();
-                }),
+              floor: _floor,
+              setFloor: setFloor,
+              setNewSpaceInterface: () {
+                setNewSpaceInterface();
+              },
+              selectedWorkspace: _selectedWorkspace,
+              setSelectedWorkspace: setSelectedWorkspace,
+            ),
             content: ChangeNotifierProvider<WorkspaceSelectionNotifier>(
               create: (context) => WorkspaceSelectionNotifier(),
-              child: AdminContent(floor: _floor),
+              child: AdminContent(
+                floor: _floor,
+                selectedWorkspace: _selectedWorkspace,
+                setSelectedWorkspace: setSelectedWorkspace,
+              ),
             ),
           );
   }
