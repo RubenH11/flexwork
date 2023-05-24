@@ -15,11 +15,7 @@ class MakeReserationButton extends StatelessWidget {
     return CustomElevatedButton(
       onPressed: newRes.isComplete()
           ? () {
-              FirebaseService().addReservation(
-                newRes.getStartTime()!,
-                newRes.getEndTime()!,
-                newRes.getIdentifier()!,
-              );
+              //FirebaseService().addReservation(newRes);
               newRes.clear();
             }
           : () {

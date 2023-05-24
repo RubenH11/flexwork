@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import "package:flexwork/models/floors.dart";
+import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flexwork/models/newSpaceNotifier.dart";
 import "package:flutter/foundation.dart";
 import "../models/workspace.dart";
@@ -38,12 +39,11 @@ class FirebaseService {
   }
 
   // Reservations
-  Future<String> addReservation(
-      DateTime startDateTime, DateTime endDateTime, String roomNumber) async {
+  Future<String> addReservation(NewReservationNotifier newRes) async {
+   // final workspaceId = newRes.getWorkspace().getId();
+
     var docRef = await firestore.collection("reservations").add({
-      "start": startDateTime,
-      "end": endDateTime,
-      "room_number": roomNumber
+
     });
     return docRef.id;
   }
@@ -133,17 +133,18 @@ class FirebaseService {
     return firestore.collection("workspaces").snapshots();
   }
 
-  Future<List<Workspace>?> getAllWorkspacesFromDB(
-      List<QueryDocumentSnapshot<Object?>> docs) {
-    return _lock.synchronized(() => _getAllWorkspacesFromDB(docs));
+  Future<List<Workspace>?> getAllWorkspacesFromDB() {
+    return _lock.synchronized(() => _getAllWorkspacesFromDB());
   }
 
-  Future<List<Workspace>?> _getAllWorkspacesFromDB(
-      List<QueryDocumentSnapshot<Object?>> docs) async {
+  Future<List<Workspace>?> _getAllWorkspacesFromDB() async {
     try {
       // print("cannot execute getting all spaces yet");
 
       final List<Workspace> workspaces = [];
+
+      final docsSnapshot = await firestore.collection("workspaces").get();
+      final docs = docsSnapshot.docs;
 
       for (var doc in docs) {
         final identifier = doc["identifier"];

@@ -7,7 +7,7 @@ class NewReservationNotifier extends ChangeNotifier {
   Floors _floor;
   String? _scheduleTimeframe;
   int _scheduleTimeframeNum = 1;
-  Set<Tuple2<String,DateTime>> _scheduleExceptions = {};
+  Set<Tuple2<String, DateTime>> _scheduleExceptions = {};
   DateTime? _startTime;
   DateTime? _endTime;
   DateTime? _scheduleUntilDate;
@@ -16,6 +16,7 @@ class NewReservationNotifier extends ChangeNotifier {
   NewReservationNotifier(this._floor);
 
   bool isComplete() {
+    print("is complete check");
     return _startTime != null &&
         _endTime != null &&
         _startTime != _endTime &&
@@ -23,13 +24,17 @@ class NewReservationNotifier extends ChangeNotifier {
   }
 
   void clear() {
+    _scheduleTimeframe = null;
+    _scheduleTimeframeNum = 1;
+    _scheduleExceptions = {};
     _startTime = null;
     _endTime = null;
+    _scheduleUntilDate = null;
     _workspace = null;
     notifyListeners();
   }
 
-  void clearSchedule(){
+  void clearSchedule() {
     _scheduleTimeframe = null;
     _scheduleExceptions = {};
     _scheduleTimeframeNum = 1;
@@ -39,12 +44,13 @@ class NewReservationNotifier extends ChangeNotifier {
 
   void setStartTime(DateTime? start) {
     _startTime = start;
-    print("setStartTime in newResercationNotifier");
+    print("setStartTime in newResercationNotifier to $start");
     notifyListeners();
   }
 
   void setEndTime(DateTime? end) {
     _endTime = end;
+    print("setEndTime in newResercationNotifier to $end");
     notifyListeners();
   }
 

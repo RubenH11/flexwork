@@ -30,7 +30,7 @@ class NewSpaceContent extends StatelessWidget {
         Expanded(
           flex: 3,
           child: EditWorkspace(
-            selectedWorkspace: newSpaceNotifier.workspace,
+            selectedWorkspace: newSpaceNotifier,
           ),
         ),
         SizedBox(

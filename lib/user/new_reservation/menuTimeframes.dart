@@ -44,29 +44,30 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
         children: [
           MenuAction(
             label: "Start",
-            action: CustomTextButton(
-              onPressed: () {
-                if (newReservationNotifier.getStartTime() == null) {
-                  newReservationNotifier
-                      .setStartTime(roundToNext15(DateTime.now()));
-                }
-                setDisplayOption(_DisplayOption.onlyStart);
-              },
-              selected: true,
-              text: newReservationNotifier.getStartTime() == null
-                  ? "no date selected"
-                  : DateFormat("dd MMM yyyy - HH:mm").format(
-                      newReservationNotifier.getStartTime()!,
-                    ),
+            action: Consumer<NewReservationNotifier>(
+              builder: (ctx, newResNotif, _) => CustomTextButton(
+                onPressed: () {
+                  if (newResNotif.getStartTime() == null) {
+                    newResNotif.setStartTime(roundToNext15(DateTime.now()));
+                  }
+                  setDisplayOption(_DisplayOption.onlyStart);
+                },
+                selected: true,
+                text: newResNotif.getStartTime() == null
+                    ? "no date selected"
+                    : DateFormat("dd MMM yyyy - HH:mm").format(
+                        newResNotif.getStartTime()!,
+                      ),
+              ),
             ),
           ),
           if (displayOption == _DisplayOption.onlyStart)
             DatePicker(
+              aboveMenuBase: "end",
+              aboveMenuOptions: [-30, -60, -120],
               releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-              getInitialDateTime: () => roundToNext15(
-                  newReservationNotifier.getStartTime() ?? DateTime.now()),
-              getMinimumDate: () =>
-                  roundToNext15(DateTime.now()).subtract(Duration(minutes: 15)),
+              getInitialDateTime: () => newReservationNotifier.getStartTime() ?? newReservationNotifier.getEndTime() ?? roundToNext15(DateTime.now()),
+              getMinimumDate: () => null,
               getMaximumDate: () => newReservationNotifier.getEndTime(),
               onDateTimeChanged: (DateTime newDate) {
                 newReservationNotifier.setStartTime(newDate);
@@ -76,45 +77,47 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
             ),
           MenuAction(
             label: "End",
-            action: CustomTextButton(
-              onPressed: () {
-                final startTime = newReservationNotifier.getStartTime();
-                final endTime = newReservationNotifier.getEndTime();
+            action: Consumer<NewReservationNotifier>(
+              builder: (ctx, newResNotif, _) => CustomTextButton(
+                onPressed: () {
+                  final startTime = newResNotif.getStartTime();
+                  final endTime = newResNotif.getEndTime();
 
-                if (startTime != null && endTime == null) {
-                  newReservationNotifier.setEndTime(startTime);
-                } else if (startTime == null && endTime == null) {
-                  newReservationNotifier
-                      .setEndTime(roundToNext15(DateTime.now()));
-                }
+                  if (startTime != null && endTime == null) {
+                    newResNotif.setEndTime(startTime);
+                  } else if (startTime == null && endTime == null) {
+                    newResNotif.setEndTime(roundToNext15(DateTime.now()));
+                  }
 
-                setDisplayOption(_DisplayOption.onlyEnd);
-              },
-              selected: true,
-              text: newReservationNotifier.getEndTime() == null
-                  ? "no date selected"
-                  : DateFormat("dd MMM yyyy - HH:mm").format(
-                      newReservationNotifier.getEndTime()!,
-                    ),
+                  setDisplayOption(_DisplayOption.onlyEnd);
+                },
+                selected: true,
+                text: newResNotif.getEndTime() == null
+                    ? "no date selected"
+                    : DateFormat("dd MMM yyyy - HH:mm").format(
+                        newResNotif.getEndTime()!,
+                      ),
+              ),
             ),
           ),
           if (displayOption == _DisplayOption.onlyEnd)
-            DatePicker(
-              releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-              getInitialDateTime: () => roundToNext15(
-                  newReservationNotifier.getEndTime() ??
-                      newReservationNotifier.getStartTime() ??
-                      roundToNext15(DateTime.now())
-                          .subtract(const Duration(minutes: 15))),
-              getMinimumDate: () =>
-                  newReservationNotifier.getStartTime() ??
-                  roundToNext15(DateTime.now())
-                      .subtract(const Duration(minutes: 15)),
-              onDateTimeChanged: (DateTime newDate) {
-                newReservationNotifier.setEndTime(newDate);
-              },
-              getTime: newReservationNotifier.getEndTime,
-              setTime: newReservationNotifier.setEndTime,
+            Column(
+              children: [
+                DatePicker(
+                  aboveMenuBase: "start",
+                  aboveMenuOptions: [30, 60, 120],
+                  releaseDisplay: () => setDisplayOption(_DisplayOption.none),
+                  getInitialDateTime: () => newReservationNotifier.getEndTime() ?? newReservationNotifier.getStartTime() ?? roundToNext15(DateTime.now()),
+                  getMinimumDate: () =>
+                      newReservationNotifier.getStartTime(),
+                  getMaximumDate: () => null,
+                  onDateTimeChanged: (DateTime newDate) {
+                    newReservationNotifier.setEndTime(newDate);
+                  },
+                  getTime: newReservationNotifier.getEndTime,
+                  setTime: newReservationNotifier.setEndTime,
+                ),
+              ],
             ),
         ],
       ),
@@ -123,6 +126,8 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
 }
 
 class DatePicker extends StatefulWidget {
+  List<int> aboveMenuOptions;
+  String aboveMenuBase;
   void Function() releaseDisplay;
   DateTime? Function() getInitialDateTime;
   void Function(DateTime) onDateTimeChanged;
@@ -132,6 +137,8 @@ class DatePicker extends StatefulWidget {
   void Function(DateTime?) setTime;
 
   DatePicker({
+    this.aboveMenuOptions = const [],
+    this.aboveMenuBase = "start",
     required this.releaseDisplay,
     required this.getInitialDateTime,
     required this.getMinimumDate,
@@ -155,6 +162,7 @@ class _DatePickerState extends State<DatePicker> {
 
     return Column(
       children: [
+        _DatePickerPresetButtons(widget.aboveMenuOptions, widget.aboveMenuBase),
         _DatePickerButtons(
           releaseDisplay: widget.releaseDisplay,
           updateDatePicker: updateDatePicker,
@@ -244,6 +252,73 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
         ),
       ],
     );
+  }
+}
+
+class _DatePickerPresetButtons extends StatelessWidget {
+  final List<int> options;
+  final String base;
+  const _DatePickerPresetButtons(this.options, this.base, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final newResNotif = Provider.of<NewReservationNotifier>(context);
+
+    List<Widget> buttons = [];
+    DateTime? baseTime;
+
+    if (base == "start") {
+      baseTime = newResNotif.getStartTime();
+    } else if (base == "end") {
+      baseTime = newResNotif.getEndTime();
+    } else {
+      throw ErrorDescription("base was not start nor end");
+    }
+
+    if (baseTime != null) {
+      options.forEach((option) {
+        String text;
+        final optionAbs = option.abs();
+        if (optionAbs < 60) {
+          text = "$optionAbs min.";
+        } else if (optionAbs == 60) {
+          text = "1 hour";
+        } else {
+          text = "${(optionAbs / 60).ceil()} hours";
+        }
+
+        buttons.add(Expanded(
+          child: CustomTextButton(
+            onPressed: () {
+              print("add $option minutes");
+              if (base == "start") {
+                newResNotif.setEndTime(
+                  baseTime!.add(Duration(minutes: option)),
+                );
+              } else {
+                newResNotif.setStartTime(
+                  baseTime!.add(Duration(minutes: option)),
+                );
+              }
+            },
+            selected: base == "start"
+                ? newResNotif.getEndTime() ==
+                    baseTime!.add(Duration(minutes: option))
+                : newResNotif.getStartTime() ==
+                    baseTime!.add(Duration(minutes: option)),
+            text: text,
+          ),
+        ));
+      });
+    }
+
+    for (var i = buttons.length - 1; i > 0; i--) {
+      print("insert sizedbox");
+      buttons.insert(i, SizedBox(width: 5));
+      print("after insert sizedbox");
+    }
+
+    return Row(children: buttons);
   }
 }
 

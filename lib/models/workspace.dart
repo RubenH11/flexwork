@@ -3,8 +3,8 @@ import "package:tuple/tuple.dart";
 import "package:flutter/material.dart";
 import "./floors.dart";
 
-class Workspace {
-  String? _id;
+class Workspace extends ChangeNotifier {
+  String _id;
   final Floors _floor;
   List<Tuple2<double, double>> _coordinates;
   String _identifier;
@@ -16,16 +16,21 @@ class Workspace {
   List<Tuple2<DateTime, DateTime>> _blockedMoments;
 
   Workspace({
-    required String? id,
+    required String id,
     required Floors floor,
-    required List<Tuple2<double, double>> coordinates,
-    required String identifier,
-    required String nickname,
-    required String type,
-    required int numMonitors,
-    required int numWhiteboards,
-    required int numScreens,
-    required List<Tuple2<DateTime, DateTime>> blockedMoments,
+    List<Tuple2<double, double>> coordinates = const [
+      Tuple2(0.0, 0.0),
+      Tuple2(12.0, 0.0),
+      Tuple2(12.0, 18.0),
+      Tuple2(0.0, 18.0),
+    ],
+    String identifier = "",
+    String nickname = "",
+    String type = "Office",
+    int numMonitors = 0,
+    int numWhiteboards = 0,
+    int numScreens = 0,
+    List<Tuple2<DateTime, DateTime>> blockedMoments = const [],
   })  : _id = id,
         _coordinates = coordinates,
         _floor = floor,
@@ -94,15 +99,6 @@ class Workspace {
     return string;
   }
 
-  void addCoordinateFromLast() {
-    final numCoords = _coordinates.length;
-    _coordinates.add(_coordinates[numCoords - 1]);
-  }
-
-  void deleteCoordinate(int numOfCoord) {
-    _coordinates.removeAt(numOfCoord);
-  }
-
   List<Tuple2<double, double>> getCoords() {
     return [..._coordinates];
   }
@@ -152,7 +148,7 @@ class Workspace {
     return path;
   }
 
-  String? getId() {
+  String getId() {
     return _id;
   }
 
@@ -170,15 +166,6 @@ class Workspace {
 
   void setId(String id) {
     _id = id;
-  }
-
-  void setCoords(List<Tuple2<double, double>> newCoords) {
-    _coordinates = newCoords;
-  }
-
-  void setOneCoord(
-      {required int numOfCoord, required Tuple2<double, double> coord}) {
-    _coordinates[numOfCoord] = coord;
   }
 
   void setIdentifier(String identifier) {

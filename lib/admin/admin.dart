@@ -69,7 +69,6 @@ class _NewReservationStructureState extends State<Admin> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -87,7 +86,7 @@ class _NewReservationStructureState extends State<Admin> {
         }
         //Future accepts the coordinates that come with the workspaces, such that the Workspace objects can be created
         return FutureBuilder(
-          future: FirebaseService().getAllWorkspacesFromDB(snapshot.data!.docs),
+          future: FirebaseService().getAllWorkspacesFromDB(),
           builder: (_, workspaces) {
             if (workspaces.hasError) {
               return const Text("An error occurred, please reload the page.");
@@ -102,7 +101,7 @@ class _NewReservationStructureState extends State<Admin> {
             // FirebaseService().printWorkspaces();
             return newSpaceInterface
                 ? ChangeNotifierProvider<NewSpaceNotifier>(
-                    create: (_) => NewSpaceNotifier(_floor),
+                    create: (_) => NewSpaceNotifier(floor: _floor),
                     builder: (ctx, _) {
                       final newSpace = Provider.of<NewSpaceNotifier>(ctx);
                       return Layout(

@@ -18,7 +18,6 @@ class NewReservationMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final newRefNotif = Provider.of<NewReservationNotifier>(context);
     print("rebuild NewReservationMenu");
     return Column(
       children: [
@@ -30,7 +29,13 @@ class NewReservationMenu extends StatelessWidget {
                 const Divider(),
                 const NewReservationMenuTimeFrame(),
                 const Divider(),
-                if(newRefNotif.getStartTime() != null && newRefNotif.getEndTime() != null) const NewReservationMenuSchedule(),
+                Consumer<NewReservationNotifier>(
+                  builder: (ctx, newRefNotif, _) =>
+                      (newRefNotif.getStartTime() != null &&
+                              newRefNotif.getEndTime() != null)
+                          ? const NewReservationMenuSchedule()
+                          : const SizedBox(),
+                ),
               ],
             ),
           ),

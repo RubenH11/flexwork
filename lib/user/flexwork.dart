@@ -1,3 +1,4 @@
+import 'package:flexwork/helpers/firebaseService.dart';
 import 'package:flexwork/models/floors.dart';
 import 'package:flexwork/models/newReservationNotifier.dart';
 import 'package:flexwork/models/workspace.dart';
@@ -42,39 +43,42 @@ class _FlexWorkState extends State<FlexWork> {
         break;
     }
 
-    return ChangeNotifierProvider(
-      create: (context) => NewReservationNotifier(Floors.f9),
-      child: Layout(
-        navigation: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            NavButton(
-              selected: selectedPage == Pages.newReservation,
-              action: () {
-                setState(() {
-                  selectedPage = Pages.newReservation;
-                });
-              },
-              text: "New reservation",
-            ),
-            Container(
-              height: 25,
-              width: 1,
-              color: Theme.of(context).colorScheme.onBackground,
-            ),
-            NavButton(
-              selected: selectedPage == Pages.myReservations,
-              action: () {
-                setState(() {
-                  selectedPage = Pages.myReservations;
-                });
-              },
-              text: "My reservations",
-            ),
-          ],
+    return FutureBuilder(
+      future: FirebaseService().getAllWorkspacesFromDB(),
+      builder: (ctx, snapshot) => ChangeNotifierProvider(
+        create: (context) => NewReservationNotifier(Floors.f9),
+        child: Layout(
+          navigation: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              NavButton(
+                selected: selectedPage == Pages.newReservation,
+                action: () {
+                  setState(() {
+                    selectedPage = Pages.newReservation;
+                  });
+                },
+                text: "New reservation",
+              ),
+              Container(
+                height: 25,
+                width: 1,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
+              NavButton(
+                selected: selectedPage == Pages.myReservations,
+                action: () {
+                  setState(() {
+                    selectedPage = Pages.myReservations;
+                  });
+                },
+                text: "My reservations",
+              ),
+            ],
+          ),
+          menu: menu,
+          content: content,
         ),
-        menu: menu,
-        content: content,
       ),
     );
   }
