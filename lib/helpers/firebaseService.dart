@@ -73,6 +73,7 @@ class FirebaseService {
       final numWhiteboards = workspace.getNumWhiteboards();
       final numScreens = workspace.getNumScreens();
       final coords = workspace.getCoords();
+      final blockedMoments = workspace.getBlockedMoments();
       final type = workspace.getType();
 
       var docRef = await firestore.collection("workspaces").add({
@@ -95,16 +96,29 @@ class FirebaseService {
           "y": coords[i].item2,
         });
       }
+      for (var i = 0; i < blockedMoments.length; i++) {
+        await firestore
+            .collection("workspaces")
+            .doc(docRef.id)
+            .collection("blockedMoments")
+            .doc(i.toString())
+            .set({
+          "start": blockedMoments[i].item1.toIso8601String(),
+          "end": blockedMoments[i].item2.toIso8601String(),
+        });
+      }
       // add to current state
       _workspaces.add(Workspace(
-        coords,
-        floor,
-        identifier,
-        nickname,
-        numMonitors,
-        numScreens,
-        numWhiteboards,
-        type,
+        id: docRef.id,
+        coordinates: coords,
+        floor: floor,
+        identifier: identifier,
+        nickname: nickname,
+        numMonitors: numMonitors,
+        numScreens: numScreens,
+        numWhiteboards: numWhiteboards,
+        type: type,
+        blockedMoments: blockedMoments,
       ));
       // print("== END: add New Workspace To DB");
       return docRef.id;
@@ -163,21 +177,41 @@ class FirebaseService {
             .collection("coordinates")
             .get();
 
-        // print("snapshot docs: ${coordsSnapshot.docs.length} from ${doc.id}");
         List<Tuple2<double, double>> coords = [];
         for (var coordDoc in coordsSnapshot.docs) {
           coords.add(Tuple2(coordDoc.data()["x"], coordDoc.data()["y"]));
-          // print("just added ${coords.last} to coords");
         }
+
+        final blockedMomentsSnapshot = await firestore
+            .collection("workspaces")
+            .doc(doc.id)
+            .collection("blockedMoments")
+            .get();
+
+        List<Tuple2<DateTime, DateTime>> blockedMoments = [];
+        for (var blockedMomentDoc in blockedMomentsSnapshot.docs) {
+          print("trying to add ${blockedMomentDoc.id}");
+          blockedMoments.add(
+            Tuple2(
+              // DateTime.parse(blockedMomentDoc.data()["start"]),
+              // DateTime.parse(blockedMomentDoc.data()["end"]),
+              DateTime.now(),
+              DateTime.now(),
+            ),
+          );
+        }
+
         workspaces.add(Workspace(
-          coords,
-          floor,
-          identifier,
-          nickname,
-          numMonitors,
-          numScreens,
-          numWhiteboards,
-          type,
+          id: doc.id,
+          coordinates: coords,
+          floor: floor,
+          identifier: identifier,
+          nickname: nickname,
+          numMonitors: numMonitors,
+          numScreens: numScreens,
+          numWhiteboards: numWhiteboards,
+          type: type,
+          blockedMoments: blockedMoments,
         ));
       }
 
@@ -188,6 +222,62 @@ class FirebaseService {
       print("ERROR in getAllWorkspaces: $error");
     }
     return null;
+  }
+
+  Future<void> updateWorkspace(Workspace workspace) async {
+    try {
+      final updateMap = {
+        "floor": workspace.getFloor().name.substring(1),
+        "identifier": workspace.getIdentifier(),
+        "nickname": workspace.getNickname(),
+        "numMonitors": workspace.getNumMonitors(),
+        "numWhiteboards": workspace.getNumWhiteboards(),
+        "numScreens": workspace.getNumScreens(),
+        "type": workspace.getType(),
+      };
+      firestore
+          .collection("workspaces")
+          .doc(workspace.getId())
+          .update(updateMap);
+
+      final coords = workspace.getCoords();
+      for (var i = 0; i < coords.length; i++) {
+        await firestore
+            .collection("workspaces")
+            .doc(workspace.getId())
+            .collection("coordinates")
+            .doc(i.toString())
+            .set({
+          "x": coords[i].item1,
+          "y": coords[i].item2,
+        });
+      }
+
+      final blockedMoments = workspace.getBlockedMoments();
+      for (var i = 0; i < blockedMoments.length; i++) {
+        await firestore
+            .collection("workspaces")
+            .doc(workspace.getId())
+            .collection("blockedMoments")
+            .doc(i.toString())
+            .set({
+          "start": blockedMoments[i].item1,
+          "end": blockedMoments[i].item2
+        });
+      }
+      print("end of update");
+    } catch (error) {
+      print("ERROR in updateWorkspace: $error");
+    }
+  }
+
+  Future<void> deleteWorkspace(Workspace workspace) async {
+    try {
+      assert(workspace.getId() != null);
+      firestore.collection("workspaces").doc(workspace.getId()).delete();
+    } catch (error) {
+      print("ERROR: $error");
+    }
   }
 
   void printWorkspaces() {

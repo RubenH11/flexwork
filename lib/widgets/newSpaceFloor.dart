@@ -25,9 +25,10 @@ class NewSpaceFloor extends StatelessWidget {
     final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final canvasWidth = constraints.maxWidth;
-        final canvasHeight = canvasWidth / 27 * 12;
-        // final angleOfWalls = math.atan(4 / 18);
+        final dependentOnWidth = constraints.maxHeight > constraints.maxWidth / 27 * 12;
+        // print("dependentOnWidth: $dependentOnWidth");
+        final canvasHeight = dependentOnWidth ? constraints.maxWidth / 27 * 12 : constraints.maxHeight;
+        final canvasWidth = dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;

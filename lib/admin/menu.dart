@@ -1,8 +1,9 @@
+import "package:flexwork/helpers/firebaseService.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/models/workspaceSelectionNotifier.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/customTextButton.dart";
-import "package:flexwork/widgets/menu_item.dart";
+import 'package:flexwork/widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "../models/floors.dart";
@@ -70,20 +71,26 @@ class AdminMenu extends StatelessWidget {
           children: [
             Expanded(
               child: CustomElevatedButton(
-                onPressed: () {},
-                active: selectedWorkspace != null,
-                selected: true,
-                text: "Edit",
-              ),
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: CustomElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await FirebaseService().deleteWorkspace(selectedWorkspace!);
+                },
                 active: selectedWorkspace != null,
                 selected: true,
                 text: "Delete",
                 selectedColor: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            SizedBox(width: 10,),
+            Expanded(
+              child: CustomElevatedButton(
+                onPressed: () async {
+                  print("presed confirm");
+                  await FirebaseService().updateWorkspace(selectedWorkspace!);
+                  print("end presed confirm");
+                },
+                active: selectedWorkspace != null,
+                selected: true,
+                text: "Confirm edit",
               ),
             ),
           ],
@@ -99,12 +106,10 @@ class _FloorButton extends StatelessWidget {
   final bool isSelected;
   const _FloorButton(this.label, this.setFloor, this.isSelected, {super.key});
 
-  final LABEL_INDENT = 10.0;
-
   @override
   Widget build(BuildContext context) {
     return CustomTextButton(
-      alignLeft: true,
+      textAlign: TextAlign.left,
       text: label,
       selected: isSelected,
       onPressed: () {

@@ -1,17 +1,18 @@
 import "package:flexwork/models/newReservationNotifier.dart";
+import "package:flexwork/user/new_reservation/menu.dart";
 import 'package:flexwork/widgets/customElevatedButton.dart';
+import 'package:flexwork/widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import "package:flutter/cupertino.dart";
-import "./newResMenu.dart";
-import '../widgets/customTextButton.dart';
+import '../../widgets/customTextButton.dart';
 import "package:provider/provider.dart";
 import "package:intl/intl.dart";
 
-class NewReservationTimeFrame extends StatefulWidget {
-  const NewReservationTimeFrame({super.key});
+class NewReservationMenuTimeFrame extends StatefulWidget {
+  const NewReservationMenuTimeFrame({super.key});
 
   @override
-  State<NewReservationTimeFrame> createState() =>
+  State<NewReservationMenuTimeFrame> createState() =>
       _NewReservationTimeFrameState();
 }
 
@@ -21,7 +22,7 @@ enum _DisplayOption {
   onlyEnd,
 }
 
-class _NewReservationTimeFrameState extends State<NewReservationTimeFrame> {
+class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
   DateTime? previousEndTime;
   _DisplayOption displayOption = _DisplayOption.none;
 
@@ -36,110 +37,88 @@ class _NewReservationTimeFrameState extends State<NewReservationTimeFrame> {
     final newReservationNotifier =
         Provider.of<NewReservationNotifier>(context, listen: false);
 
-    return Column(
-      children: [
-        Row(children: const [
-          Icon(Icons.access_time),
-          SizedBox(width: 10),
-          Text("Timeframe")
-        ]),
-        const SizedBox(height: 5),
-        //Start
-        _StartDateSelection(
-            takeDisplay: () => setDisplayOption(_DisplayOption.onlyStart)),
-        if (displayOption == _DisplayOption.onlyStart)
-          DatePicker(
-            releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-            getInitialDateTime: () => roundToNext15(newReservationNotifier.getStartTime() ?? DateTime.now()),
-            getMinimumDate: () =>
-                roundToNext15(DateTime.now()).subtract(Duration(minutes: 15)),
-            getMaximumDate: () => newReservationNotifier.getEndTime(),
-            onDateTimeChanged: (DateTime newDate) {
-              newReservationNotifier.setStartTime(newDate);
-            },
-            getTime: newReservationNotifier.getStartTime,
-            setTime: newReservationNotifier.setStartTime,
+    return MenuItem(
+      icon: Icon(Icons.access_time),
+      title: "Timeframe",
+      child: Column(
+        children: [
+          MenuAction(
+            label: "Start",
+            action: CustomTextButton(
+              onPressed: () {
+                if (newReservationNotifier.getStartTime() == null) {
+                  newReservationNotifier
+                      .setStartTime(roundToNext15(DateTime.now()));
+                }
+                setDisplayOption(_DisplayOption.onlyStart);
+              },
+              selected: true,
+              text: newReservationNotifier.getStartTime() == null
+                  ? "no date selected"
+                  : DateFormat("dd MMM yyyy - HH:mm").format(
+                      newReservationNotifier.getStartTime()!,
+                    ),
+            ),
           ),
-        //End
-        _EndDateSelection(
-            takeDisplay: () => setDisplayOption(_DisplayOption.onlyEnd)),
-        if (displayOption == _DisplayOption.onlyEnd)
-          DatePicker(
-            releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-            getInitialDateTime: () => roundToNext15(
-                newReservationNotifier.getEndTime() ??
-                    newReservationNotifier.getStartTime() ??
-                    roundToNext15(DateTime.now())
-                        .subtract(const Duration(minutes: 15))),
-            getMinimumDate: () =>
-                newReservationNotifier.getStartTime() ??
-                roundToNext15(DateTime.now())
-                    .subtract(const Duration(minutes: 15)),
-            onDateTimeChanged: (DateTime newDate) {
-              newReservationNotifier.setEndTime(newDate);
-            },
-            getTime: newReservationNotifier.getEndTime,
-            setTime: newReservationNotifier.setEndTime,
+          if (displayOption == _DisplayOption.onlyStart)
+            DatePicker(
+              releaseDisplay: () => setDisplayOption(_DisplayOption.none),
+              getInitialDateTime: () => roundToNext15(
+                  newReservationNotifier.getStartTime() ?? DateTime.now()),
+              getMinimumDate: () =>
+                  roundToNext15(DateTime.now()).subtract(Duration(minutes: 15)),
+              getMaximumDate: () => newReservationNotifier.getEndTime(),
+              onDateTimeChanged: (DateTime newDate) {
+                newReservationNotifier.setStartTime(newDate);
+              },
+              getTime: newReservationNotifier.getStartTime,
+              setTime: newReservationNotifier.setStartTime,
+            ),
+          MenuAction(
+            label: "End",
+            action: CustomTextButton(
+              onPressed: () {
+                final startTime = newReservationNotifier.getStartTime();
+                final endTime = newReservationNotifier.getEndTime();
+
+                if (startTime != null && endTime == null) {
+                  newReservationNotifier.setEndTime(startTime);
+                } else if (startTime == null && endTime == null) {
+                  newReservationNotifier
+                      .setEndTime(roundToNext15(DateTime.now()));
+                }
+
+                setDisplayOption(_DisplayOption.onlyEnd);
+              },
+              selected: true,
+              text: newReservationNotifier.getEndTime() == null
+                  ? "no date selected"
+                  : DateFormat("dd MMM yyyy - HH:mm").format(
+                      newReservationNotifier.getEndTime()!,
+                    ),
+            ),
           ),
-      ],
+          if (displayOption == _DisplayOption.onlyEnd)
+            DatePicker(
+              releaseDisplay: () => setDisplayOption(_DisplayOption.none),
+              getInitialDateTime: () => roundToNext15(
+                  newReservationNotifier.getEndTime() ??
+                      newReservationNotifier.getStartTime() ??
+                      roundToNext15(DateTime.now())
+                          .subtract(const Duration(minutes: 15))),
+              getMinimumDate: () =>
+                  newReservationNotifier.getStartTime() ??
+                  roundToNext15(DateTime.now())
+                      .subtract(const Duration(minutes: 15)),
+              onDateTimeChanged: (DateTime newDate) {
+                newReservationNotifier.setEndTime(newDate);
+              },
+              getTime: newReservationNotifier.getEndTime,
+              setTime: newReservationNotifier.setEndTime,
+            ),
+        ],
+      ),
     );
-  }
-}
-
-class _StartDateSelection extends StatelessWidget {
-  Function() takeDisplay;
-  _StartDateSelection({required this.takeDisplay, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
-    return MenuItem(
-        labelText: "Start",
-        child: CustomTextButton(
-          onPressed: () {
-            if (newReservationNotifier.getStartTime() == null) {
-              newReservationNotifier
-                  .setStartTime(roundToNext15(DateTime.now()));
-            }
-            takeDisplay();
-          },
-          selected: true,
-          text: newReservationNotifier.getStartTime() == null
-              ? "no date selected"
-              : DateFormat('HH:mm - dd MMM yyyy')
-                  .format(newReservationNotifier.getStartTime()!),
-        ));
-  }
-}
-
-class _EndDateSelection extends StatelessWidget {
-  Function() takeDisplay;
-  _EndDateSelection({required this.takeDisplay, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
-    return MenuItem(
-        labelText: "End",
-        child: CustomTextButton(
-          onPressed: () {
-            final startTime = newReservationNotifier.getStartTime();
-            final endTime = newReservationNotifier.getEndTime();
-
-            if (startTime != null && endTime == null) {
-              newReservationNotifier.setEndTime(startTime);
-            } else if (startTime == null && endTime == null) {
-              newReservationNotifier.setEndTime(roundToNext15(DateTime.now()));
-            }
-
-            takeDisplay();
-          },
-          selected: true,
-          text: newReservationNotifier.getEndTime() == null
-              ? "no date selected"
-              : DateFormat('HH:mm - dd MMM yyyy')
-                  .format(newReservationNotifier.getEndTime()!),
-        ));
   }
 }
 
@@ -233,8 +212,9 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
               widget.releaseDisplay();
               widget.setTime(previousStartTime);
             },
-            child: Text("cancel"),
-            focused: false,
+            text: "cancel",
+            active: true,
+            selected: false,
           ),
         ),
         SizedBox(
@@ -255,10 +235,12 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
           width: 5,
         ),
         Expanded(
-          child: PlainElevatedButton(
-              onPressed: () => widget.releaseDisplay(),
-              focused: false,
-              child: Text("done")),
+          child: CustomElevatedButton(
+            onPressed: () => widget.releaseDisplay(),
+            active: true,
+            selected: false,
+            text: "done",
+          ),
         ),
       ],
     );
@@ -268,8 +250,12 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
 // helpers
 DateTime roundToNext15(DateTime dateTimeToRound) {
   final minutesToAdd = 15 - dateTimeToRound.minute % 15;
-  final roundedDateTime =
-      dateTimeToRound.add(Duration(minutes: minutesToAdd == 15 ? 0 : minutesToAdd)).subtract(Duration(seconds: dateTimeToRound.second, milliseconds: dateTimeToRound.millisecond, microseconds: dateTimeToRound.microsecond));
+  final roundedDateTime = dateTimeToRound
+      .add(Duration(minutes: minutesToAdd == 15 ? 0 : minutesToAdd))
+      .subtract(Duration(
+          seconds: dateTimeToRound.second,
+          milliseconds: dateTimeToRound.millisecond,
+          microseconds: dateTimeToRound.microsecond));
   return roundedDateTime;
 }
 
@@ -284,7 +270,7 @@ DateTime onlyChangeDay(DateTime dateTimeToChange, DateTime day) {
 
 DateTime changeTimeToToday(DateTime? timeToBeChanged) {
   DateTime newTime;
-  
+
   // if no time is set yet
   if (timeToBeChanged == null) {
     print("==no time was set");

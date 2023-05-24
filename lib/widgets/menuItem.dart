@@ -19,16 +19,14 @@ class MenuItem extends StatelessWidget {
         Row(
           children: [
             icon,
-            SizedBox(
-              width: 4,
-            ),
+            const SizedBox(width: 4),
             Text(title),
-            Spacer(),
-            if(trailing != null) trailing!,
+            const Spacer(),
+            if (trailing != null) trailing!,
           ],
         ),
         Padding(
-          padding: EdgeInsets.only(left: 10),
+          padding: const EdgeInsets.only(left: 10, top: 5),
           child: child,
         ),
       ],

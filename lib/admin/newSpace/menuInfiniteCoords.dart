@@ -3,7 +3,7 @@ import "package:flexwork/widgets/customTextButton.dart";
 import "package:flexwork/widgets/newSpaceTextField.dart";
 import "package:provider/provider.dart";
 
-import "../../widgets/menu_item.dart";
+import '../../widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import "../../models/newSpaceNotifier.dart";
 

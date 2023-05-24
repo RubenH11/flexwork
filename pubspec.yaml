@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
   provider: ^6.0.5
   f_datetimerangepicker: ^0.2.0
-  intl: ^0.18.1
+  intl: ^0.17.0
   firebase_core: ^2.10.0
   cloud_firestore: ^4.5.3
   # number_text_input_formatter: ^1.0.0+6
@@ -41,6 +41,9 @@ dependencies:
   dropdown_button2: ^2.1.2
   flutter_typeahead: ^4.4.0
   flutter_keyboard_visibility: ^5.4.3
+  firebase_auth: ^4.6.1
+  firebase_ui_auth: ^1.4.1
+  table_calendar: ^3.0.0
 
 
 

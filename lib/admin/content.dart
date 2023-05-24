@@ -10,10 +10,11 @@ class AdminContent extends StatelessWidget {
   final Floors floor;
   final Workspace? selectedWorkspace;
   final Function(Workspace?) setSelectedWorkspace;
-  const AdminContent({required this.floor, required this.selectedWorkspace, required this.setSelectedWorkspace, super.key});
+  const AdminContent({required this.floor, required this.selectedWorkspace, required this.setSelectedWorkspace, super.key,});
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 4,
@@ -23,16 +24,16 @@ class AdminContent extends StatelessWidget {
             setSelectedWorkspace: setSelectedWorkspace,
           ),
         ),
-        SizedBox(
+        if(selectedWorkspace != null) SizedBox(
           height: 10,
         ),
-        Expanded(
+        if(selectedWorkspace != null) Expanded(
           flex: 3,
-          child: selectedWorkspace == null ? SizedBox() : EditWorkspace(
+          child: EditWorkspace(
             selectedWorkspace: selectedWorkspace!,
           ),
         ),
-        SizedBox(
+        if(selectedWorkspace != null) SizedBox(
           height: 10,
         ),
       ],

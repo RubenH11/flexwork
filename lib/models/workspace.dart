@@ -1,8 +1,10 @@
+import "package:flexwork/helpers/firebaseService.dart";
 import "package:tuple/tuple.dart";
 import "package:flutter/material.dart";
 import "./floors.dart";
 
 class Workspace {
+  String? _id;
   final Floors _floor;
   List<Tuple2<double, double>> _coordinates;
   String _identifier;
@@ -11,17 +13,77 @@ class Workspace {
   int _numMonitors;
   int _numWhiteboards;
   int _numScreens;
+  List<Tuple2<DateTime, DateTime>> _blockedMoments;
 
-  Workspace(
-    this._coordinates,
-    this._floor,
-    this._identifier,
-    this._nickname,
-    this._numMonitors,
-    this._numScreens,
-    this._numWhiteboards,
-    this._type,
-  );
+  Workspace({
+    required String? id,
+    required Floors floor,
+    required List<Tuple2<double, double>> coordinates,
+    required String identifier,
+    required String nickname,
+    required String type,
+    required int numMonitors,
+    required int numWhiteboards,
+    required int numScreens,
+    required List<Tuple2<DateTime, DateTime>> blockedMoments,
+  })  : _id = id,
+        _coordinates = coordinates,
+        _floor = floor,
+        _identifier = identifier,
+        _nickname = nickname,
+        _numMonitors = numMonitors,
+        _numScreens = numScreens,
+        _numWhiteboards = numWhiteboards,
+        _type = type,
+        _blockedMoments = blockedMoments;
+
+  Workspace.fromWorkspace({required Workspace workspace})
+      : _id = workspace.getId(),
+        _coordinates = workspace.getCoords(),
+        _floor = workspace.getFloor(),
+        _identifier = workspace.getIdentifier(),
+        _nickname = workspace.getNickname(),
+        _numMonitors = workspace.getNumMonitors(),
+        _numScreens = workspace.getNumScreens(),
+        _numWhiteboards = workspace.getNumWhiteboards(),
+        _type = workspace.getType(),
+        _blockedMoments = workspace.getBlockedMoments();
+
+  bool hasDifferentBasics(Workspace other) {
+    return (_floor != other.getFloor() ||
+        _identifier != other.getIdentifier() ||
+        _nickname != other.getNickname() ||
+        _numMonitors != other.getNumMonitors() ||
+        _numScreens != other.getNumScreens() ||
+        _numWhiteboards != other.getNumWhiteboards() ||
+        _type != other.getType());
+  }
+
+  bool hasDifferentCoordinates(Workspace workspace) {
+    if (_coordinates.length != workspace.getCoords().length) {
+      return true;
+    }
+    final coords = workspace.getCoords();
+    for (var i = 0; i < _coordinates.length; i++) {
+      if (_coordinates[i] != coords[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool hasDifferentBlockedMoments(Workspace workspace) {
+    if (_blockedMoments.length != workspace.getBlockedMoments().length) {
+      return true;
+    }
+    final blockedMoments = workspace.getCoords();
+    for (var i = 0; i < _blockedMoments.length; i++) {
+      if (_blockedMoments[i] != blockedMoments[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   String toString() {
@@ -32,44 +94,44 @@ class Workspace {
     return string;
   }
 
-  void addCoordinateFromLast(){
+  void addCoordinateFromLast() {
     final numCoords = _coordinates.length;
-    _coordinates.add(_coordinates[numCoords-1]);
+    _coordinates.add(_coordinates[numCoords - 1]);
   }
 
-  void deleteCoordinate(int numOfCoord){
+  void deleteCoordinate(int numOfCoord) {
     _coordinates.removeAt(numOfCoord);
   }
 
-  List<Tuple2<double, double>> getCoords(){
+  List<Tuple2<double, double>> getCoords() {
     return [..._coordinates];
   }
 
-  Floors getFloor(){
+  Floors getFloor() {
     return _floor;
   }
 
-  String getIdentifier(){
+  String getIdentifier() {
     return _identifier;
   }
 
-  String getNickname(){
+  String getNickname() {
     return _nickname;
   }
 
-  int getNumMonitors(){
+  int getNumMonitors() {
     return _numMonitors;
   }
 
-  int getNumWhiteboards(){
+  int getNumWhiteboards() {
     return _numWhiteboards;
   }
 
-  int getNumScreens(){
+  int getNumScreens() {
     return _numScreens;
   }
 
-  String getType(){
+  String getType() {
     return _type;
   }
 
@@ -90,36 +152,56 @@ class Workspace {
     return path;
   }
 
-  void setCoords(List<Tuple2<double, double>> newCoords){
+  String? getId() {
+    return _id;
+  }
+
+  List<Tuple2<DateTime, DateTime>> getBlockedMoments() {
+    return [..._blockedMoments];
+  }
+
+  void addBlockedMoment(Tuple2<DateTime, DateTime> blockedMoment) {
+    _blockedMoments.add(blockedMoment);
+  }
+
+  void deleteBlockedMoment(int index) {
+    _blockedMoments.removeAt(index);
+  }
+
+  void setId(String id) {
+    _id = id;
+  }
+
+  void setCoords(List<Tuple2<double, double>> newCoords) {
     _coordinates = newCoords;
   }
 
-  void setOneCoord({required int numOfCoord, required Tuple2<double, double> coord}){
+  void setOneCoord(
+      {required int numOfCoord, required Tuple2<double, double> coord}) {
     _coordinates[numOfCoord] = coord;
   }
 
-  void setIdentifier(String identifier){
+  void setIdentifier(String identifier) {
     _identifier = identifier;
   }
 
-  void setNickname(String nickname){
+  void setNickname(String nickname) {
     _nickname = nickname;
   }
 
-  void setNumMonitors(int numMonitors){
+  void setNumMonitors(int numMonitors) {
     _numMonitors = numMonitors;
   }
 
-  void setNumWhiteboards(int numWhiteboards){
+  void setNumWhiteboards(int numWhiteboards) {
     _numWhiteboards = numWhiteboards;
   }
 
-  void setNumScreens(int numScreens){
+  void setNumScreens(int numScreens) {
     _numScreens = numScreens;
   }
 
-  void setType(String type){
+  void setType(String type) {
     _type = type;
   }
-
 }

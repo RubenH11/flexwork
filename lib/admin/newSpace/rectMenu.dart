@@ -7,7 +7,7 @@ import "package:flexwork/helpers/firebaseService.dart";
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flutter/material.dart";
-import "../../widgets/menu_item.dart";
+import '../../widgets/menuItem.dart';
 import "package:provider/provider.dart";
 import "../../models/floors.dart";
 
@@ -23,15 +23,7 @@ class NewSpaceDefaultMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("rebuild whole menu");
-    final newSpace = Provider.of<NewSpaceNotifier>(context);
-
-    void addRoom() async {
-      print("add");
-      final identifier = newSpace.getIdentifier();
-      final space = newSpace.getPath();
-
-      await FirebaseService().addNewWorkspaceToDB(newSpace);
-    }
+    final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
 
     return Column(
       children: [
@@ -68,32 +60,6 @@ class NewSpaceDefaultMenu extends StatelessWidget {
           ),
         ),
         const Divider(),
-        Row(
-          // mainAxisSize: MainAxisSize.max,
-          children: [
-            Expanded(
-              child: CustomElevatedButton(
-                onPressed: () {
-                  print("cancel");
-                },
-                active: true,
-                selected: false,
-                text: "cancel",
-              ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: CustomElevatedButton(
-                onPressed: addRoom,
-                active: isValid,
-                selected: true,
-                text: "add",
-              ),
-            ),
-          ],
-        )
       ],
     );
   }

@@ -19,30 +19,22 @@ class NewSpaceContent extends StatelessWidget {
     print("build newSpace content");
     final newSpaceNotifier = Provider.of<NewSpaceNotifier>(context);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        NewSpaceFloor(isValid: isValid),
+        Expanded(
+          flex: 6,
+          child: NewSpaceFloor(isValid: isValid)),
         SizedBox(
           height: 10,
         ),
         Expanded(
+          flex: 3,
           child: EditWorkspace(
             selectedWorkspace: newSpaceNotifier.workspace,
           ),
         ),
         SizedBox(
           height: 10,
-        ),
-        Row(
-          children: [
-            Expanded(
-                child: Placeholder(
-              fallbackHeight: 30,
-            )),
-            Expanded(
-                child: Placeholder(
-              fallbackHeight: 30,
-            )),
-          ],
         ),
       ],
     );

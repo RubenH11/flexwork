@@ -12,19 +12,21 @@ class NewSpaceNotifier extends ChangeNotifier {
 
   NewSpaceNotifier(Floors floor) {
     workspace = Workspace(
-      [
+      id: null,
+      coordinates: [
         const Tuple2(0, 0),
         const Tuple2(12, 0),
         const Tuple2(12, 18),
         const Tuple2(0, 18),
       ],
-      floor,
-      "",
-      "",
-      0,
-      0,
-      0,
-      "",
+      floor: floor,
+      identifier: "",
+      nickname: "",
+      numMonitors: 0,
+      numScreens: 0,
+      numWhiteboards: 0,
+      type: "",
+      blockedMoments: [],
     );
   }
 
@@ -438,6 +440,19 @@ class NewSpaceNotifier extends ChangeNotifier {
   String getType() {
     return workspace.getType();
   }
+
+  List<Tuple2<DateTime, DateTime>> getBlockedMoments(){
+    return workspace.getBlockedMoments();
+  }
+
+  void addBlockedMoment(Tuple2<DateTime, DateTime> blockedMoment){
+    workspace.addBlockedMoment(blockedMoment);
+  }
+
+  void deleteBlockedMoment(int index){
+    workspace.deleteBlockedMoment(index);
+  }
+
 
   void setIdentifier(String identifier) {
     workspace.setIdentifier(identifier);

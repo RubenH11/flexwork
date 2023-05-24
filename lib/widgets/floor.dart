@@ -54,8 +54,11 @@ class Floor extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final canvasHeight = constraints.maxHeight;
-        final canvasWidth = canvasHeight / 12 * 27;
+        final dependentOnWidth = constraints.maxHeight > constraints.maxWidth / 27 * 12;
+        // print("dependentOnWidth: $dependentOnWidth");
+        final canvasHeight = dependentOnWidth ? constraints.maxWidth / 27 * 12 : constraints.maxHeight;
+        final canvasWidth = dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
+        // print("canvasHeight: $canvasHeight & canvasWidth: $canvasWidth");
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;

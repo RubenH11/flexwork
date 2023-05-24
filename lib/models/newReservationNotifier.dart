@@ -1,48 +1,148 @@
+import 'package:flexwork/models/workspace.dart';
 import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
 import "./floors.dart";
 
-class NewReservationNotifier extends ChangeNotifier{
+class NewReservationNotifier extends ChangeNotifier {
+  Floors _floor;
+  String? _scheduleTimeframe;
+  int _scheduleTimeframeNum = 1;
+  Set<Tuple2<String,DateTime>> _scheduleExceptions = {};
   DateTime? _startTime;
   DateTime? _endTime;
-  String? _roomNumber;
+  DateTime? _scheduleUntilDate;
+  Workspace? _workspace;
 
-  bool isComplete(){
-    return _startTime != null && _endTime != null && _roomNumber != null;
+  NewReservationNotifier(this._floor);
+
+  bool isComplete() {
+    return _startTime != null &&
+        _endTime != null &&
+        _startTime != _endTime &&
+        _workspace != null;
   }
 
-  void clear(){
+  void clear() {
     _startTime = null;
     _endTime = null;
-    _roomNumber = null;
+    _workspace = null;
     notifyListeners();
   }
 
-  DateTime? getStartTime(){
-    return _startTime == null ? null :_startTime!.copyWith();
+  void clearSchedule(){
+    _scheduleTimeframe = null;
+    _scheduleExceptions = {};
+    _scheduleTimeframeNum = 1;
+    _scheduleUntilDate = null;
+    notifyListeners();
   }
 
-  void setStartTime(DateTime? start){
+  void setStartTime(DateTime? start) {
     _startTime = start;
     print("setStartTime in newResercationNotifier");
     notifyListeners();
   }
 
-  DateTime? getEndTime(){
-    return _endTime == null ? null : _endTime!.copyWith();
-  }
-
-  void setEndTime(DateTime? end){
+  void setEndTime(DateTime? end) {
     _endTime = end;
     notifyListeners();
   }
 
-  String? getRoomNumber(){
-    return [_roomNumber].first;
+  void setIdentifier(String identifier) {
+    assert(_workspace != null);
+    _workspace!.setIdentifier(identifier);
+    notifyListeners();
   }
 
-  void setRoomNumber(String? roomNum){
-    _roomNumber = roomNum;
+  void setFloor(Floors floor) {
+    _floor = floor;
     notifyListeners();
+  }
+
+  void setWorkspace(Workspace? workspace) {
+    _workspace = workspace;
+    notifyListeners();
+  }
+
+  void setScheduleTimeframe(String? timeframe) {
+    if (getScheduleTimeframeOptions().contains(timeframe)) {
+      _scheduleTimeframe = timeframe;
+      notifyListeners();
+    }
+  }
+
+  void setScheduleTimeframeNum(int number) {
+    _scheduleTimeframeNum = number;
+    notifyListeners();
+  }
+
+  void setScheduleUntilDate(DateTime date) {
+    _scheduleUntilDate = date;
+    notifyListeners();
+  }
+
+  void addManualScheduleException(DateTime exception) {
+    print("before add $_scheduleExceptions");
+    _scheduleExceptions.add(Tuple2("manual", exception));
+    _sortScheduleExceptions();
+    print(_scheduleExceptions);
+    notifyListeners();
+  }
+
+  void removeScheduleException(DateTime exception) {
+    _scheduleExceptions.remove(Tuple2("manual", exception));
+    notifyListeners();
+  }
+
+  List<DateTime> getScheduleExceptions() {
+    return _scheduleExceptions.map((e) => e.item2).toList();
+  }
+
+  DateTime? getScheduleUntilDate() {
+    return _scheduleUntilDate;
+  }
+
+  String? getScheduleTimeframe() {
+    return _scheduleTimeframe;
+  }
+
+  int getScheduleTimeframeNum() {
+    return _scheduleTimeframeNum;
+  }
+
+  static List<String> getScheduleTimeframeOptions() {
+    return ["days", "weeks", "months", "years"];
+  }
+
+  Workspace? getWorkspace() {
+    return _workspace;
+  }
+
+  Floors getFloor() {
+    return _floor;
+  }
+
+  String? getIdentifier() {
+    if (_workspace == null) {
+      return null;
+    }
+    return _workspace!.getIdentifier();
+  }
+
+  DateTime? getEndTime() {
+    return _endTime == null ? null : _endTime!.copyWith();
+  }
+
+  DateTime? getStartTime() {
+    return _startTime == null ? null : _startTime!.copyWith();
+  }
+
+  // PRIVATE
+
+  Set<Tuple2<String, DateTime>> _sortScheduleExceptions() {
+    final listVersion = _scheduleExceptions.toList();
+    listVersion.sort((a, b) => a.item2.compareTo(b.item2));
+    return listVersion.toSet();
   }
 
   // Floors updateFloor(Floors? floor) {

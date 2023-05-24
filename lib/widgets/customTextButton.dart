@@ -1,59 +1,77 @@
 import "package:flutter/material.dart";
 
-class CustomTextButton extends StatefulWidget {
+class CustomTextButton extends StatelessWidget {
   bool selected;
-  String text;
+  double? width;
+  String? text;
+  IconData? icon;
   Function onPressed;
-  bool? alignLeft;
+  TextAlign? textAlign;
+  Color? color;
+  double? size;
 
   CustomTextButton({
     required this.onPressed,
     required this.selected,
-    required this.text,
-    this.alignLeft,
+    this.width,
+    this.text,
+    this.icon,
+    this.size,
+    this.textAlign,
+    this.color,
     super.key,
   });
 
   @override
-  State<CustomTextButton> createState() => _CustomTextButtonState();
-}
-
-class _CustomTextButtonState extends State<CustomTextButton> {
-  late Color textColor;
-
-  @override
   Widget build(BuildContext context) {
-    textColor =  widget.selected ? Color.fromARGB(255, 134, 159, 249) : Colors.black;
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              widget.onPressed();
-            },
-            onTapDown: (details) {
-              setState(() {
-                textColor = widget.selected
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
-                    : Theme.of(context).colorScheme.onSecondary.withOpacity(0.5);
-              });
-            },
-            onTapUp: (details) {
-              setState(() {
-                textColor = widget.selected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSecondary;
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-              child: Text(widget.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: textColor), textAlign: widget.alignLeft == null ? TextAlign.center : widget.alignLeft! ? TextAlign.left : TextAlign.center,),
+    var textColor =
+        selected ? Color.fromARGB(255, 134, 159, 249) : Colors.black;
+
+    if (color != null) {
+      textColor = color!;
+    }
+    return SizedBox(
+      width: width,
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => onPressed(),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment:
+                      textAlign == TextAlign.right || textAlign == TextAlign.end
+                          ? MainAxisAlignment.end
+                          : textAlign == TextAlign.left ||
+                                  textAlign == TextAlign.start
+                              ? MainAxisAlignment.start
+                              : MainAxisAlignment.center,
+                  children: [
+                    if (icon != null)
+                      Icon(
+                        icon!,
+                        color: textColor,
+                      ),
+                    if (icon != null && text != null) const SizedBox(width: 5),
+                    if (text != null)
+                      Text(
+                        text!,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: size == null ? 12 : size!,
+                            color: textColor),
+                        textAlign: textAlign ?? TextAlign.center,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
