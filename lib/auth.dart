@@ -1,13 +1,19 @@
+import "dart:js_util";
+
+import 'package:flexwork/models/adminState.dart';
 import "package:flexwork/widgets/customTextButton.dart";
 import "package:flutter/material.dart";
 import "package:firebase_auth/firebase_auth.dart";
+import "package:provider/provider.dart";
 
-class Auth extends StatefulWidget {
+class AuthScreen extends StatefulWidget {
+  const AuthScreen({super.key});
+
   @override
   _AuthState createState() => _AuthState();
 }
 
-class _AuthState extends State<Auth> {
+class _AuthState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   String _email = "";
   String _password = "";
@@ -15,7 +21,11 @@ class _AuthState extends State<Auth> {
 
   void _login() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
+      final adminData = Provider.of<AdminState>(context, listen: false);
+      adminData.setEmail(_email);
+      adminData.setPassword(_password);
+
+      await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: _email, password: _password);
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {

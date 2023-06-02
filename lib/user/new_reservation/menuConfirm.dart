@@ -1,29 +1,34 @@
+import 'package:flexwork/models/request.dart';
+import 'package:flexwork/models/reservationConflict.dart';
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import '../../models/newReservationNotifier.dart';
 import '../../widgets/customElevatedButton.dart';
-import '../../helpers/firebaseService.dart';
+import '../../database/firebaseService.dart';
 
 class MakeReserationButton extends StatelessWidget {
-  MakeReserationButton({super.key});
-  //var isLoading =
+  const MakeReserationButton({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    print("|||| MakeReserationButton ||||");
     final newRes = Provider.of<NewReservationNotifier>(context);
 
     return CustomElevatedButton(
-      onPressed: newRes.isComplete()
-          ? () {
-              //FirebaseService().addReservation(newRes);
-              newRes.clear();
-            }
-          : () {
-              print("not all fields were filled, so no res could be made");
-              //TODO: tell the user why they cannot yet press the make reservation button
-            },
-      active: newRes.isComplete(),
-      selected: newRes.isComplete(),
+      onPressed: () async {
+        print("clicked confirm");
+        for (var request in newRes.getRequests()) {
+          await FirebaseService().requests.add(request);
+        }
+        await FirebaseService().reservations.add(newRes);
+        print("22222");
+        newRes.clear();
+        print("3333");
+      },
+      active: newRes.isValid(),
+      selected: newRes.isValid(),
       text: "make reservation",
     );
   }

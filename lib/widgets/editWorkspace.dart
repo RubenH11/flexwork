@@ -1,11 +1,14 @@
-import "package:flexwork/helpers/firebaseService.dart";
+import 'package:flexwork/database/firebaseService.dart';
 import "package:flexwork/models/workspace.dart";
+import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
+import "package:flexwork/widgets/customTextButton.dart";
 import "package:flexwork/widgets/customTextField.dart";
 import "package:flutter/material.dart";
 import "package:flutter_typeahead/flutter_typeahead.dart";
 import "package:intl/intl.dart";
 import "package:tuple/tuple.dart";
+import "package:flutter_colorpicker/flutter_colorpicker.dart";
 
 class EditWorkspace extends StatelessWidget {
   final Workspace selectedWorkspace;
@@ -44,7 +47,7 @@ class EditWorkspace extends StatelessWidget {
                   Container(
                       width: 105,
                       padding: const EdgeInsets.only(left: 10),
-                      child: const Text("Identifier")),
+                      child: const Text("Workspace")),
                   Expanded(
                     child: CustomTextField(
                         onChanged: (value) => workspace.setIdentifier(value),
@@ -106,19 +109,100 @@ class EditWorkspace extends StatelessWidget {
                         ),
                       ),
                       suggestionsCallback: (value) {
-                        final list = ["Office", "Meeting room", "Lab"];
-                        return list;
+                        return FirebaseService().workspaceTypes.getColors().keys;
                       },
                       itemBuilder: (ctx, suggestion) {
-                        return Container(
-                          height: 50,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 18.0),
-                          child: Text(suggestion),
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 50,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 18.0),
+                                child: Text(suggestion),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 90,
+                              child: CustomTextButton(
+                                selected: true,
+                                text: "select color",
+                                textAlign: TextAlign.center,
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      Color currentColor = FirebaseService()
+                                          .workspaceTypes.getColor(suggestion);
+                                      return AlertDialog(
+                                        titleTextStyle: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge,
+                                        title: Text(
+                                          'Scroll and select a color',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        content: SingleChildScrollView(
+                                          child: BlockPicker(
+                                            pickerColor: currentColor,
+                                            onColorChanged: (Color color) {
+                                              currentColor = color;
+                                            },
+                                            availableColors: [
+                                              for (double hue = 0;
+                                                  hue < 360;
+                                                  hue += 5)
+                                                HSLColor.fromAHSL(
+                                                        1.0, hue, 1, 0.8)
+                                                    .toColor(),
+                                            ],
+                                          ),
+                                        ),
+                                        actionsAlignment:
+                                            MainAxisAlignment.center,
+                                        actions: <Widget>[
+                                          CustomTextButton(
+                                            text: "Select",
+                                            selected: true,
+                                            onPressed: () {
+                                              // Process the selected color
+                                              FirebaseService().workspaceTypes.setColor(
+                                                  suggestion, currentColor);
+                                              print(
+                                                  'Selected color: $currentColor');
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            CustomTextButton(
+                              selected: true,
+                              icon: Icons.delete,
+                              width: 60,
+                              textAlign: TextAlign.center,
+                              color: Theme.of(context).colorScheme.error,
+                              onPressed: () async {
+                                try {
+                                  await FirebaseService().workspaceTypes.delete(suggestion);
+                                  showBottomSheetWithTimer(context, "deleted succesfully", Colors.green, Colors.white);
+                                } catch (error) {
+                                  showBottomSheetWithTimer(context, "Could not delete: $error", Theme.of(context).colorScheme.error, Theme.of(context).colorScheme.onError);
+                                }
+                              },
+                            ),
+                          ],
                         );
                       },
                       onSuggestionSelected: (value) {
                         typeController.text = value;
+                        workspace.setType(value);
                       },
                     ),
                   ),

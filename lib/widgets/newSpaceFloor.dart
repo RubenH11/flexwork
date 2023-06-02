@@ -1,6 +1,6 @@
 import "dart:typed_data";
 
-import "../helpers/firebaseService.dart";
+import '../database/firebaseService.dart';
 import "package:flutter/material.dart";
 import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
@@ -22,6 +22,7 @@ class NewSpaceFloor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("|||| build NewSpaceFloor ||||");
     final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -87,7 +88,7 @@ class _Workspaces extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Path> workspaces = [];
-    for (final workspace in FirebaseService().getWorkspaces(floor)) {
+    for (final workspace in FirebaseService().workspaces.get(floor: floor)) {
       // print("adding ${workspace.toString()} to list to draw");
       workspaces.add(workspace.getPath().transform(scale));
     }
@@ -122,9 +123,11 @@ class _NewWorkSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("|||| build NewWorkspace ||||");
     final newSpaceNotifier =
         Provider.of<NewSpaceNotifier>(context, listen: false);
     final newSpace = newSpaceNotifier.getPath();
+    print("newSpace's name: ${newSpaceNotifier.getIdentifier()}");
 
     final pathMetric =
         newSpace.computeMetrics().elementAt(0);

@@ -8,10 +8,8 @@ import "package:flutter/material.dart";
 import "../../models/newSpaceNotifier.dart";
 
 class NewSpaceMenuInfiniteCoordinates extends StatelessWidget {
-  final NewSpaceNotifier newSpace;
   final FocusNode newSpaceFocusNode;
   const NewSpaceMenuInfiniteCoordinates({
-    required this.newSpace,
     required this.newSpaceFocusNode,
     super.key,
   });
@@ -26,56 +24,56 @@ class NewSpaceMenuInfiniteCoordinates extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final coords = newSpace.getCoords();
+    final newSpaceNotif = Provider.of<NewSpaceNotifier>(context);
+    final coords = newSpaceNotif.getCoords();
 
-    return Expanded(
-      child: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _CoordinateFields(
-                      newSpace: newSpace,
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: 
+            Column(
+              children: [
+                _CoordinateFields(
+                    newSpace: newSpaceNotif,
+                    newSpaceFocusNode: newSpaceFocusNode,
+                    numOfCoord: 0),
+                _CoordinateFields(
+                    newSpace: newSpaceNotif,
+                    newSpaceFocusNode: newSpaceFocusNode,
+                    numOfCoord: 1),
+                _CoordinateFields(
+                    newSpace: newSpaceNotif,
+                    newSpaceFocusNode: newSpaceFocusNode,
+                    numOfCoord: 2),
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (_, index) {
+                    final numOfCoords = index + 3;
+                    return _CoordinateFields(
+                      newSpace: newSpaceNotif,
                       newSpaceFocusNode: newSpaceFocusNode,
-                      numOfCoord: 0),
-                  _CoordinateFields(
-                      newSpace: newSpace,
-                      newSpaceFocusNode: newSpaceFocusNode,
-                      numOfCoord: 1),
-                  _CoordinateFields(
-                      newSpace: newSpace,
-                      newSpaceFocusNode: newSpaceFocusNode,
-                      numOfCoord: 2),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemBuilder: (_, index) {
-                      final numOfCoords = index + 3;
-                      return _CoordinateFields(
-                        newSpace: newSpace,
-                        newSpaceFocusNode: newSpaceFocusNode,
-                        numOfCoord: numOfCoords,
-                        allowDelete: true,
-                      );
-                    },
-                    itemCount: coords.length - 3,
-                  ),
-                ],
-              ),
+                      numOfCoord: numOfCoords,
+                      allowDelete: true,
+                    );
+                  },
+                  itemCount: coords.length - 3,
+                ),
+                CustomElevatedButton(
+                  onPressed: () {
+                    newSpaceNotif.addCoordinateFromLast();
+                  },
+                  selected: true,
+                  active: true,
+                  text: "Add new coordinate",
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          CustomElevatedButton(
-            onPressed: () {
-              newSpace.addCoordinateFromLast();
-            },
-            selected: true,
-            active: true,
-            text: "Add new coordinate",
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }

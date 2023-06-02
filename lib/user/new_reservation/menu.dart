@@ -1,13 +1,10 @@
-import "dart:html";
-
 import 'package:flexwork/models/newReservationNotifier.dart';
+import 'package:flexwork/models/request.dart';
+import 'package:flexwork/models/reservationConflict.dart';
+import 'package:flexwork/user/new_reservation/menuConflicts.dart';
 import 'package:flexwork/user/new_reservation/menuSchedule.dart';
-import 'package:flexwork/widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import 'package:provider/provider.dart';
-
-import '../../widgets/customTextButton.dart';
-import '../../widgets/customElevatedButton.dart';
 
 import 'menuTimeframes.dart';
 import 'menuFloors.dart';
@@ -18,7 +15,7 @@ class NewReservationMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("rebuild NewReservationMenu");
+    print("|||| NewReservationMenu ||||");
     return Column(
       children: [
         Expanded(
@@ -33,15 +30,21 @@ class NewReservationMenu extends StatelessWidget {
                   builder: (ctx, newRefNotif, _) =>
                       (newRefNotif.getStartTime() != null &&
                               newRefNotif.getEndTime() != null)
-                          ? const NewReservationMenuSchedule()
+                          ? Column(
+                            children: const [
+                              NewReservationMenuSchedule(),
+                              Divider(),
+                            ],
+                          )
                           : const SizedBox(),
                 ),
+                Conflicts(),
               ],
             ),
           ),
         ),
         const Divider(),
-        MakeReserationButton()
+        MakeReserationButton(),
       ],
     );
   }

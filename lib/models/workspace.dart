@@ -1,4 +1,5 @@
-import "package:flexwork/helpers/firebaseService.dart";
+import 'package:flexwork/database/firebaseService.dart';
+import "package:flexwork/models/reservation.dart";
 import "package:tuple/tuple.dart";
 import "package:flutter/material.dart";
 import "./floors.dart";
@@ -14,6 +15,8 @@ class Workspace extends ChangeNotifier {
   int _numWhiteboards;
   int _numScreens;
   List<Tuple2<DateTime, DateTime>> _blockedMoments;
+  Color _color;
+
 
   Workspace({
     required String id,
@@ -31,6 +34,8 @@ class Workspace extends ChangeNotifier {
     int numWhiteboards = 0,
     int numScreens = 0,
     List<Tuple2<DateTime, DateTime>> blockedMoments = const [],
+    List<Tuple2<DateTime, DateTime>> possibleConflicts = const [],
+    required Color color,
   })  : _id = id,
         _coordinates = coordinates,
         _floor = floor,
@@ -40,6 +45,7 @@ class Workspace extends ChangeNotifier {
         _numScreens = numScreens,
         _numWhiteboards = numWhiteboards,
         _type = type,
+        _color = color,
         _blockedMoments = blockedMoments;
 
   Workspace.fromWorkspace({required Workspace workspace})
@@ -52,6 +58,7 @@ class Workspace extends ChangeNotifier {
         _numScreens = workspace.getNumScreens(),
         _numWhiteboards = workspace.getNumWhiteboards(),
         _type = workspace.getType(),
+        _color = workspace.getColor(),
         _blockedMoments = workspace.getBlockedMoments();
 
   bool hasDifferentBasics(Workspace other) {
@@ -92,7 +99,7 @@ class Workspace extends ChangeNotifier {
 
   @override
   String toString() {
-    var string = "Floor $_floor, named '$_identifier': ";
+    var string = "ID $_id, Floor $_floor, named '$_identifier': ";
     for (final coord in _coordinates) {
       string = "$string $coord,";
     }
@@ -139,6 +146,7 @@ class Workspace extends ChangeNotifier {
     }
     // start path
     final path = Path()..moveTo(_coordinates[0].item1, _coordinates[0].item2);
+
     // traverse path
     for (var i = 1; i < _coordinates.length; i++) {
       path.lineTo(_coordinates[i].item1, _coordinates[i].item2);
@@ -150,6 +158,10 @@ class Workspace extends ChangeNotifier {
 
   String getId() {
     return _id;
+  }
+
+  Color getColor(){
+    return _color;
   }
 
   List<Tuple2<DateTime, DateTime>> getBlockedMoments() {
@@ -166,6 +178,10 @@ class Workspace extends ChangeNotifier {
 
   void setId(String id) {
     _id = id;
+  }
+
+  void setColor(Color color){
+    _color = color;
   }
 
   void setIdentifier(String identifier) {

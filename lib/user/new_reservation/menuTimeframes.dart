@@ -34,8 +34,15 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
 
   @override
   Widget build(BuildContext context) {
-    final newReservationNotifier =
-        Provider.of<NewReservationNotifier>(context, listen: false);
+    print("|||| NewReservationMenuTimeFrame ||||");
+
+    final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
+
+
+    if (newReservationNotifier.getEndTime() == null &&
+        newReservationNotifier.getStartTime() == null) {
+      displayOption = _DisplayOption.none;
+    }
 
     return MenuItem(
       icon: Icon(Icons.access_time),
@@ -47,9 +54,15 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
             action: Consumer<NewReservationNotifier>(
               builder: (ctx, newResNotif, _) => CustomTextButton(
                 onPressed: () {
-                  if (newResNotif.getStartTime() == null) {
+                  final startTime = newResNotif.getStartTime();
+                  final endTime = newResNotif.getEndTime();
+
+                  if (startTime != null && endTime == null) {
+                    newResNotif.setStartTime(endTime);
+                  } else if (startTime == null && endTime == null) {
                     newResNotif.setStartTime(roundToNext15(DateTime.now()));
                   }
+
                   setDisplayOption(_DisplayOption.onlyStart);
                 },
                 selected: true,
@@ -62,18 +75,32 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
             ),
           ),
           if (displayOption == _DisplayOption.onlyStart)
-            DatePicker(
-              aboveMenuBase: "end",
-              aboveMenuOptions: [-30, -60, -120],
-              releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-              getInitialDateTime: () => newReservationNotifier.getStartTime() ?? newReservationNotifier.getEndTime() ?? roundToNext15(DateTime.now()),
-              getMinimumDate: () => null,
-              getMaximumDate: () => newReservationNotifier.getEndTime(),
-              onDateTimeChanged: (DateTime newDate) {
-                newReservationNotifier.setStartTime(newDate);
-              },
-              getTime: newReservationNotifier.getStartTime,
-              setTime: newReservationNotifier.setStartTime,
+            Selector(
+              selector: (p0, p1) => 0,
+              builder: (_, __, ___) => DatePicker(
+                aboveMenuBase: "end",
+                aboveMenuOptions: [-30, -60, -120],
+                releaseDisplay: () => setDisplayOption(_DisplayOption.none),
+                getInitialDateTime: () {
+                  print("end time: ${newReservationNotifier.getEndTime()}");
+                  if (newReservationNotifier.getStartTime() != null) {
+                    print("?");
+                    return newReservationNotifier.getStartTime();
+                  } else if (newReservationNotifier.getEndTime() != null) {
+                    return newReservationNotifier.getEndTime();
+                  } else {
+                    return roundToNext15(DateTime.now());
+                  }
+                },
+                getMinimumDate: () => null,
+                getMaximumDate: () => newReservationNotifier.getEndTime(),
+                onDateTimeChanged: (DateTime newDate) {
+                  print("765446");
+                  newReservationNotifier.setStartTime(newDate);
+                },
+                getTime: newReservationNotifier.getStartTime,
+                setTime: newReservationNotifier.setStartTime,
+              ),
             ),
           MenuAction(
             label: "End",
@@ -101,23 +128,24 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
             ),
           ),
           if (displayOption == _DisplayOption.onlyEnd)
-            Column(
-              children: [
-                DatePicker(
-                  aboveMenuBase: "start",
-                  aboveMenuOptions: [30, 60, 120],
-                  releaseDisplay: () => setDisplayOption(_DisplayOption.none),
-                  getInitialDateTime: () => newReservationNotifier.getEndTime() ?? newReservationNotifier.getStartTime() ?? roundToNext15(DateTime.now()),
-                  getMinimumDate: () =>
-                      newReservationNotifier.getStartTime(),
-                  getMaximumDate: () => null,
-                  onDateTimeChanged: (DateTime newDate) {
-                    newReservationNotifier.setEndTime(newDate);
-                  },
-                  getTime: newReservationNotifier.getEndTime,
-                  setTime: newReservationNotifier.setEndTime,
-                ),
-              ],
+            Selector(
+              selector: (p0, p1) => 0,
+              builder: (_, __, ___) => DatePicker(
+                aboveMenuBase: "start",
+                aboveMenuOptions: [30, 60, 120],
+                releaseDisplay: () => setDisplayOption(_DisplayOption.none),
+                getInitialDateTime: () =>
+                    newReservationNotifier.getEndTime() ??
+                    newReservationNotifier.getStartTime() ??
+                    roundToNext15(DateTime.now()),
+                getMinimumDate: () => newReservationNotifier.getStartTime(),
+                getMaximumDate: () => null,
+                onDateTimeChanged: (DateTime newDate) {
+                  newReservationNotifier.setEndTime(newDate);
+                },
+                getTime: newReservationNotifier.getEndTime,
+                setTime: newReservationNotifier.setEndTime,
+              ),
             ),
         ],
       ),
@@ -156,6 +184,7 @@ class DatePicker extends StatefulWidget {
 class _DatePickerState extends State<DatePicker> {
   @override
   Widget build(BuildContext context) {
+    print("|||| DatePicker ||||");
     void updateDatePicker() {
       setState(() {});
     }
@@ -208,6 +237,7 @@ class _DatePickerButtons extends StatefulWidget {
 class _DatePickerButtonsState extends State<_DatePickerButtons> {
   @override
   Widget build(BuildContext context) {
+    print("|||| DatePickerButtons ||||");
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
     final previousStartTime = widget.getTime();
 
@@ -231,11 +261,12 @@ class _DatePickerButtonsState extends State<_DatePickerButtons> {
         Expanded(
           child: CustomTextButton(
             onPressed: () {
+              print("76453");
               widget.setTime(changeTimeToToday(widget.getTime()));
               widget.updateDatePicker();
             },
             text: "today",
-            selected: widget.getTime != null &&
+            selected: widget.getTime() != null &&
                 widget.getTime()!.day == DateTime.now().day,
           ),
         ),
@@ -262,6 +293,7 @@ class _DatePickerPresetButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("|||| DatePickerPresetButtons ||||");
     final newResNotif = Provider.of<NewReservationNotifier>(context);
 
     List<Widget> buttons = [];
@@ -278,19 +310,18 @@ class _DatePickerPresetButtons extends StatelessWidget {
     if (baseTime != null) {
       options.forEach((option) {
         String text;
-        final optionAbs = option.abs();
-        if (optionAbs < 60) {
-          text = "$optionAbs min.";
-        } else if (optionAbs == 60) {
+        if (option < 60) {
+          text = "$option min.";
+        } else if (option == 60) {
           text = "1 hour";
         } else {
-          text = "${(optionAbs / 60).ceil()} hours";
+          text = "${(option / 60).ceil()} hours";
         }
 
         buttons.add(Expanded(
           child: CustomTextButton(
             onPressed: () {
-              print("add $option minutes");
+              // print("add $option minutes");
               if (base == "start") {
                 newResNotif.setEndTime(
                   baseTime!.add(Duration(minutes: option)),
@@ -313,9 +344,7 @@ class _DatePickerPresetButtons extends StatelessWidget {
     }
 
     for (var i = buttons.length - 1; i > 0; i--) {
-      print("insert sizedbox");
       buttons.insert(i, SizedBox(width: 5));
-      print("after insert sizedbox");
     }
 
     return Row(children: buttons);
@@ -348,7 +377,7 @@ DateTime changeTimeToToday(DateTime? timeToBeChanged) {
 
   // if no time is set yet
   if (timeToBeChanged == null) {
-    print("==no time was set");
+    // print("==no time was set");
     return roundToNext15(DateTime.now());
   }
 
@@ -356,10 +385,10 @@ DateTime changeTimeToToday(DateTime? timeToBeChanged) {
   if (timeToBeChanged.hour < DateTime.now().hour ||
       (timeToBeChanged.hour == DateTime.now().hour &&
           timeToBeChanged.minute < DateTime.now().minute)) {
-    print("==time was before minimum");
+    // print("==time was before minimum");
     return roundToNext15(DateTime.now());
   }
 
-  print("==no issues");
+  // print("==no issues");
   return onlyChangeDay(timeToBeChanged, DateTime.now());
 }

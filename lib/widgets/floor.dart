@@ -1,14 +1,12 @@
-import "package:flexwork/models/newReservationNotifier.dart";
+import "package:flexwork/helpers/diagonalPattern.dart";
 import "package:flexwork/models/workspace.dart";
+import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
+import "package:tuple/tuple.dart";
 import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
-import "dart:math" as math;
 import "dart:typed_data";
-import '../models/workspaceSelectionNotifier.dart';
-import "../helpers/firebaseService.dart";
-import "package:provider/provider.dart";
-import '../models/workspaceSelectionNotifier.dart';
+import '../database/firebaseService.dart';
 
 // ------------ INFO ---------------
 // The Canvas width takes up the full available area minus the padding
@@ -21,10 +19,12 @@ class Floor extends StatelessWidget {
   final Floors floor;
   final Workspace? selectedWorkspace;
   final Function(Workspace?) setSelectedWorkspace;
+  final List<String> blockedWorkspaceIds;
   const Floor(
       {required this.floor,
       required this.selectedWorkspace,
       required this.setSelectedWorkspace,
+      required this.blockedWorkspaceIds,
       super.key});
 
   void _handleWorkspaceTap(
@@ -34,12 +34,10 @@ class Floor extends StatelessWidget {
   ) {
     var roomWasTapped = false;
 
-    print("handling tap");
-
     workspaces.forEach((workspace) {
       if (workspace.getPath().transform(scale).contains(tapOffset)) {
         roomWasTapped = true;
-        print("room was tapped: ${workspace.getIdentifier()}");
+        // print("room was tapped: ${workspace.getIdentifier()}");
         setSelectedWorkspace(workspace);
       }
     });
@@ -50,26 +48,39 @@ class Floor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final workspaces = FirebaseService().getWorkspaces(floor);
+    final workspaces = FirebaseService().workspaces.get(floor: floor);
+
+    // print("selected workspace: $selectedWorkspace");
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dependentOnWidth = constraints.maxHeight > constraints.maxWidth / 27 * 12;
+        final dependentOnWidth =
+            constraints.maxHeight > constraints.maxWidth / 27 * 12;
         // print("dependentOnWidth: $dependentOnWidth");
-        final canvasHeight = dependentOnWidth ? constraints.maxWidth / 27 * 12 : constraints.maxHeight;
-        final canvasWidth = dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
+        final canvasHeight = dependentOnWidth
+            ? constraints.maxWidth / 27 * 12
+            : constraints.maxHeight;
+        final canvasWidth =
+            dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
         // print("canvasHeight: $canvasHeight & canvasWidth: $canvasWidth");
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;
 
-        List<Path> scaledWorkspaces = [];
+        List<Tuple2<Color, Path>> scaledWorkspaces = [];
+        List<Path> scaledBlockedWorkspaces = [];
         Path? scaledSelectedWorkspace;
         for (final workspace in workspaces) {
-          if (workspace == selectedWorkspace) {
+          // print("checking workspace $workspace == $selectedWorkspace");
+          if (selectedWorkspace != null &&
+              workspace.getId() == selectedWorkspace!.getId()) {
             scaledSelectedWorkspace = workspace.getPath().transform(scale);
           } else {
-            scaledWorkspaces.add(workspace.getPath().transform(scale));
+            scaledWorkspaces.add(Tuple2(
+                workspace.getColor(), workspace.getPath().transform(scale)));
+          }
+          if (blockedWorkspaceIds.contains(workspace.getId())) {
+            scaledBlockedWorkspaces.add(workspace.getPath().transform(scale));
           }
         }
 
@@ -89,18 +100,41 @@ class Floor extends StatelessWidget {
 
         return GestureDetector(
           onTapUp: (details) {
-            print("tap up");
-            _handleWorkspaceTap(
-                details.localPosition, workspaces, scale);
+            _handleWorkspaceTap(details.localPosition, workspaces, scale);
           },
-          child: CustomPaint(
-            size: Size(canvasWidth, canvasHeight),
-            painter: _FloorPainter(
-              workspaces: scaledWorkspaces,
-              selectedWorkspace: scaledSelectedWorkspace,
-              outterWalls: scaledOutterWalls,
-              innerWalls: scaledInnerWalls,
-            ),
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: Size(canvasWidth, canvasHeight),
+                painter: _FloorPainter(
+                  freeWorkspaces: scaledWorkspaces,
+                  selectedWorkspace: scaledSelectedWorkspace,
+                  outterWalls: scaledOutterWalls,
+                  innerWalls: scaledInnerWalls,
+                ),
+              ),
+              ClipPath(
+                clipper: _BlockedSpaceClipper(scaledBlockedWorkspaces),
+                child: CustomPaint(
+                  size: Size(canvasWidth, canvasHeight),
+                  painter: DiagonalPatternPainter(),
+                  child: Container(
+                    width: canvasWidth,
+                    height: canvasHeight,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: canvasHeight * 0.52,
+                left: canvasWidth * 0.27,
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  height: canvasHeight * 0.48,
+                  width: canvasWidth * 0.35,
+                  child: _Legend(),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -108,35 +142,94 @@ class Floor extends StatelessWidget {
   }
 }
 
+class _Legend extends StatelessWidget {
+  const _Legend({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final typeColors = FirebaseService().workspaceTypes.getColors();
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final fullHeight = constraints.maxHeight;
+      final boxSize = fullHeight / (typeColors.length+1) - 10;
+
+      final List<Widget> legendItems = [];
+      
+      typeColors.forEach((type, color) {
+        legendItems.add(
+          Expanded(
+            child: Row(
+              children: [
+                Container(color: color, width: boxSize, height: boxSize),
+                SizedBox(width: 10),
+                Text(type),
+              ],
+            ),
+          ),
+        );
+      });
+
+      legendItems.add(
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: boxSize,
+                height: boxSize,
+                child: ClipRect(
+                  child: CustomPaint(
+                    size: Size(double.infinity, double.infinity),
+                    painter: DiagonalPatternPainter(),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text("Occupied"),
+            ],
+          ),
+        ),
+      );
+
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: legendItems,
+      );
+    });
+  }
+}
+
 class _FloorPainter extends CustomPainter {
-  final List<Path> workspaces;
+  final List<Tuple2<Color, Path>> freeWorkspaces;
   final Path? selectedWorkspace;
   final Path outterWalls;
   final Path innerWalls;
 
   _FloorPainter({
     required this.innerWalls,
-    this.selectedWorkspace,
+    required this.selectedWorkspace,
     required this.outterWalls,
-    required this.workspaces,
+    required this.freeWorkspaces,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    // print("selected workspace: $selectedWorkspace");
     if (selectedWorkspace != null) {
       final selectedWorkspacePaint = Paint()
-        ..color = const Color.fromARGB(255, 134, 159, 249)
+        ..color = Color.fromARGB(255, 134, 159, 249)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(selectedWorkspace!, selectedWorkspacePaint);
     }
 
-    final workspacePaint = Paint()
-      ..color = const Color.fromARGB(255, 135, 235, 151)
-      ..style = PaintingStyle.fill;
-
-    for (var workspace in workspaces) {
-      canvas.drawPath(workspace, workspacePaint);
+    for (var workspace in freeWorkspaces) {
+      canvas.drawPath(
+          workspace.item2,
+          Paint()
+            ..color = workspace.item1
+            ..style = PaintingStyle.fill);
     }
 
     final innerWallsPaint = Paint()
@@ -160,4 +253,41 @@ class _FloorPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
+}
+
+class _BlockedSpaceClipper extends CustomClipper<Path> {
+  final List<Path> paths;
+
+  _BlockedSpaceClipper(this.paths);
+
+  @override
+  Path getClip(Size size) {
+    if (paths.isEmpty) {
+      // print("wanted to clip, but there were no paths");
+      return Path();
+    }
+    // print("clipping something soon: $paths");
+    final combinedPath = Path();
+    for (final path in paths) {
+      combinedPath.addPath(path, Offset.zero);
+    }
+    // print("found $combinedPath");
+    return combinedPath;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+    return true;
+  }
+}
+
+Tuple2<double, double> _getFirstPoint(Path path) {
+  final pathMetrics = path.computeMetrics();
+
+  assert(pathMetrics.isNotEmpty);
+
+  final pathMetric = pathMetrics.first;
+  final startPoint = pathMetric.getTangentForOffset(0.0)!.position;
+
+  return Tuple2<double, double>(startPoint.dx, startPoint.dy);
 }

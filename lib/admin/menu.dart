@@ -1,6 +1,9 @@
-import "package:flexwork/helpers/firebaseService.dart";
+import "package:flexwork/admin/admin.dart";
+import 'package:flexwork/database/firebaseService.dart';
+import "package:flexwork/models/adminState.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/models/workspaceSelectionNotifier.dart";
+import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/customTextButton.dart";
 import 'package:flexwork/widgets/menuItem.dart';
@@ -9,21 +12,11 @@ import "package:provider/provider.dart";
 import "../models/floors.dart";
 
 class AdminMenu extends StatelessWidget {
-  final Floors floor;
-  final Function(Floors) setFloor;
-  final Function setNewSpaceInterface;
-  final Workspace? selectedWorkspace;
-  final Function(Workspace?) setSelectedWorkspace;
-  const AdminMenu(
-      {required this.floor,
-      required this.setFloor,
-      required this.setNewSpaceInterface,
-      this.selectedWorkspace,
-      required this.setSelectedWorkspace,
-      super.key});
+  const AdminMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final adminState = Provider.of<AdminState>(context);
     return Column(
       children: [
         MenuItem(
@@ -33,35 +26,37 @@ class AdminMenu extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _FloorButton("Floor 12", () {
-                if (floor != Floors.f12) {
-                  setSelectedWorkspace(null);
+                if (adminState.getFloor() != Floors.f12) {
+                  adminState.selectWorkspace(null);
                 }
-                setFloor(Floors.f12);
-              }, floor == Floors.f12),
+                adminState.setFloor(Floors.f12);
+              }, adminState.getFloor() == Floors.f12),
               _FloorButton("Floor 11", () {
-                if (floor != Floors.f11) {
-                  setSelectedWorkspace(null);
+                if (adminState.getFloor() != Floors.f11) {
+                  adminState.selectWorkspace(null);
                 }
-                setFloor(Floors.f11);
-              }, floor == Floors.f11),
+                adminState.setFloor(Floors.f11);
+              }, adminState.getFloor() == Floors.f11),
               _FloorButton("Floor 10", () {
-                if (floor != Floors.f10) {
-                  setSelectedWorkspace(null);
+                if (adminState.getFloor() != Floors.f10) {
+                  adminState.selectWorkspace(null);
                 }
-                setFloor(Floors.f10);
-              }, floor == Floors.f10),
+                adminState.setFloor(Floors.f10);
+              }, adminState.getFloor() == Floors.f10),
               _FloorButton("Floor 9", () {
-                if (floor != Floors.f9) {
-                  setSelectedWorkspace(null);
+                if (adminState.getFloor() != Floors.f9) {
+                  adminState.selectWorkspace(null);
                 }
-                setFloor(Floors.f9);
-              }, floor == Floors.f9),
+                adminState.setFloor(Floors.f9);
+              }, adminState.getFloor() == Floors.f9),
             ],
           ),
         ),
         Divider(),
         CustomElevatedButton(
-          onPressed: setNewSpaceInterface,
+          onPressed: (){
+            adminState.setOpenPage(AdminPages.newSpaceRect);
+          },
           active: true,
           selected: true,
           text: "Add a new workspace",
@@ -72,23 +67,39 @@ class AdminMenu extends StatelessWidget {
             Expanded(
               child: CustomElevatedButton(
                 onPressed: () async {
-                  await FirebaseService().deleteWorkspace(selectedWorkspace!);
+                  adminState.selectWorkspace(null);
+                  await FirebaseService().workspaces.delete(adminState.getSelectedWorkspace()!);
                 },
-                active: selectedWorkspace != null,
+                active: adminState.getSelectedWorkspace() != null,
                 selected: true,
                 text: "Delete",
                 selectedColor: Theme.of(context).colorScheme.error,
               ),
             ),
-            SizedBox(width: 10,),
+            SizedBox(
+              width: 10,
+            ),
             Expanded(
               child: CustomElevatedButton(
                 onPressed: () async {
-                  print("presed confirm");
-                  await FirebaseService().updateWorkspace(selectedWorkspace!);
-                  print("end presed confirm");
+                  try {
+                    adminState.selectWorkspace(null);
+                    print("presed confirm");
+                    await FirebaseService()
+                        .workspaces
+                        .update(adminState.getSelectedWorkspace()!);
+                    print("end presed confirm");
+                    showBottomSheetWithTimer(context, "Updates succesfully",
+                        Colors.green, Colors.white);
+                  } catch (error) {
+                    showBottomSheetWithTimer(
+                        context,
+                        "Something went wrong: $error",
+                        Theme.of(context).colorScheme.error,
+                        Theme.of(context).colorScheme.onError);
+                  }
                 },
-                active: selectedWorkspace != null,
+                active: adminState.getSelectedWorkspace() != null,
                 selected: true,
                 text: "Confirm edit",
               ),

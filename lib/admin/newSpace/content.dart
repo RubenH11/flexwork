@@ -22,13 +22,13 @@ class NewSpaceContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          flex: 6,
+          flex: 2,
           child: NewSpaceFloor(isValid: isValid)),
         SizedBox(
           height: 10,
         ),
         Expanded(
-          flex: 3,
+          flex: 1,
           child: EditWorkspace(
             selectedWorkspace: newSpaceNotifier,
           ),

@@ -3,7 +3,7 @@ import "package:flexwork/admin/newSpace/menuCoordinates.dart";
 import "package:flexwork/admin/newSpace/menuInfiniteCoords.dart";
 import "package:flexwork/admin/newSpace/menuRotation.dart";
 import "package:flexwork/admin/newSpace/menuSize.dart";
-import "package:flexwork/helpers/firebaseService.dart";
+import 'package:flexwork/database/firebaseService.dart';
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flutter/material.dart";
@@ -13,10 +13,8 @@ import "../../models/floors.dart";
 
 class NewSpaceDefaultMenu extends StatelessWidget {
   final FocusNode newSpaceFocusNode;
-  final bool isValid;
   const NewSpaceDefaultMenu({
     required this.newSpaceFocusNode,
-    required this.isValid,
     super.key,
   });
 

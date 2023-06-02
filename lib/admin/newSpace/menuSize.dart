@@ -62,38 +62,11 @@ class _NewSpaceMenuSizeState extends State<NewSpaceMenuSize> {
               child: CustomTextButton(
                   onPressed: () {
                     print("set width throuw button");
-                    newSpace.setHeight(4);
-                    newSpace.setWidth(6);
+                    newSpace.setHeight(6);
+                    newSpace.setWidth(8);
                   },
-                  selected: newSpace.getHeight() == 4 && newSpace.getWidth() == 6,
+                  selected: newSpace.getHeight() == 8 && newSpace.getWidth() == 6,
                   text: "single desk"),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: CustomTextButton(
-                onPressed: () {
-                  // debugDumpFocusTree();
-                },
-                selected: false,
-                text: "1x2 desks",
-              ),
-            ),
-            Expanded(
-              child: CustomTextButton(
-                onPressed: () {},
-                selected: false,
-                text: "2x2 desks",
-              ),
-            ),
-            Expanded(
-              child: CustomTextButton(
-                onPressed: () {},
-                selected: false,
-                text: "2x3 desks",
-              ),
             ),
           ],
         ),

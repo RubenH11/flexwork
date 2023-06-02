@@ -1,4 +1,4 @@
-import "package:flexwork/helpers/firebaseService.dart";
+import 'package:flexwork/database/firebaseService.dart';
 import "package:flexwork/helpers/floorSketcher.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flutter/material.dart";
@@ -22,16 +22,67 @@ class NewSpaceNotifier extends Workspace {
     super.numScreens,
     super.blockedMoments,
   })  : _coordinates = coordinates,
-        super(id: '');
+        _currAngle = 90.0,
+        super(id: '', color: Colors.black) {
+    if (_coordinates.length > 1) {
+      _currAngle = _getAngleBetweenCoords(
+        Tuple2(_coordinates[0].item1, _coordinates[0].item2),
+        Tuple2(_coordinates[1].item1, _coordinates[1].item2),
+      );
+    }
+  }
 
   List<Tuple2<double, double>> _coordinates;
+  double _currAngle;
+  bool hasConflict = false;
 
   final _defaultAngle = 90 * math.pi / 180;
-  var _currAngle = 90.0;
+  // var _currAngle = 90.0;
   static const int _MAX_X = 321;
   static const int _MAX_Y = 144;
 
   // -------------- PUBLIC ------------------
+
+  Workspace finalize(String id) {
+    return Workspace(
+      id: id,
+      floor: getFloor(),
+      blockedMoments: getBlockedMoments(),
+      coordinates: _coordinates,
+      identifier: getIdentifier(),
+      nickname: getNickname(),
+      numMonitors: getNumMonitors(),
+      numScreens: getNumScreens(),
+      numWhiteboards: getNumWhiteboards(),
+      type: getType(),
+      color: getColor(),
+    );
+  }
+
+  @override
+  List<Tuple2<double, double>> getCoords() {
+    return [..._coordinates];
+  }
+
+  @override
+  Path getPath() {
+    // print("== newSpaceNotifer: get path");
+    if (_coordinates.length <= 2) {
+      print(
+          "ERROR: in getPath() in newSpaceNotifier. There were not enough coords");
+    }
+    // start path
+    final path = Path()..moveTo(_coordinates[0].item1, _coordinates[0].item2);
+
+    // traverse path
+    for (var i = 1; i < _coordinates.length; i++) {
+      print("  ${_coordinates[i]}");
+      path.lineTo(_coordinates[i].item1, _coordinates[i].item2);
+    }
+    // complete path
+    path.lineTo(_coordinates[0].item1, _coordinates[0].item2);
+    return path;
+  }
 
   bool setOneCoord(
       {required double x, required double y, required numOfCoord}) {
@@ -127,11 +178,11 @@ class NewSpaceNotifier extends Workspace {
   //V
   bool offsetCoordinates(
       {required double horizontal, required double vertical}) {
-    print("== newSpaceNotifer: offset coord");
+    // print("== newSpaceNotifer: offset coord");
     List<Tuple2<double, double>> newCoords = [];
 
     if (horizontal != 0) {
-      print("horizontal is called while angle = $_currAngle");
+      // print("horizontal is called while angle = $_currAngle");
       for (var coord in _coordinates) {
         final newCoord = _rotateOffset(coord, _currAngle, horizontal);
         if (!_isWithinBounds(newCoord)) {
@@ -141,7 +192,7 @@ class NewSpaceNotifier extends Workspace {
       }
     }
     if (vertical != 0) {
-      print("vertical is called while angle = $_currAngle");
+      // print("vertical is called while angle = $_currAngle");
       for (var coord in _coordinates) {
         final newCoord = _rotateOffset(coord, _currAngle + 90, vertical);
         if (!_isWithinBounds(newCoord)) {
@@ -156,7 +207,7 @@ class NewSpaceNotifier extends Workspace {
   }
 
   bool setWidth(double width) {
-    print("== newSpaceNotifer: set width to $width");
+    // print("== newSpaceNotifer: set width to $width");
     final set = _setWidth(width);
     if (set == null) {
       return false;
@@ -167,7 +218,7 @@ class NewSpaceNotifier extends Workspace {
   }
 
   bool attemptSetWidth(double width) {
-    print("== newSpaceNotifer: attempt set width to $width");
+    // print("== newSpaceNotifer: attempt set width to $width");
     final attempt = _setWidth(width);
     if (attempt == null) {
       return false;
@@ -205,7 +256,7 @@ class NewSpaceNotifier extends Workspace {
   }
 
   bool setHeight(double height) {
-    print("== newSpaceNotifer: set height to $height");
+    // print("== newSpaceNotifer: set height to $height");
     final set = _setHeight(height);
     if (set == null) {
       return false;
@@ -216,7 +267,7 @@ class NewSpaceNotifier extends Workspace {
   }
 
   bool attemptSetHeight(double height) {
-    print("== newSpaceNotifer: attempt set height to $height");
+    // print("== newSpaceNotifer: attempt set height to $height");
     final attempt = _setHeight(height);
     if (attempt == null) {
       return false;
@@ -273,18 +324,18 @@ class NewSpaceNotifier extends Workspace {
   }
 
   bool attemptSetAngleRadians(double angle) {
-    print("== newSpaceNotifer: attempt set angle in radians to $angle");
+    // print("== newSpaceNotifer: attempt set angle in radians to $angle");
     return attemptSetAngleInDegrees(_radiansToDegrees(angle));
   }
 
   bool setAngleInRadians(double angle) {
-    print("== newSpaceNotifer: set angle in radians to $angle");
+    // print("== newSpaceNotifer: set angle in radians to $angle");
     return setAngleInDegrees(_radiansToDegrees(angle));
   }
 
   //V
   List<Tuple2<double, double>>? _setAngle(double angle) {
-    print("== newSpaceNotifer: set angle with $angle");
+    // print("== newSpaceNotifer: set angle with $angle");
     final normalizedAngle = (angle + 90) % 360;
     final pivot = _coordinates[0];
     final newCoords = [pivot];
@@ -292,24 +343,24 @@ class NewSpaceNotifier extends Workspace {
     final angleOfCurrentSpace = _getAngleBetweenCoords(pivot, _coordinates[1]);
     if (angleOfCurrentSpace > normalizedAngle - 0.00001 &&
         angleOfCurrentSpace < normalizedAngle + 0.00001) {
-      print("angle is the same: $angleOfCurrentSpace == $normalizedAngle");
+      // print("angle is the same: $angleOfCurrentSpace == $normalizedAngle");
       return null;
     }
 
-    print("\n -- \n");
+    // print("\n -- \n");
 
     for (var i = 1; i < _coordinates.length; i++) {
       final coord = _coordinates[i];
-      print("about to rotate $coord along $pivot");
+      // print("about to rotate $coord along $pivot");
       final newAngle = normalizedAngle - angleOfCurrentSpace;
-      print("which means this new angle should be $newAngle");
+      // print("which means this new angle should be $newAngle");
 
       final newCoord = _rotateAlongPivot(
         newAngle,
         pivot,
         coord,
       );
-      print("resulting in $newCoord");
+      // print("resulting in $newCoord");
 
       if (!_isWithinBounds(newCoord)) {
         return null;
@@ -344,7 +395,7 @@ class NewSpaceNotifier extends Workspace {
 
     for (var coord in _coordinates) {
       if (!outterWalls.contains(Offset(coord.item1, coord.item2))) {
-        print("not within outter walls");
+        // print("not within outter walls");
         return false;
       }
     }
@@ -370,7 +421,8 @@ class NewSpaceNotifier extends Workspace {
         final currPointToCheck =
             newSpacepointMetric.getTangentForOffset(offset)!.position;
         // for all other workspaces
-        for (var otherWorkspace in FirebaseService().getWorkspaces(floor)) {
+        for (var otherWorkspace
+            in FirebaseService().workspaces.get(floor: floor)) {
           final otherWorkspacePath = otherWorkspace.getPath();
           if (otherWorkspacePath.contains(currPointToCheck)) {
             return false;

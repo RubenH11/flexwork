@@ -1,5 +1,8 @@
+import "package:collection/collection.dart";
 import "package:dropdown_button2/dropdown_button2.dart";
+import "package:flexwork/database/firebaseService.dart";
 import "package:flexwork/models/newReservationNotifier.dart";
+import "package:flexwork/models/reservation.dart";
 import "package:flexwork/user/new_reservation/menu.dart";
 import "package:flexwork/widgets/customDatePicker.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
@@ -9,6 +12,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:intl/intl.dart";
 import "package:provider/provider.dart";
+import "package:tuple/tuple.dart";
 
 class NewReservationMenuSchedule extends StatefulWidget {
   const NewReservationMenuSchedule({super.key});
@@ -26,7 +30,6 @@ class _NewReservationMenuScheduleState
 
   @override
   void initState() {
-    print("init");
     untilDatePickerIsOpen = false;
     exceptDatePickerIsOpen = false;
     super.initState();
@@ -34,11 +37,12 @@ class _NewReservationMenuScheduleState
 
   @override
   Widget build(BuildContext context) {
-    print("3: $untilDatePickerIsOpen");
+    print("|||| NewReservationMenuSchedule ||||");
     final newResNotif =
         Provider.of<NewReservationNotifier>(context, listen: false);
 
     final scheduleExceptions = newResNotif.getScheduleExceptions();
+    scheduleExceptions.sort();
 
     return scheduleMenuIsClosed
         ? CustomElevatedButton(
@@ -84,10 +88,10 @@ class _NewReservationMenuScheduleState
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         width: 60,
-                        child: _ScheduleTimeFrameNumField(),
+                        child: _ScheduleFrequencyNumField(),
                       ),
                       Expanded(
-                        child: _ScheduleTimeframeDropown(),
+                        child: _ScheduleFrequencyDropown(),
                       ),
                     ],
                   ),
@@ -99,7 +103,6 @@ class _NewReservationMenuScheduleState
                       if (!untilDatePickerIsOpen) {
                         setState(() {
                           untilDatePickerIsOpen = true;
-                          print("1: $untilDatePickerIsOpen");
                         });
                       }
                     },
@@ -177,18 +180,6 @@ class _NewReservationMenuScheduleState
                       return Row(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          // CustomTextButton(
-                          //   onPressed: () {
-                          //     setState(() {
-                          //       newResNotif.removeScheduleException(
-                          //           scheduleExceptions[index]);
-                          //     });
-                          //   },
-                          //   icon: Icons.delete,
-                          //   width: 45,
-                          //   selected: false,
-                          //   color: Theme.of(context).colorScheme.onBackground,
-                          // ),
                           Expanded(
                             child: SizedBox(
                               height: 30,
@@ -218,48 +209,49 @@ class _NewReservationMenuScheduleState
   }
 }
 
-class _ScheduleTimeFrameNumField extends StatefulWidget {
-  const _ScheduleTimeFrameNumField({super.key});
+class _ScheduleFrequencyNumField extends StatefulWidget {
+  const _ScheduleFrequencyNumField({super.key});
 
   @override
-  State<_ScheduleTimeFrameNumField> createState() =>
-      __ScheduleTimeFrameNumFieldState();
+  State<_ScheduleFrequencyNumField> createState() =>
+      __ScheduleFrequencyNumFieldState();
 }
 
-class __ScheduleTimeFrameNumFieldState
-    extends State<_ScheduleTimeFrameNumField> {
-  var scheduleTimeframeNumIsZero = false;
-  final scheduleTimeframeController = TextEditingController();
+class __ScheduleFrequencyNumFieldState
+    extends State<_ScheduleFrequencyNumField> {
+  var scheduleFrequencyNumIsZero = false;
+  final scheduleFrequencyController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    print("|||| _ScheduleFrequencyNumField ||||");
     final newResNotif = Provider.of<NewReservationNotifier>(context);
-    scheduleTimeframeController.text =
-        newResNotif.getScheduleTimeframeNum().toString();
-    final scheduleTimeframeFocusNode = FocusNode();
+    scheduleFrequencyController.text =
+        newResNotif.getScheduleFrequencyNum().toString();
+    final scheduleFrequencyFocusNode = FocusNode();
 
-    void confirmScheduleTimeframeNum() {
-      final value = scheduleTimeframeController.text;
+    void confirmScheduleFrequencyNum() {
+      final value = scheduleFrequencyController.text;
       if (value == "" || value == "0") {
         setState(() {
-          scheduleTimeframeNumIsZero = true;
+          scheduleFrequencyNumIsZero = true;
         });
       } else {
-        newResNotif.setScheduleTimeframeNum(
-          int.parse(scheduleTimeframeController.text),
+        newResNotif.setScheduleFrequencyNum(
+          int.parse(scheduleFrequencyController.text),
         );
         setState(() {
-          scheduleTimeframeNumIsZero = false;
+          scheduleFrequencyNumIsZero = false;
         });
       }
 
-      scheduleTimeframeFocusNode.unfocus();
+      scheduleFrequencyFocusNode.unfocus();
     }
 
     return TextField(
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      focusNode: scheduleTimeframeFocusNode,
-      controller: scheduleTimeframeController,
+      focusNode: scheduleFrequencyFocusNode,
+      controller: scheduleFrequencyController,
       style: Theme.of(context).textTheme.bodyMedium!.merge(
             TextStyle(
               color: Theme.of(context).colorScheme.primary,
@@ -271,35 +263,35 @@ class __ScheduleTimeFrameNumFieldState
         isDense: true,
         enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
-                color: scheduleTimeframeNumIsZero
+                color: scheduleFrequencyNumIsZero
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.onBackground),
             borderRadius: BorderRadius.zero),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: scheduleTimeframeNumIsZero
+            color: scheduleFrequencyNumIsZero
                 ? Theme.of(context).colorScheme.error
                 : Theme.of(context).colorScheme.primary,
           ),
         ),
       ),
       textAlign: TextAlign.center,
-      onTapOutside: (_) => confirmScheduleTimeframeNum(),
-      onEditingComplete: confirmScheduleTimeframeNum,
+      onTapOutside: (_) => confirmScheduleFrequencyNum(),
+      onEditingComplete: confirmScheduleFrequencyNum,
     );
   }
 }
 
-class _ScheduleTimeframeDropown extends StatelessWidget {
-  const _ScheduleTimeframeDropown({super.key});
+class _ScheduleFrequencyDropown extends StatelessWidget {
+  const _ScheduleFrequencyDropown({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // print("rebuild _ScheduleTimeframeDropown");
+    print("|||| _ScheduleFrequencyDropown ||||");
     final focusNode = FocusNode();
     final newResNotif = Provider.of<NewReservationNotifier>(context);
-    final options = NewReservationNotifier.getScheduleTimeframeOptions();
-    final selectedOption = newResNotif.getScheduleTimeframe() ?? "months";
+    final options = NewReservationNotifier.getScheduleFrequencyOptions();
+    final selectedOption = newResNotif.getScheduleFrequency() ?? "months";
 
     final selectedColor = Theme.of(context).colorScheme.primary;
     final dropDownColor = Theme.of(context).colorScheme.onSecondary;
@@ -333,8 +325,8 @@ class _ScheduleTimeframeDropown extends StatelessWidget {
       buttonStyleData: const ButtonStyleData(height: 30),
       menuItemStyleData: MenuItemStyleData(
         height: 30,
-        selectedMenuItemBuilder: (context, child) =>
-            Container(color: Theme.of(context).colorScheme.background, child: child),
+        selectedMenuItemBuilder: (context, child) => Container(
+            color: Theme.of(context).colorScheme.background, child: child),
       ),
       dropdownStyleData: DropdownStyleData(
         width: 100,
@@ -355,8 +347,7 @@ class _ScheduleTimeframeDropown extends StatelessWidget {
         );
       }).toList(),
       onChanged: (value) {
-        print("selected $value");
-        newResNotif.setScheduleTimeframe(value);
+        newResNotif.setScheduleFrequency(value!);
       },
     );
   }
