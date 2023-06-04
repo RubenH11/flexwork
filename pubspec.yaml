@@ -42,7 +42,6 @@ dependencies:
   flutter_typeahead: ^4.4.0
   flutter_keyboard_visibility: ^5.4.3
   firebase_auth: ^4.6.1
-  firebase_ui_auth: ^1.4.1
   table_calendar: ^3.0.0
   collection: ^1.17.0
   flutter_colorpicker: ^1.0.3
