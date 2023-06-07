@@ -1,6 +1,7 @@
-import "package:firebase_auth/firebase_auth.dart";
+import "package:flexwork/database/database.dart";
 import "package:flexwork/helpers/dateTimeHelper.dart";
-import 'package:flexwork/database/firebaseService.dart';
+import "package:flexwork/models/workspace.dart";
+import "package:flexwork/widgets/futureBuilder.dart";
 import "package:flexwork/widgets/workspaceTimelines.dart";
 import "package:flutter/material.dart";
 import "package:collection/collection.dart";
@@ -11,43 +12,54 @@ class MyReservationsOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reservations = FirebaseService().reservations.get(uid: FirebaseAuth.instance.currentUser!.uid);
+    return FlexworkFutureBuilder(
+      future: DatabaseFunctions.getReservations(personal: true),
+      builder: (reservations) {
+        final groupedReservations =
+            reservations.groupListsBy((res) => res.getWorkspaceId());
 
-    final groupedReservations =
-        reservations.groupListsBy<String>((res) => res.getWorkspaceId());
+        return reservations.isEmpty
+            ? Center(
+                child: Text(
+                  "You have no reservations yet",
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground),
+                ),
+              )
+            : ListView.builder(
+                itemCount: groupedReservations.length,
+                itemBuilder: (context, index) {
+                  final workspaceId = groupedReservations.keys.toList()[index];
+                  final startDays = groupedReservations[workspaceId]!
+                      .map((res) =>
+                          DateTimeHelper.extractOnlyDay(res.getStart()))
+                      .toSet();
+                  final endDays = groupedReservations[workspaceId]!
+                      .map((res) => DateTimeHelper.extractOnlyDay(res.getEnd()))
+                      .toSet();
+                  startDays.addAll(endDays);
+                  final days = startDays.toList();
+                  days.sort();
 
-    return ListView.builder(
-      itemCount: groupedReservations.length,
-      itemBuilder: (context, index) {
-        final workspaceId = groupedReservations.keys.toList()[index];
-        final workspace =
-            FirebaseService().workspaces.get(id: workspaceId).first;
-        final startDays = groupedReservations[workspaceId]!
-            .map((res) => DateTimeHelper.extractOnlyDay(res.getStart()))
-            .toSet();
-        final endDays = groupedReservations[workspaceId]!
-            .map((res) => DateTimeHelper.extractOnlyDay(res.getEnd()))
-            .toSet();
-        startDays.addAll(endDays);
-        final days = startDays.toList();
-        days.sort();
-        final personalReservations = groupedReservations[workspaceId]!
-            .map(
-              (res) => Tuple2(res.getStart(), res.getEnd()),
-            )
-            .toList();
-
-        return Column(
-          children: [
-            const SizedBox(height: 20),
-            WorkspaceTimelines(
-              boldFocus: false,
-              days: days,
-              workspace: workspace,
-              selectedReservations: const [],
-            ),
-          ],
-        );
+                  return FlexworkFutureBuilder<Workspace?>(
+                    future: DatabaseFunctions.getWorkspace(
+                        workspaceId: workspaceId),
+                    builder: (workspace) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          WorkspaceTimelines(
+                            boldFocus: false,
+                            days: days,
+                            workspace: workspace!,
+                            selectedReservations: const [],
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              );
       },
     );
   }

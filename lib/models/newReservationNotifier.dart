@@ -1,5 +1,5 @@
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
-import 'package:flexwork/database/firebaseService.dart';
 import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/reservation.dart';
 import 'package:flexwork/models/reservationConflict.dart';
@@ -48,8 +48,11 @@ class NewReservationNotifier extends ChangeNotifier {
 
   void acceptReservationConflict(ReservationConflict resConflict) {
     print("== accept");
-    _rejectedConflicts.removeWhere((rejResConf, _) =>
-        rejResConf.getReservationId() == resConflict.getReservationId());
+    _rejectedConflicts.removeWhere(
+      (rejResConf, _) =>
+          rejResConf.getStart() == resConflict.getStart() &&
+          rejResConf.getEnd() == resConflict.getEnd(),
+    );
     _acceptedConflicts.add(resConflict);
     notifyListeners();
   }
@@ -57,8 +60,11 @@ class NewReservationNotifier extends ChangeNotifier {
   void rejectReservationConflict(
       ReservationConflict resConflict, Request request) {
     print("== reject");
-    _acceptedConflicts.removeWhere((accResConf) =>
-        accResConf.getReservationId() == resConflict.getReservationId());
+    _acceptedConflicts.removeWhere(
+      (accResConf) =>
+          accResConf.getStart() == resConflict.getStart() &&
+          accResConf.getEnd() == resConflict.getEnd(),
+    );
     _rejectedConflicts.addAll({resConflict: request});
     notifyListeners();
   }
@@ -67,8 +73,11 @@ class NewReservationNotifier extends ChangeNotifier {
     return _rejectedConflicts.values.toList();
   }
 
-  bool allConflictsResolved() {
-    final upToDateConflicts = getConflicts();
+  Future<bool> allConflictsResolved() async {
+    print("-allConflictsResolved check-");
+    final upToDateConflicts = await getConflicts();
+    print("isValid (4)?");
+    print(upToDateConflicts);
     final resolvedConflicts = [..._acceptedConflicts];
     resolvedConflicts.addAll(_rejectedConflicts.keys);
     print("accepted: $_acceptedConflicts");
@@ -82,19 +91,61 @@ class NewReservationNotifier extends ChangeNotifier {
     return upToDateConflicts.isEmpty;
   }
 
-  List<ReservationConflict> getConflicts() {
-    return FirebaseService().reservations.getReservationConflicts(this);
+  Future<List<ReservationConflict>> getConflicts() async {
+    if (_startTime == null || _endTime == null || _workspace == null) {
+      return [];
+    }
+    final schedule = constructScheduleIncludingConflicts();
+    // print("get conflicts from schedule: $schedule");
+    final List<ReservationConflict> reservationConflicts = [];
+    for (var range in schedule) {
+      // print("1");
+      final reservations = await DatabaseFunctions.getReservations(
+        timeRange: range,
+        workspaceId: _workspace!.getId(),
+        others: true,
+      );
+
+      // print("adding conflicts from range: $range");
+      for (var res in reservations) {
+        print("  ${res.getStart()} - ${res.getEnd()}");
+      }
+
+      reservationConflicts.addAll(
+        reservations.map(
+          (res) {
+            final moments = [
+              res.getStart(),
+              res.getEnd(),
+              range.item1,
+              range.item2,
+            ];
+            moments.sort();
+            return ReservationConflict(
+              start: moments[1],
+              end: moments[2],
+              reservationId: res.getId(),
+              workspaceId: res.getWorkspaceId(),
+            );
+          },
+        ),
+      );
+    }
+
+    return reservationConflicts;
   }
 
   bool? conflictIsAccepted(ReservationConflict conflict) {
     for (var accConflict in _acceptedConflicts) {
-      if (accConflict.getReservationId() == conflict.getReservationId()) {
+      if (accConflict.getStart() == conflict.getStart() &&
+          accConflict.getEnd() == conflict.getEnd()) {
         return true;
       }
     }
 
     for (var rejConflict in _rejectedConflicts.keys) {
-      if (rejConflict.getReservationId() == conflict.getReservationId()) {
+      if (rejConflict.getStart() == conflict.getStart() &&
+          rejConflict.getEnd() == rejConflict.getEnd()) {
         return false;
       }
     }
@@ -105,12 +156,26 @@ class NewReservationNotifier extends ChangeNotifier {
   List<Tuple2<DateTime, DateTime>> constructSchedule() {
     final schedule = constructScheduleIncludingConflicts();
 
-    final handledConflicts = _acceptedConflicts.where((conf) => conf.getWorkspaceId() == _workspace!.getId()).toList();
-    handledConflicts.addAll(_rejectedConflicts.keys.where((conf) => conf.getWorkspaceId() == _workspace!.getId()).toList());
+    final handledConflicts = _acceptedConflicts
+        .where((conf) => conf.getWorkspaceId() == _workspace!.getId())
+        .toList();
+    handledConflicts.addAll(_rejectedConflicts.keys
+        .where((conf) => conf.getWorkspaceId() == _workspace!.getId())
+        .toList());
+
+    // print("schedule: $schedule");
+    // print("_acceptedConflicts: $_acceptedConflicts");
+    // if (_acceptedConflicts.length > 0) {
+    //   print("  ${_acceptedConflicts[0].getWorkspaceId()}");
+    //   print("  ${_workspace!.getId()}");
+    // }
+    // print("_rejectedConflicts: $_rejectedConflicts");
+    // print("handledConflicts: $handledConflicts");
 
     for (final res in schedule) {
       for (final conf in handledConflicts) {
-        if (DateTimeHelper.dateRangesOverlap(res, Tuple2(conf.getStart(), conf.getEnd()))) {
+        if (DateTimeHelper.dateRangesOverlap(
+            res, Tuple2(conf.getStart(), conf.getEnd()))) {
           //remove reservation
           if (conf.getStart().isAtSameMomentAs(res.item1) &&
               conf.getEnd().isAtSameMomentAs(res.item2)) {
@@ -140,6 +205,7 @@ class NewReservationNotifier extends ChangeNotifier {
         }
       }
     }
+    // print(schedule);
     return [...schedule];
   }
 
@@ -162,7 +228,7 @@ class NewReservationNotifier extends ChangeNotifier {
 
     var currIncrement = _scheduleFrequencyNum;
     while (draftReservations.last.item2
-        .isBefore(_scheduleUntilDate!.add(Duration(days: 1)))) {
+        .isBefore(_scheduleUntilDate!.add(const Duration(days: 1)))) {
       switch (_scheduleFrequency) {
         case "days":
           draftReservations.add(
@@ -219,15 +285,19 @@ class NewReservationNotifier extends ChangeNotifier {
     return [...scheduleReservations];
   }
 
-  bool isValid() {
+  Future<bool> isValid() async {
     if (_endTime == null ||
         _startTime == _endTime ||
         _startTime == null ||
         _workspace == null) {
       return false;
     }
+
+    final reservations = constructSchedule();
+    if (reservations.length == 0) {
+      return false;
+    }
     if (hasSchedule()) {
-      final reservations = constructSchedule();
       //check for overlap
       for (var i = 0; i < reservations.length - 1; i++) {
         if (DateTimeHelper.dateRangesOverlap(
@@ -236,7 +306,7 @@ class NewReservationNotifier extends ChangeNotifier {
         }
       }
     }
-    return allConflictsResolved();
+    return await allConflictsResolved();
   }
 
   bool hasSchedule() {

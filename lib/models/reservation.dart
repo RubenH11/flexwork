@@ -2,11 +2,11 @@ import 'package:flexwork/models/workspace.dart';
 import 'package:intl/intl.dart';
 
 class Reservation{
-  final String _id;
-  final String _uid;
+  final int _id;
+  final int _uid;
   final DateTime _start;
   final DateTime _end;
-  final String _workspaceId;
+  final int _workspaceId;
 
   Reservation(this._id, this._uid, this._start, this._end, this._workspaceId);
 
@@ -30,15 +30,15 @@ class Reservation{
     return _end;
   }
 
-  String getUserId(){
+  int getUserId(){
     return _uid;
   }
 
-  String getWorkspaceId(){
+  int getWorkspaceId(){
     return _workspaceId;
   }
 
-  String getId(){
+  int getId(){
     return _id;
   }
   

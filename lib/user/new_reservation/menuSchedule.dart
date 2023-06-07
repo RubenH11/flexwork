@@ -1,6 +1,5 @@
 import "package:collection/collection.dart";
 import "package:dropdown_button2/dropdown_button2.dart";
-import "package:flexwork/database/firebaseService.dart";
 import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flexwork/models/reservation.dart";
 import "package:flexwork/user/new_reservation/menu.dart";

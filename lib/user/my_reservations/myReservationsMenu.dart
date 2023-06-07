@@ -1,9 +1,10 @@
-import "package:flexwork/database/firebaseService.dart";
+import "package:flexwork/database/database.dart";
 import "package:flexwork/helpers/dateTimeHelper.dart";
 import "package:flexwork/models/request.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
+import "package:flexwork/widgets/futureBuilder.dart";
 import "package:flexwork/widgets/menuItem.dart";
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
@@ -59,20 +60,32 @@ class _MyReservationsMenuState extends State<MyReservationsMenu> {
           MenuItem(
             icon: const Icon(Icons.warning_amber),
             title: "Requests",
-            child: RequestsList(
-              seeMoreOfRequest: _seeMoreOfRequest,
-              selectedRequest: selectedRequest,
-              requests: FirebaseService().requests.getIncomingRequests(),
+            child: FlexworkFutureBuilder(
+              future: DatabaseFunctions.getRequests(
+                  requestedId: 1), //UPDATE TO CURRENT USER'S ID
+              builder: (requests) {
+                return RequestsList(
+                  seeMoreOfRequest: _seeMoreOfRequest,
+                  selectedRequest: selectedRequest,
+                  requests: requests,
+                );
+              },
             ),
           ),
           const Divider(),
           MenuItem(
             icon: const Icon(Icons.question_mark),
             title: "My requests",
-            child: MyRequestsList(
-              seeMoreOfRequest: _seeMoreOfRequest,
-              selectedRequest: selectedRequest,
-              requests: FirebaseService().requests.getOutgoingRequests(),
+            child: FlexworkFutureBuilder(
+              future: DatabaseFunctions.getRequests(
+                  requesterId: 123123123), //UPDATE TO CURRENT USER'S ID
+              builder: (requests) {
+                return MyRequestsList(
+                  seeMoreOfRequest: _seeMoreOfRequest,
+                  selectedRequest: selectedRequest,
+                  requests: requests,
+                );
+              },
             ),
           ),
         ],
@@ -120,46 +133,46 @@ class MyRequestsList extends StatelessWidget {
               requestEnd,
             )}";
           }
-          final reservation = FirebaseService()
-              .reservations
-              .getById(requests[index].getReservationId());
-          final workspace = FirebaseService()
-              .workspaces
-              .get(id: reservation.getWorkspaceId())
-              .first;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                "${workspace.getType()}  ${workspace.getIdentifier()}",
-              ),
-              const SizedBox(height: 4),
-              Row(
+
+          return FlexworkFutureBuilder<Workspace?>(
+            future: DatabaseFunctions.getWorkspace(reservationId: requests[index].getReservationId()),
+            builder: (workspaces) {
+              final workspace = workspaces!;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("$topText    "),
-                  Text(bottomText),
+                  const SizedBox(height: 20),
+                  Text(
+                    "${workspace.getType()}  ${workspace.getIdentifier()}",
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text("$topText    "),
+                      Text(bottomText),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    requests[index].getMessage().replaceAll('\n', ' '),
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    maxLines: 4,
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground),
+                  ),
+                  const SizedBox(height: 4),
+                  CustomElevatedButton(
+                    onPressed: () {
+                      // seeMoreOfRequest(workspace, requests[index]);
+                    },
+                    active: selectedRequest != requests[index],
+                    selected: selectedRequest == requests[index],
+                    text: "See more",
+                  ),
                 ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                requests[index].getMessage().replaceAll('\n', ' '),
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                maxLines: 4,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground),
-              ),
-              const SizedBox(height: 4),
-              CustomElevatedButton(
-                onPressed: () {
-                  seeMoreOfRequest(workspace, requests[index]);
-                },
-                active: selectedRequest != requests[index],
-                selected: selectedRequest == requests[index],
-                text: "See more",
-              ),
-            ],
+              );
+            },
           );
         });
   }
@@ -178,7 +191,6 @@ class RequestsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return ListView.builder(
       shrinkWrap: true,
       itemCount: requests.length,
@@ -206,21 +218,21 @@ class RequestsList extends StatelessWidget {
           )}";
         }
 
-        final reservation = FirebaseService()
-            .reservations
-            .getById(requests[index].getReservationId());
-        final workspace = FirebaseService()
-            .workspaces
-            .get(id: reservation.getWorkspaceId())
-            .first;
+        // final reservation = FirebaseService()
+        //     .reservations
+        //     .getById(requests[index].getReservationId());
+        // final workspace = FirebaseService()
+        //     .workspaces
+        //     .get(id: reservation.getWorkspaceId())
+        //     .first;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            Text(
-              "${workspace.getType()}  ${workspace.getIdentifier()}",
-            ),
+            // Text(
+            //   "${workspace.getType()}  ${workspace.getIdentifier()}",
+            // ),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -245,7 +257,7 @@ class RequestsList extends StatelessWidget {
                 Expanded(
                   child: CustomElevatedButton(
                     onPressed: () {
-                      seeMoreOfRequest(workspace, requests[index]);
+                      // seeMoreOfRequest(workspace, requests[index]);
                     },
                     active: selectedRequest != requests[index],
                     selected: selectedRequest == requests[index],
@@ -257,15 +269,14 @@ class RequestsList extends StatelessWidget {
                     child: CustomElevatedButton(
                   onPressed: () async {
                     try {
-                      await FirebaseService()
-                          .requests
-                          .accept(requests[index], workspace.getId());
+                      // await FirebaseService()
+                      //     .requests
+                      //     .accept(requests[index], workspace.getId());
                     } catch (error) {
                       showBottomSheetWithTimer(
                         context,
                         "Something went wrong",
-                        Theme.of(context).colorScheme.error,
-                        Theme.of(context).colorScheme.onError,
+                        error: true,
                       );
                     }
                   },

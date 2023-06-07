@@ -1,9 +1,8 @@
 import "package:firebase_core/firebase_core.dart";
 import "package:flexwork/admin/newSpace/menuCoordinates.dart";
-import "package:flexwork/admin/newSpace/menuInfiniteCoords.dart";
+import 'package:flexwork/admin/newSpace/advancedMenu.dart';
 import "package:flexwork/admin/newSpace/menuRotation.dart";
 import "package:flexwork/admin/newSpace/menuSize.dart";
-import 'package:flexwork/database/firebaseService.dart';
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flutter/material.dart";
@@ -11,9 +10,9 @@ import '../../widgets/menuItem.dart';
 import "package:provider/provider.dart";
 import "../../models/floors.dart";
 
-class NewSpaceDefaultMenu extends StatelessWidget {
+class AdminNewSpaceRectMenu extends StatelessWidget {
   final FocusNode newSpaceFocusNode;
-  const NewSpaceDefaultMenu({
+  const AdminNewSpaceRectMenu({
     required this.newSpaceFocusNode,
     super.key,
   });

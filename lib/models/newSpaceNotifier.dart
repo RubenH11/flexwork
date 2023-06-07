@@ -1,4 +1,3 @@
-import 'package:flexwork/database/firebaseService.dart';
 import "package:flexwork/helpers/floorSketcher.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flutter/material.dart";
@@ -23,7 +22,7 @@ class NewSpaceNotifier extends Workspace {
     super.blockedMoments,
   })  : _coordinates = coordinates,
         _currAngle = 90.0,
-        super(id: '', color: Colors.black) {
+        super(id: 0, color: Colors.black, changeNotifyBasics: false) {
     if (_coordinates.length > 1) {
       _currAngle = _getAngleBetweenCoords(
         Tuple2(_coordinates[0].item1, _coordinates[0].item2),
@@ -43,21 +42,22 @@ class NewSpaceNotifier extends Workspace {
 
   // -------------- PUBLIC ------------------
 
-  Workspace finalize(String id) {
-    return Workspace(
-      id: id,
-      floor: getFloor(),
-      blockedMoments: getBlockedMoments(),
-      coordinates: _coordinates,
-      identifier: getIdentifier(),
-      nickname: getNickname(),
-      numMonitors: getNumMonitors(),
-      numScreens: getNumScreens(),
-      numWhiteboards: getNumWhiteboards(),
-      type: getType(),
-      color: getColor(),
-    );
-  }
+  // Workspace finalize(int id) {
+  //   return Workspace(
+  //     id: id,
+  //     floor: getFloor(),
+  //     blockedMoments: getBlockedMoments(),
+  //     coordinates: _coordinates,
+  //     identifier: getIdentifier(),
+  //     nickname: getNickname(),
+  //     numMonitors: getNumMonitors(),
+  //     numScreens: getNumScreens(),
+  //     numWhiteboards: getNumWhiteboards(),
+  //     type: getType(),
+  //     color: getColor(),
+  //     changeNotifyBasics: false,
+  //   );
+  // }
 
   @override
   List<Tuple2<double, double>> getCoords() {
@@ -374,7 +374,7 @@ class NewSpaceNotifier extends Workspace {
     return (_currAngle - 90) % 360;
   }
 
-  bool isValid(Floors floor) {
+  bool isValid(Floors floor, List<Workspace> workspaces) {
     final outterWalls = FloorSketcher.getOutterWalls();
 
     late final Path innerWalls;
@@ -421,8 +421,7 @@ class NewSpaceNotifier extends Workspace {
         final currPointToCheck =
             newSpacepointMetric.getTangentForOffset(offset)!.position;
         // for all other workspaces
-        for (var otherWorkspace
-            in FirebaseService().workspaces.get(floor: floor)) {
+        for (var otherWorkspace in workspaces) {
           final otherWorkspacePath = otherWorkspace.getPath();
           if (otherWorkspacePath.contains(currPointToCheck)) {
             return false;

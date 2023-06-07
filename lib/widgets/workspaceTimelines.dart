@@ -1,8 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
 import 'package:flexwork/helpers/diagonalPattern.dart';
-import 'package:flexwork/database/firebaseService.dart';
+import 'package:flexwork/models/reservation.dart';
 import 'package:flexwork/models/workspace.dart';
+import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tuple/tuple.dart';
@@ -24,6 +25,7 @@ class WorkspaceTimelines extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("|||| WorkspaceTimelines ||||");
     assert(numSurroundingDays >= 0);
     final List<Widget> icons = List.generate(
       workspace.getNumMonitors(),
@@ -94,13 +96,13 @@ class WorkspaceTimelines extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Row(
+        const Row(
           children: [
-            const SizedBox(width: 150),
+            SizedBox(width: 150),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text("00:00", style: TextStyle(color: Colors.grey)),
                   Text("03:00", style: TextStyle(color: Colors.grey)),
                   Text("06:00", style: TextStyle(color: Colors.grey)),
@@ -120,17 +122,6 @@ class WorkspaceTimelines extends StatelessWidget {
           child: ListView.builder(
             itemCount: timelineDays.length,
             itemBuilder: (context, index) {
-              // print("building timeline for day ${days[index]}");
-
-              final reservations = FirebaseService()
-                  .reservations.get(workspace: workspace, date: timelineDays[index])
-                  .map(
-                (res) {
-                  return Tuple2(res.getStart(), res.getEnd());
-                },
-              ).toList();
-              // print("found reservations: $reservations");
-
               return Column(
                 children: [
                   const SizedBox(height: 4),
@@ -141,7 +132,8 @@ class WorkspaceTimelines extends StatelessWidget {
                         child: Text(
                           DateFormat('EEEE d MMM').format(timelineDays[index]),
                           style: TextStyle(
-                              fontWeight: boldFocus && days.contains(timelineDays[index])
+                              fontWeight: boldFocus &&
+                                      days.contains(timelineDays[index])
                                   ? FontWeight.bold
                                   : null),
                         ),
@@ -150,16 +142,9 @@ class WorkspaceTimelines extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
                           child: WorkspaceTimeline(
-                            reservations: reservations,
                             timelineDay: timelineDays[index],
-                            personalReservations: FirebaseService()
-                                .reservations.get(
-                                    workspace: workspace,
-                                    date: timelineDays[index],
-                                    uid: FirebaseAuth.instance.currentUser!.uid)
-                                .map((res) =>
-                                    Tuple2(res.getStart(), res.getEnd()))
-                                .toList(),
+                            userId: 1,
+                            workspaceId: workspace.getId(),
                             selectedReservations:
                                 DateTimeHelper.getOverlappingDateRangesOverDay(
                                     selectedReservations, timelineDays[index]),
@@ -179,29 +164,43 @@ class WorkspaceTimelines extends StatelessWidget {
 }
 
 class WorkspaceTimeline extends StatelessWidget {
-  final List<Tuple2<DateTime, DateTime>> reservations;
-  final List<Tuple2<DateTime, DateTime>> personalReservations;
   final List<Tuple2<DateTime, DateTime>> selectedReservations;
   final DateTime timelineDay;
+  final int workspaceId;
+  final int userId;
   const WorkspaceTimeline(
-      {required this.reservations,
-      required this.timelineDay,
-      required this.personalReservations,
+      {required this.timelineDay,
+      required this.workspaceId,
       required this.selectedReservations,
+      required this.userId,
       super.key});
+
+  Future<Map<String, List<Reservation>>> getReservations() async {
+    final allRes = await DatabaseFunctions.getReservations(timeRange: DateTimeHelper.getFullDayRange(timelineDay), workspaceId: workspaceId);
+    final personalRes = await DatabaseFunctions.getReservations(timeRange: DateTimeHelper.getFullDayRange(timelineDay), workspaceId: workspaceId, personal: true);
+    for (var res in personalRes) {
+      allRes.remove(res);
+    }
+    return {
+      "Other reservations": allRes,
+      "Personal reservations": personalRes,
+    };
+  }
+  
 
   @override
   Widget build(BuildContext context) {
     assert(timelineDay.hour == 0, timelineDay.minute == 0);
 
-    Widget getPositionedContainer(
-        {required DateTime start,
-        required DateTime end,
-        required DateTime timelineDay,
-        required Color boxColor,
-        required double fullWidth,
-        required double height,
-        CustomPainter? overlayPattern}) {
+    Widget getPositionedContainer({
+      required DateTime start,
+      required DateTime end,
+      required DateTime timelineDay,
+      required Color boxColor,
+      required double fullWidth,
+      required double height,
+      CustomPainter? overlayPattern,
+    }) {
       double startOffset = 0.0;
       // if start is within the timeline
       if (start.day == timelineDay.day) {
@@ -236,95 +235,95 @@ class WorkspaceTimeline extends StatelessWidget {
       );
     }
 
-    return SizedBox(
-      height: 20,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final fullWidth = constraints.maxWidth;
-          final height = constraints.maxHeight;
+    return FlexworkFutureBuilder(
+      future: getReservations(),
+      builder: (reservationsMap) {
+        final personalRes = reservationsMap["Personal reservations"]!;
+        final otherRes = reservationsMap["Other reservations"]!;
 
-          final timelineBlocks = reservations
-              .map((res) => getPositionedContainer(
-                    start: res.item1,
-                    end: res.item2,
-                    timelineDay: timelineDay,
-                    boxColor: Theme.of(context).colorScheme.error,
-                    fullWidth: fullWidth,
-                    height: height,
-                  ))
-              .toList();
+        return SizedBox(
+          height: 20,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final fullWidth = constraints.maxWidth;
+              final height = constraints.maxHeight;
 
-          final personalTimelineBlocks = personalReservations
-              .map((res) => getPositionedContainer(
-                    start: res.item1,
-                    end: res.item2,
-                    timelineDay: timelineDay,
-                    boxColor: const Color.fromARGB(255, 86, 227, 90),
-                    fullWidth: fullWidth,
-                    height: height,
-                  ))
-              .toList();
+              final timelineBlocks = otherRes
+                  .map((res) => getPositionedContainer(
+                        start: res.getStart(),
+                        end: res.getEnd(),
+                        timelineDay: timelineDay,
+                        boxColor: Theme.of(context).colorScheme.error,
+                        fullWidth: fullWidth,
+                        height: height,
+                      ))
+                  .toList();
 
-          final selectedTimelineBlock = selectedReservations
-              .map((res) => getPositionedContainer(
-                    start: res.item1,
-                    end: res.item2,
-                    timelineDay: timelineDay,
-                    boxColor: Color.fromARGB(255, 134, 159, 249),
-                    fullWidth: fullWidth,
-                    height: height,
-                  ))
-              .toList();
+              final personalTimelineBlocks = personalRes
+                  .map((res) => getPositionedContainer(
+                        start: res.getStart(),
+                        end: res.getEnd(),
+                        timelineDay: timelineDay,
+                        boxColor: const Color.fromARGB(255, 86, 227, 90),
+                        fullWidth: fullWidth,
+                        height: height,
+                      ))
+                  .toList();
 
-          final allOtherReservations = [...reservations];
-          allOtherReservations.addAll(personalReservations);
+              final selectedTimelineBlock = selectedReservations
+                  .map((res) => getPositionedContainer(
+                        start: res.item1,
+                        end: res.item2,
+                        timelineDay: timelineDay,
+                        boxColor: Color.fromARGB(255, 134, 159, 249),
+                        fullWidth: fullWidth,
+                        height: height,
+                      ))
+                  .toList();
 
-          final List<Widget> overlappingBlocks = [];
-          for (var res in allOtherReservations) {
-            for (var selectedRes in selectedReservations) {
-              if (DateTimeHelper.dateRangesOverlap(res, selectedRes)) {
-                // print("found overlap");
-                // print("  $res");
-                // print("  $selectedRes");
-                final listOfDateTimes = [
-                  res.item1,
-                  res.item2,
-                  selectedRes.item1,
-                  selectedRes.item2
-                ];
-                listOfDateTimes.sort();
-                // print(listOfDateTimes);
+              final List<Widget> overlappingBlocks = [];
+              for (var res in otherRes) {
+                for (var selectedRes in selectedReservations) {
+                  if (DateTimeHelper.dateRangesOverlap(Tuple2(res.getStart(), res.getEnd()), selectedRes)) {
+                    final listOfDateTimes = [
+                      res.getStart(),
+                      res.getEnd(),
+                      selectedRes.item1,
+                      selectedRes.item2
+                    ];
+                    listOfDateTimes.sort();
+                    // print(listOfDateTimes);
 
-                overlappingBlocks.add(getPositionedContainer(
-                  start: listOfDateTimes[1],
-                  end: listOfDateTimes[2],
-                  timelineDay: timelineDay,
-                  boxColor: Colors.transparent,
-                  fullWidth: fullWidth,
-                  height: height,
-                  overlayPattern: DiagonalPatternPainter(),
-                ));
+                    overlappingBlocks.add(getPositionedContainer(
+                      start: listOfDateTimes[1],
+                      end: listOfDateTimes[2],
+                      timelineDay: timelineDay,
+                      boxColor: Colors.transparent,
+                      fullWidth: fullWidth,
+                      height: height,
+                      overlayPattern: DiagonalPatternPainter(),
+                    ));
+                  }
+                }
               }
-            }
-          }
 
-
-
-          return Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                color: Theme.of(context).colorScheme.background,
-              ),
-              ...timelineBlocks,
-              ...personalTimelineBlocks,
-              ...selectedTimelineBlock,
-              ...overlappingBlocks,
-            ],
-          );
-        },
-      ),
+              return Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Theme.of(context).colorScheme.background,
+                  ),
+                  ...timelineBlocks,
+                  ...personalTimelineBlocks,
+                  ...selectedTimelineBlock,
+                  ...overlappingBlocks,
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flexwork/database/firebaseService.dart';
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/models/floors.dart';
 import 'package:flexwork/models/newReservationNotifier.dart';
 import 'package:flexwork/models/uiState.dart';
@@ -20,88 +19,70 @@ class FlexWork extends StatelessWidget {
     print("|||| Flexwork ||||");
     return ChangeNotifierProvider(
       create: (context) => FlexWorkUIState(),
-      child: StreamBuilder(
-        stream: FirebaseService().getWorkspaceTypesStream(),
-        builder: (context, typeSnapshot) {
-          if (typeSnapshot.hasError) {
-            print(typeSnapshot.error);
-            return const Text("An error occurred, please reload the page.");
-          }
-
-          if (typeSnapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(
-                  color: Theme.of(context).colorScheme.primary),
-            );
-          }
-
-          FirebaseService().buildWorkspaceTypesRepo(typeSnapshot.data!);
-
-          return StreamBuilder(
-            stream: FirebaseService().getWorkspacesStream(),
-            builder: (context, workspaceSnapshot) {
-              if (workspaceSnapshot.hasError) {
-                print(workspaceSnapshot.error);
-                return const Text("An error occurred, please reload the page.");
-              }
-
-              if (workspaceSnapshot.connectionState ==
-                  ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.primary),
-                );
-              }
-
-              FirebaseService().buildWorkspacesRepo(workspaceSnapshot.data!);
-              return StreamBuilder(
-                stream: FirebaseService().getReservationsStream(),
-                builder: (context, reservationsSnapshot) {
-                  if (reservationsSnapshot.hasError) {
-                    return Text("error: ${reservationsSnapshot.error}");
-                  }
-                  if (reservationsSnapshot.connectionState ==
-                          ConnectionState.waiting ||
-                      !reservationsSnapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    );
-                  }
-
-                  FirebaseService()
-                      .buildReservationsRepo(reservationsSnapshot.data!);
-                  return StreamBuilder(
-                    stream: FirebaseService().getRequestsStream(),
-                    builder: (context, requestsSnapshot) {
-                      if (requestsSnapshot.hasError) {
-                        print("44");
-                        return Text("error: ${requestsSnapshot.error}");
-                      }
-                      if (requestsSnapshot.connectionState ==
-                              ConnectionState.waiting ||
-                          !requestsSnapshot.hasData) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        );
-                      }
-
-                      FirebaseService()
-                          .buildRequestsRepo(requestsSnapshot.data!);
-
-                      return const _FlexworkScreen();
-                    },
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+      child: _FlexworkScreen(),
     );
+    //   StreamBuilder(
+    //     stream: FirebaseService().getWorkspaceTypesStream(),
+    //     builder: (context, typeSnapshot) {
+    //       if (typeSnapshot.hasError) {
+    //         print(typeSnapshot.error);
+    //         return const Text("An error occurred, please reload the page.");
+    //       }
+
+    //       if (typeSnapshot.connectionState == ConnectionState.waiting) {
+    //         return Center(
+    //           child: CircularProgressIndicator(
+    //               color: Theme.of(context).colorScheme.primary),
+    //         );
+    //       }
+
+    //       FirebaseService().buildWorkspaceTypesRepo(typeSnapshot.data!);
+
+    //       return StreamBuilder(
+    //         stream: FirebaseService().getReservationsStream(),
+    //         builder: (context, reservationsSnapshot) {
+    //           if (reservationsSnapshot.hasError) {
+    //             return Text("error: ${reservationsSnapshot.error}");
+    //           }
+    //           if (reservationsSnapshot.connectionState ==
+    //                   ConnectionState.waiting ||
+    //               !reservationsSnapshot.hasData) {
+    //             return Center(
+    //               child: CircularProgressIndicator(
+    //                 color: Theme.of(context).colorScheme.primary,
+    //               ),
+    //             );
+    //           }
+
+    //           FirebaseService()
+    //               .buildReservationsRepo(reservationsSnapshot.data!);
+    //           return StreamBuilder(
+    //             stream: FirebaseService().getRequestsStream(),
+    //             builder: (context, requestsSnapshot) {
+    //               if (requestsSnapshot.hasError) {
+    //                 print("44");
+    //                 return Text("error: ${requestsSnapshot.error}");
+    //               }
+    //               if (requestsSnapshot.connectionState ==
+    //                       ConnectionState.waiting ||
+    //                   !requestsSnapshot.hasData) {
+    //                 return Center(
+    //                   child: CircularProgressIndicator(
+    //                     color: Theme.of(context).colorScheme.primary,
+    //                   ),
+    //                 );
+    //               }
+
+    //               FirebaseService().buildRequestsRepo(requestsSnapshot.data!);
+
+    //               return const _FlexworkScreen();
+    //             },
+    //           );
+    //         },
+    //       );
+    //     },
+    //   ),
+    // );
   }
 }
 
@@ -147,7 +128,8 @@ class _FlexworkScreen extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onBackground,
                         ),
                         NavButton(
-                          selected: uiState.getOpenPage() == FlexworkPages.myReservations,
+                          selected: uiState.getOpenPage() ==
+                              FlexworkPages.myReservations,
                           action: () =>
                               uiState.setOpenPage(FlexworkPages.myReservations),
                           text: "My reservations",
@@ -159,7 +141,7 @@ class _FlexworkScreen extends StatelessWidget {
                 flex: 1,
                 child: IconButton(
                   onPressed: () {
-                    FirebaseAuth.instance.signOut();
+                    DatabaseFunctions.logout();
                   },
                   icon: const Icon(Icons.logout),
                 ),
@@ -192,6 +174,7 @@ class _NewReservationScreen extends StatelessWidget {
           width: 350,
           child: const NewReservationMenu(),
         ),
+        const VerticalDivider(),
         Expanded(
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),

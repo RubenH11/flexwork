@@ -1,39 +1,38 @@
 class Request {
-  final String _id;
-  final String _userId;
-  final String _reservationId;
+  final int _id;
+  final int _userId;
+  final int _reservationId;
   final DateTime _start;
   final DateTime _end;
   final String _message;
 
   Request({
-    required String id,
+    required int id,
     required String message,
-    required String reservationId,
-    required String userId,
-    // required String workspaceId,
+    required int userId,
+    required int reservationId,
     required DateTime start,
     required DateTime end,
   })  : _id = id,
         _message = message,
-        _reservationId = reservationId,
         _userId = userId,
         _start = start,
-        _end = end;
+        _end = end,
+        _reservationId = reservationId;
 
   // String getWorkspaceId() {
   //   return _workspaceId;
   // }
 
-  String getId(){
+  int getId(){
     return _id;
   }
 
-  String getUserId() {
+  int getUserId() {
     return _userId;
   }
 
-  String getReservationId() {
+  int getReservationId(){
     return _reservationId;
   }
 

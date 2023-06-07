@@ -1,18 +1,18 @@
-import 'package:collection/collection.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flexwork/database/firebaseService.dart';
 
 class ReservationConflict{
-  final String _reservationId;
+  final int _reservationId;
   final DateTime _start;
   final DateTime _end;
+  final int _workspaceId;
 
   ReservationConflict({
     required DateTime end,
-    required String reservationId,
+    required int reservationId,
     required DateTime start,
+    required int workspaceId,
   })  : _end = end,
         _start = start,
+        _workspaceId = workspaceId,
         _reservationId = reservationId;
 
   DateTime getStart(){
@@ -23,12 +23,11 @@ class ReservationConflict{
     return _end;
   }
 
-  String getReservationId(){
+  int getReservationId(){
     return _reservationId;
   }
 
-  String getWorkspaceId(){
-    final res = FirebaseService().reservations.getById(_reservationId);
-    return res.getWorkspaceId();
+  int getWorkspaceId(){
+    return _workspaceId;
   }
 }

@@ -30,7 +30,7 @@ class _MyReservationsState extends State<MyReservations> {
     });
   }
 
-  void closeRequestView(){
+  void closeRequestView() {
     _workspace = null;
     _request = null;
     setState(() {
@@ -52,6 +52,7 @@ class _MyReservationsState extends State<MyReservations> {
             closeRequestView: closeRequestView,
           ),
         ),
+        const VerticalDivider(),
         Expanded(
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),

@@ -1,7 +1,7 @@
-class Employee{ 
-  String uid;
+class User{ 
+  int id;
   String email;
   String role;
 
-  Employee(this.uid, this.email, this.role);
+  User(this.id, this.email, this.role);
 }

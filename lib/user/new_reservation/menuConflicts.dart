@@ -1,13 +1,14 @@
-import "package:firebase_auth/firebase_auth.dart";
 import "package:flexwork/helpers/dateTimeHelper.dart";
 import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flexwork/models/request.dart";
 import "package:flexwork/models/reservationConflict.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
+import "package:flexwork/widgets/futureBuilder.dart";
 import "package:flexwork/widgets/menuItem.dart";
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 import "package:provider/provider.dart";
+import "package:tuple/tuple.dart";
 
 void openRequestDialog(
     {required BuildContext context, required Function(String) confirm}) {
@@ -18,8 +19,6 @@ void openRequestDialog(
       return AlertDialog(
         contentPadding: EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
         actionsPadding: EdgeInsets.all(20.0),
-        // titleTextStyle: Theme.of(context).textTheme.bodyLarge,
-        // title: Text("Request", textAlign: TextAlign.center,),
         content: SizedBox(
           height: 300,
           width: 400,
@@ -96,88 +95,98 @@ class Conflicts extends StatelessWidget {
     print("|||| Conflicts ||||");
     final newResNotif = Provider.of<NewReservationNotifier>(context);
 
-    final conflicts = newResNotif.getConflicts();
-
-    return conflicts.isEmpty
+    return newResNotif.getEndTime() == null ||
+            newResNotif.getStartTime() == null ||
+            newResNotif.getWorkspace() == null
         ? const SizedBox()
-        : MenuItem(
-            icon: Icon(Icons.warning_amber_sharp),
-            title: "Conflicts",
-            trailing: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chat),
-                  onPressed: () {
-                    openRequestDialog(
-                      context: context,
-                      confirm: (message) {
-                        for (var conflict in conflicts) {
-                          final request = Request(
-                            id: "",
-                            start: conflict.getStart(),
-                            end: conflict.getEnd(),
-                            message: message,
-                            reservationId: conflict.getReservationId(),
-                            userId: FirebaseAuth.instance.currentUser!.uid,
-                            // workspaceId: newResNotif.getWorkspace()!.getId(),
-                          );
+        : FlexworkFutureBuilder(
+            future: newResNotif.getConflicts(),
+            builder: (reservationConflicts) {
 
-                          newResNotif.rejectReservationConflict(
-                            conflict,
-                            request,
+              return reservationConflicts.isEmpty
+                  ? const SizedBox()
+                  : MenuItem(
+                      icon: Icon(Icons.warning_amber_sharp),
+                      title: "Conflicts",
+                      trailing: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chat),
+                            onPressed: () {
+                              openRequestDialog(
+                                context: context,
+                                confirm: (message) {
+                                  for (var conflict in reservationConflicts) {
+                                    final request = Request(
+                                      id: 0,
+                                      reservationId: conflict.getReservationId(),
+                                      start: conflict.getStart(),
+                                      end: conflict.getEnd(),
+                                      message: message,
+                                      userId: 1,
+                                    );
+
+                                    newResNotif.rejectReservationConflict(
+                                      conflict,
+                                      request,
+                                    );
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.checklist),
+                            onPressed: () {
+                              for (var conflict in reservationConflicts) {
+                                newResNotif.acceptReservationConflict(conflict);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: reservationConflicts.length,
+                        itemBuilder: (context, index) {
+                          final conflictStart =
+                              reservationConflicts[index].getStart();
+                          final conflictEnd =
+                              reservationConflicts[index].getEnd();
+
+                          late final String topText;
+                          late final String bottomText;
+
+                          if (DateTimeHelper.extractOnlyDay(conflictStart) ==
+                              DateTimeHelper.extractOnlyDay(conflictEnd)) {
+                            topText = DateFormat("dd MMM yyyy").format(
+                              conflictStart,
+                            );
+                            bottomText = "${DateFormat("HH:mm").format(
+                              conflictStart,
+                            )} - ${DateFormat("HH:mm").format(
+                              conflictEnd,
+                            )}";
+                          } else {
+                            topText =
+                                "from: ${DateFormat("dd MMM yyyy - HH:mm").format(
+                              conflictStart,
+                            )}";
+                            bottomText =
+                                "until: ${DateFormat("dd MMM yyyy - HH:mm").format(
+                              conflictEnd,
+                            )}";
+                          }
+
+                          return ConflictItem(
+                            conflict: reservationConflicts[index],
+                            topText: topText,
+                            bottomText: bottomText,
                           );
-                        }
-                      },
+                        },
+                      ),
                     );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.checklist),
-                  onPressed: () {
-                    for (var conflict in conflicts) {
-                      newResNotif.acceptReservationConflict(conflict);
-                    }
-                  },
-                ),
-              ],
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: conflicts.length,
-              itemBuilder: (context, index) {
-                final conflictStart = conflicts[index].getStart();
-                final conflictEnd = conflicts[index].getEnd();
-
-                late final String topText;
-                late final String bottomText;
-
-                if (DateTimeHelper.extractOnlyDay(conflictStart) ==
-                    DateTimeHelper.extractOnlyDay(conflictEnd)) {
-                  topText = DateFormat("dd MMM yyyy").format(
-                    conflictStart,
-                  );
-                  bottomText = "${DateFormat("HH:mm").format(
-                    conflictStart,
-                  )} - ${DateFormat("HH:mm").format(
-                    conflictEnd,
-                  )}";
-                } else {
-                  topText = "from: ${DateFormat("dd MMM yyyy - HH:mm").format(
-                    conflictStart,
-                  )}";
-                  bottomText =
-                      "until: ${DateFormat("dd MMM yyyy - HH:mm").format(
-                    conflictEnd,
-                  )}";
-                }
-
-                return ConflictItem(
-                  conflict: conflicts[index],
-                  topText: topText,
-                  bottomText: bottomText,
-                );
-              },
-            ),
+            },
           );
   }
 }
@@ -196,8 +205,8 @@ class ConflictItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("|||| ConflictItem ||||");
-    final newResNotif =
-        Provider.of<NewReservationNotifier>(context, listen: false);
+    print("  || ${conflict.getStart()} - ${conflict.getEnd()} ||");
+    final newResNotif = Provider.of<NewReservationNotifier>(context, listen: false);
 
     late final Color checkColor;
     late final Color requestColor;
@@ -250,13 +259,12 @@ class ConflictItem extends StatelessWidget {
             context: context,
             confirm: (message) {
               final request = Request(
-                id: "",
+                id: 0, //TEMP
+                reservationId: conflict.getReservationId(),
                 start: conflict.getStart(),
                 end: conflict.getEnd(),
                 message: message,
-                reservationId: conflict.getReservationId(),
-                userId: FirebaseAuth.instance.currentUser!.uid,
-                // workspaceId: newResNotif.getWorkspace()!.getId(),
+                userId: 1, //TEMP
               );
 
               newResNotif.rejectReservationConflict(

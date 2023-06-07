@@ -1,4 +1,4 @@
-import "package:firebase_auth/firebase_auth.dart";
+import "package:flexwork/database/database.dart";
 import "package:flutter/material.dart";
 
 class Layout extends StatelessWidget {
@@ -38,7 +38,7 @@ class Layout extends StatelessWidget {
                 flex: 1,
                 child: IconButton(
                   onPressed: () {
-                    FirebaseAuth.instance.signOut();
+                    DatabaseFunctions.logout();
                   },
                   icon: Icon(Icons.logout),
                 ),

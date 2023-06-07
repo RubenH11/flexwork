@@ -30,14 +30,21 @@ class DateTimeHelper {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 
+  static Tuple2<DateTime, DateTime> getFullDayRange(DateTime day) {
+    return Tuple2(extractOnlyDay(day),
+        extractOnlyDay(day).add(Duration(days: 1, milliseconds: -1)));
+  }
+
   static bool dateRangesOverlap(
       Tuple2<DateTime, DateTime> range1, Tuple2<DateTime, DateTime> range2) {
     if (range1.item1.isBefore(range2.item1) &&
-        range1.item2.isBefore(range2.item1) || range1.item2.isAtSameMomentAs(range2.item1)) {
+            range1.item2.isBefore(range2.item1) ||
+        range1.item2.isAtSameMomentAs(range2.item1)) {
       return false;
     }
-    if (range1.item1.isAfter(range2.item2) || range1.item1.isAtSameMomentAs(range2.item2) &&
-        range1.item2.isAfter(range2.item2)) {
+    if (range1.item1.isAfter(range2.item2) ||
+        range1.item1.isAtSameMomentAs(range2.item2) &&
+            range1.item2.isAfter(range2.item2)) {
       return false;
     }
     return true;

@@ -1,6 +1,7 @@
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
-import 'package:flexwork/database/firebaseService.dart';
 import 'package:flexwork/models/newReservationNotifier.dart';
+import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flexwork/widgets/workspaceTimelines.dart';
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -9,6 +10,21 @@ import '../../widgets/floor.dart';
 
 class NewReservationContent extends StatelessWidget {
   const NewReservationContent({super.key});
+
+  Future<List<int>> getBlockedWorkspaceIds(
+      DateTime? start, DateTime? end) async {
+    late final List<int> blockedWorkspaceIds;
+
+    if (start == null || end == null) {
+      blockedWorkspaceIds = [];
+    } else {
+      final blockingReservations = await DatabaseFunctions.getReservations(
+          timeRange: Tuple2(start, end), others: true);
+      blockedWorkspaceIds =
+          blockingReservations.map((res) => res.getWorkspaceId()).toList();
+    }
+    return blockedWorkspaceIds;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,15 +37,19 @@ class NewReservationContent extends StatelessWidget {
       children: [
         Expanded(
           flex: 2,
-          child: Floor(
-            blockedWorkspaceIds: FirebaseService()
-                .reservations
-                .getConflictWorkspaceIds(newResNotif),
-            setSelectedWorkspace: (workspace) {
-              newResNotif.setWorkspace(workspace);
+          child: FlexworkFutureBuilder(
+            future: getBlockedWorkspaceIds(
+                newResNotif.getStartTime(), newResNotif.getEndTime()),
+            builder: (blockedWorkspaceIds) {
+              return Floor(
+                setSelectedWorkspace: (workspace) {
+                  newResNotif.setWorkspace(workspace);
+                },
+                selectedWorkspace: newResNotif.getWorkspace(),
+                blockedWorkspaceIds: blockedWorkspaceIds,
+                floor: newResNotif.getFloor(),
+              );
             },
-            selectedWorkspace: newResNotif.getWorkspace(),
-            floor: newResNotif.getFloor(),
           ),
         ),
         const SizedBox(height: 20),

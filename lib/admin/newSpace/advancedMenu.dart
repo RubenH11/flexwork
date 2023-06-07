@@ -7,9 +7,9 @@ import '../../widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import "../../models/newSpaceNotifier.dart";
 
-class NewSpaceMenuInfiniteCoordinates extends StatelessWidget {
+class AdminNewSpaceAdvancedMenu extends StatelessWidget {
   final FocusNode newSpaceFocusNode;
-  const NewSpaceMenuInfiniteCoordinates({
+  const AdminNewSpaceAdvancedMenu({
     required this.newSpaceFocusNode,
     super.key,
   });

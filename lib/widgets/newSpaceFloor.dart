@@ -1,6 +1,8 @@
 import "dart:typed_data";
 
-import '../database/firebaseService.dart';
+import "package:flexwork/database/database.dart";
+import "package:flexwork/widgets/futureBuilder.dart";
+
 import "package:flutter/material.dart";
 import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
@@ -26,10 +28,14 @@ class NewSpaceFloor extends StatelessWidget {
     final newSpace = Provider.of<NewSpaceNotifier>(context, listen: false);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dependentOnWidth = constraints.maxHeight > constraints.maxWidth / 27 * 12;
+        final dependentOnWidth =
+            constraints.maxHeight > constraints.maxWidth / 27 * 12;
         // print("dependentOnWidth: $dependentOnWidth");
-        final canvasHeight = dependentOnWidth ? constraints.maxWidth / 27 * 12 : constraints.maxHeight;
-        final canvasWidth = dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
+        final canvasHeight = dependentOnWidth
+            ? constraints.maxWidth / 27 * 12
+            : constraints.maxHeight;
+        final canvasWidth =
+            dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
         final pixelSize = canvasWidth / (27 * 12);
         final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
         final scale = matrix.storage;
@@ -87,21 +93,26 @@ class _Workspaces extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Path> workspaces = [];
-    for (final workspace in FirebaseService().workspaces.get(floor: floor)) {
-      // print("adding ${workspace.toString()} to list to draw");
-      workspaces.add(workspace.getPath().transform(scale));
-    }
 
-    return CustomPaint(
-      size: Size(canvasWidth, canvasHeight),
-      painter: _Painter(
-        Paint()
-          ..color = Color.fromARGB(255, 135, 235, 151)
-          ..strokeWidth = 3.0
-          ..style = PaintingStyle.fill,
-        workspaces,
-      ),
+    return FlexworkFutureBuilder(
+      future: DatabaseFunctions.getWorkspaces(floor),
+      builder: (workspaces) {
+        List<Path> scaledWorkspaces = [];
+        for (final workspace in workspaces) {
+          scaledWorkspaces.add(workspace.getPath().transform(scale));
+        }
+
+        return CustomPaint(
+          size: Size(canvasWidth, canvasHeight),
+          painter: _Painter(
+            Paint()
+              ..color = Color.fromARGB(255, 135, 235, 151)
+              ..strokeWidth = 3.0
+              ..style = PaintingStyle.fill,
+            scaledWorkspaces,
+          ),
+        );
+      },
     );
   }
 }
@@ -129,11 +140,11 @@ class _NewWorkSpace extends StatelessWidget {
     final newSpace = newSpaceNotifier.getPath();
     print("newSpace's name: ${newSpaceNotifier.getIdentifier()}");
 
-    final pathMetric =
-        newSpace.computeMetrics().elementAt(0);
+    final pathMetric = newSpace.computeMetrics().elementAt(0);
     final lengthOfPath = pathMetric.length;
     final cornerPoint = pathMetric.getTangentForOffset(0)!.position;
-    final cornerPoint2 = pathMetric.getTangentForOffset(lengthOfPath-2.5)!.position;
+    final cornerPoint2 =
+        pathMetric.getTangentForOffset(lengthOfPath - 2.5)!.position;
     final cornerPoint3 = pathMetric.getTangentForOffset(2.5)!.position;
     final cornerTriangle = Path()
       ..moveTo(cornerPoint.dx, cornerPoint.dy)

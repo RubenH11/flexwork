@@ -1,13 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flexwork/database/firebaseService.dart';
-import 'package:flexwork/models/adminState.dart';
-import 'package:flexwork/models/employee.dart';
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/widgets/bottomSheets.dart';
 import 'package:flexwork/widgets/customElevatedButton.dart';
+import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/material.dart';
 import "dart:math" as math;
-
-import 'package:provider/provider.dart';
 
 class AdminUsersContent extends StatelessWidget {
   const AdminUsersContent({super.key});
@@ -50,12 +46,8 @@ class AdminUsersContent extends StatelessWidget {
                   controller: messageController,
                   decoration: InputDecoration(
                     hintText: "Enter email address",
-                    hintStyle: Theme.of(context)
-                        .textTheme
-                        .bodyMedium!
-                        .copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onBackground),
+                    hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.onBackground),
@@ -69,7 +61,10 @@ class AdminUsersContent extends StatelessWidget {
                   ),
                 ),
               ),
-              Text("A password will be sent to this email address", style: Theme.of(context).textTheme.bodyMedium,),
+              Text(
+                "A password will be sent to this email address",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ],
           ),
           actions: [
@@ -107,70 +102,72 @@ class AdminUsersContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final employees = FirebaseService().employees.get(role: "user");
-    final adminData = Provider.of<AdminState>(context, listen: false);
-    print("num employyes: ${employees.length}");
-    return Column(
-      children: [
-        CustomElevatedButton(
-          onPressed: () {
-            openCreateUserDialog(context, (email) async {
-              try {
-                FirebaseService()
-                    .employees
-                    .registerUser(email, "user", generateRandomPassword(12), adminData);
-              } on FirebaseAuthException catch (error) {
-                showBottomSheetWithTimer(
-                  context,
-                  "Error: $error",
-                  Theme.of(context).colorScheme.error,
-                  Theme.of(context).colorScheme.onError,
-                );
-              } catch (error) {
-                showBottomSheetWithTimer(
-                  context,
-                  "Something went wrong",
-                  Theme.of(context).colorScheme.error,
-                  Theme.of(context).colorScheme.onError,
-                );
-              }
-            });
-          },
-          active: true,
-          selected: true,
-          text: "Add a new user",
-          icon: Icons.add,
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: employees.length,
-            itemBuilder: (context, index) {
-              return Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(employees[index].uid)),
-                      Expanded(child: Text(employees[index].email)),
-                      IconButton(
-                        onPressed: () {
-                          FirebaseService()
-                              .employees
-                              .delete(employees[index].uid);
-                        },
-                        icon: const Icon(Icons.delete),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                ],
-              );
-            },
+    return FlexworkFutureBuilder(
+      future: DatabaseFunctions.getUsers(),
+      builder: (users) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 200),
+          child: Column(
+            children: [
+              CustomElevatedButton(
+                onPressed: () {
+                  openCreateUserDialog(
+                    context,
+                    (email) async {
+                      try {
+                        await DatabaseFunctions.registerUser(email, "123456");
+                      } catch (error) {
+                        showBottomSheetWithTimer(
+                          context,
+                          "Something went wrong",
+                          error: true,
+                        );
+                      }
+                    },
+                  );
+                },
+                active: true,
+                selected: true,
+                text: "Add a new user",
+                icon: Icons.add,
+              ),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(child: Text(users[index].id.toString())),
+                            Expanded(child: Text(users[index].email)),
+                            IconButton(
+                              onPressed: () async {
+                                final statusCode = await DatabaseFunctions.deleteUser(users[index].id);
+                                if(statusCode == 200){
+                                  showBottomSheetWithTimer(context, "User deleted succesfully", succes: true);
+                                }
+                                else{
+                                  showBottomSheetWithTimer(context, "Could not delete user", error: true);
+                                }
+                                DatabaseFunctions().notifyListeners();
+                              },
+                              icon: const Icon(Icons.delete),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

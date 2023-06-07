@@ -1,0 +1,762 @@
+import "dart:io";
+import "dart:js_util";
+
+import "package:flexwork/models/employee.dart";
+import "package:flexwork/models/floors.dart";
+import "package:flexwork/models/newReservationNotifier.dart";
+import "package:flexwork/models/request.dart";
+import "package:flexwork/models/reservation.dart";
+import "package:flexwork/models/workspace.dart";
+import "package:flutter/material.dart";
+import "dart:convert";
+import "package:http/http.dart" as http;
+import "package:tuple/tuple.dart";
+import "package:universal_html/html.dart" as html;
+
+class CustomError extends Error {
+  final String code;
+  CustomError(this.code);
+}
+
+enum Roles {
+  user,
+  admin,
+}
+
+class DatabaseFunctions extends ChangeNotifier {
+  static DatabaseFunctions? _instance;
+
+  DatabaseFunctions._(); // Private constructor
+
+  factory DatabaseFunctions() {
+    _instance ??= DatabaseFunctions._();
+    return _instance!;
+  }
+
+  static Future<http.Response> _get(Uri uri,
+      {required Map<String, String> headers}) async {
+    final response = await http.get(uri, headers: headers);
+    if (response.statusCode == 200) {
+      return response;
+    }
+    print("no succes");
+    print(response.body);
+
+    switch (jsonDecode(response.body)['code']) {
+      case 'MISSING_TOKEN':
+      case 'INVALID_TOKEN':
+        print("inv");
+        logout();
+        break;
+      case 'PERMISSION_DENIED':
+        print("error: permission denied");
+        break;
+      case 'MISSING_VALUES':
+        print("error: missing values");
+        break;
+      default:
+        print(jsonDecode(response.body)['code']);
+    }
+    return response;
+  }
+
+  static void setCookie(String name, String value, {int? expiry}) {
+    final cookie = '$name=$value;';
+
+    // if (expiry != null) {
+    //   final dateTime = DateTime.now().add(Duration(days: expiry));
+    //   final formattedExpiry = dateTime.toUtc().toIso8601String();
+    //   cookie += 'expires=${formattedExpiry};';
+    // }
+
+    html.document.cookie = cookie;
+  }
+
+  static String? getCookieValue(String name) {
+    final cookies = html.document.cookie;
+
+    final cookieList = cookies!.split(';');
+
+    for (var cookie in cookieList) {
+      final parts = cookie.split('=');
+      final cookieName = parts[0].trim();
+      final cookieValue = parts.length > 1 ? parts[1].trim() : '';
+
+      if (cookieName == name) {
+        return cookieValue;
+      }
+    }
+
+    return null;
+  }
+
+  static _handleCompletion(http.Response response) {
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+    } else {
+      print(
+          'Request failed with status: ${response.statusCode} ${response.body}');
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
+      print(responseBody);
+      throw ErrorDescription(responseBody['code']);
+    }
+  }
+
+  static Future<int> deleteUser(int id) async {
+    print("=+= deleteUser");
+    final url = Uri.parse('http://localhost:3000/users/${id}');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final result =
+        await http.delete(url, headers: {'Authorization': "Bearer $authToken"});
+    return result.statusCode;
+  }
+
+  static Future<String> getMyRole() async {
+    print("=+= getMyRole");
+    final url = Uri.parse('http://localhost:3000/my_role');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response =
+        await _get(url, headers: {'Authorization': "Bearer $authToken"});
+    print(response.body);
+    final body = jsonDecode(response.body) as List<dynamic>;
+    return body[0]['role'];
+  }
+
+  static Future<void> registerUser(String email, String password) async {
+    print("=+= registerUser");
+    final url = Uri.parse('http://localhost:3000/register');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "role": "user",
+          "email": email,
+          "password": password,
+        },
+      ),
+    );
+  }
+
+  static Future<void> login(String email, String password) async {
+    print("=+= login");
+    final url = Uri.parse('http://localhost:3000/login');
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(
+        {
+          "email": email,
+          "password": password,
+        },
+      ),
+    );
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) {
+      DatabaseFunctions.setCookie("authToken", body['authToken']);
+      DatabaseFunctions().notifyListeners();
+      return;
+    }
+
+    throw CustomError(body['code']);
+  }
+
+  static void logout() {
+    html.document.cookie =
+        'authToken=; expires=Thu, 01 Jan 2000 00:00:00 UTC; path=/;';
+    DatabaseFunctions().notifyListeners();
+  }
+
+  static Future<List<Reservation>> getReservations({
+    Tuple2<DateTime, DateTime>? timeRange,
+    bool personal = false,
+    bool others = false,
+    int? workspaceId,
+  }) async {
+    print("=+= getReservations");
+    assert(!(personal && others));
+
+    var url = 'http://localhost:3000/reservations';
+    if (timeRange != null) {
+      url += "?start=${timeRange.item1.toIso8601String()}";
+      url += "&end=${timeRange.item2.toIso8601String()}";
+    }
+
+    if (personal) {
+      if (url.contains("?")) {
+        url += "&personal=true";
+      } else {
+        url += "?personal=true";
+      }
+    }
+
+    if (others) {
+      if (url.contains("?")) {
+        url += "&others=true";
+      } else {
+        url += "?others=true";
+      }
+    }
+
+    if (workspaceId != null) {
+      if (url.contains("?")) {
+        url += "&workspace_id=$workspaceId";
+      } else {
+        url += "?workspace_id=$workspaceId";
+      }
+    }
+
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(Uri.parse(url),
+        headers: {'Authorization': "Bearer $authToken"});
+
+    final List<Reservation> reservations = [];
+    final responseReservations = jsonDecode(response.body) as List<dynamic>;
+    for (var res in responseReservations) {
+      reservations.add(Reservation(
+        res['id'],
+        res['user_id'],
+        DateTime.parse(res['start']),
+        DateTime.parse(res['end']),
+        res['workspace_id'],
+      ));
+    }
+
+    return reservations;
+  }
+
+  static Future<Workspace?> getWorkspace(
+      {int? reservationId, int? workspaceId}) async {
+    print("=+= getWorkspace");
+    assert(!(reservationId != null && workspaceId != null));
+
+    var url = 'http://localhost:3000/workspaces';
+    if (reservationId != null) {
+      url += '?reservation_id=$reservationId';
+    } else if (workspaceId != null) {
+      url += '?workspace_id=$workspaceId';
+    }
+
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+
+    final List<Workspace> workspaces = [];
+    final responseWorkspaces = json.decode(response.body) as List<dynamic>;
+    for (var workspace in responseWorkspaces) {
+      late final Floors floor;
+      switch (workspace['floor_num']) {
+        case 9:
+          floor = Floors.f9;
+          break;
+        case 10:
+          floor = Floors.f10;
+          break;
+        case 11:
+          floor = Floors.f11;
+          break;
+        case 12:
+          floor = Floors.f12;
+          break;
+        default:
+          throw ErrorDescription("ErroR: 234262");
+      }
+
+      final List<Tuple2<DateTime, DateTime>> blockedMoments = [];
+      final blockedMomentsStartString =
+          workspace['blocked_moments_start'] as String?;
+      final blockedMomentsEndString =
+          workspace['blocked_moments_end'] as String?;
+      if (blockedMomentsStartString != null &&
+          blockedMomentsEndString != null) {
+        final blockedMomentsStart = blockedMomentsStartString.split(",");
+        final blockedMomentsEnd = blockedMomentsEndString.split(",");
+        for (var i = 0; i < blockedMomentsStart.length; i++) {
+          blockedMoments.add(
+            Tuple2(
+              DateTime.parse(blockedMomentsStart[i]),
+              DateTime.parse(blockedMomentsEnd[i]),
+            ),
+          );
+        }
+      }
+
+      final List<Tuple2<double, double>> coordinates = [];
+      final coordinatesXString = workspace['coordinates_x'] as String?;
+      final coordinatesYString = workspace['coordinates_y'] as String?;
+      if (coordinatesXString != null && coordinatesYString != null) {
+        final coordinatesX = coordinatesXString.split(",");
+        final coordinatesY = coordinatesYString.split(",");
+        for (var i = 0; i < coordinatesX.length; i++) {
+          coordinates.add(
+            Tuple2(
+              double.parse(coordinatesX[i]),
+              double.parse(coordinatesY[i]),
+            ),
+          );
+        }
+      }
+
+      workspaces.add(
+        Workspace(
+          id: workspace['id'],
+          floor: floor,
+          color: Color(workspace['color']),
+          blockedMoments: blockedMoments,
+          coordinates: coordinates,
+          identifier: workspace['code'],
+          nickname: workspace['nickname'],
+          numMonitors: workspace['num_monitors'],
+          numScreens: workspace['num_screens'],
+          numWhiteboards: workspace['num_whiteboards'],
+          type: workspace['type'],
+          changeNotifyBasics: true,
+        ),
+      );
+    }
+    return workspaces.isEmpty ? null : workspaces[0];
+  }
+
+  static Future<List<Workspace>> getWorkspaces(Floors floor) async {
+    print("=+= getWorkspaces");
+    final floorNum = FloorsConvert.toFloorNum(floor);
+    var url = Uri.parse('http://localhost:3000/workspaces?floor_num=$floorNum');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      url,
+      headers: {'Authorization': "Bearer $authToken"},
+    );
+
+    final List<Workspace> workspaces = [];
+    final responseWorkspaces = json.decode(response.body) as List<dynamic>;
+    for (var workspace in responseWorkspaces) {
+      late final Floors floor;
+      switch (workspace['floor_num']) {
+        case 9:
+          floor = Floors.f9;
+          break;
+        case 10:
+          floor = Floors.f10;
+          break;
+        case 11:
+          floor = Floors.f11;
+          break;
+        case 12:
+          floor = Floors.f12;
+          break;
+        default:
+          throw ErrorDescription("ErroR: 234262");
+      }
+
+      final List<Tuple2<DateTime, DateTime>> blockedMoments = [];
+      final blockedMomentsStartString =
+          workspace['workspace_blocked_moments_start'] as String?;
+      final blockedMomentsEndString =
+          workspace['workspace_blocked_moments_end'] as String?;
+      if (blockedMomentsStartString != null &&
+          blockedMomentsEndString != null) {
+        final blockedMomentsStart = blockedMomentsStartString.split(",");
+        final blockedMomentsEnd = blockedMomentsEndString.split(",");
+        for (var i = 0; i < blockedMomentsStart.length; i++) {
+          blockedMoments.add(
+            Tuple2(
+              DateTime.parse(blockedMomentsStart[i]),
+              DateTime.parse(blockedMomentsEnd[i]),
+            ),
+          );
+        }
+      }
+
+      final List<Tuple2<double, double>> coordinates = [];
+      final coordinatesXString = workspace['coordinates_x'] as String?;
+      final coordinatesYString = workspace['coordinates_y'] as String?;
+      if (coordinatesXString != null && coordinatesYString != null) {
+        final coordinatesX = coordinatesXString.split(",");
+        final coordinatesY = coordinatesYString.split(",");
+        for (var i = 0; i < coordinatesX.length; i++) {
+          coordinates.add(
+            Tuple2(
+              double.parse(coordinatesX[i]),
+              double.parse(coordinatesY[i]),
+            ),
+          );
+        }
+      }
+
+      workspaces.add(
+        Workspace(
+          id: workspace['id'],
+          floor: floor,
+          color: Color(workspace['color']),
+          blockedMoments: blockedMoments,
+          coordinates: coordinates,
+          identifier: workspace['code'],
+          nickname: workspace['nickname'],
+          numMonitors: workspace['num_monitors'],
+          numScreens: workspace['num_screens'],
+          numWhiteboards: workspace['num_whiteboards'],
+          type: workspace['type'],
+          changeNotifyBasics: true,
+        ),
+      );
+    }
+    return workspaces;
+  }
+
+  static Future<Map<String, Color>> getWorkspaceTypes() async {
+    print("=+= getWorkspaceTypes");
+    final url = Uri.parse('http://localhost:3000/workspace_types');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      url,
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+
+    final responseTypes = jsonDecode(response.body) as List<dynamic>;
+
+    final Map<String, Color> workspaceTypes = {};
+    for (var type in responseTypes) {
+      workspaceTypes.addAll({type['name']: Color(type['color'])});
+    }
+    return workspaceTypes;
+  }
+
+  static Future<List<Request>> getRequests(
+      {int? requesterId, int? requestedId}) async {
+    print("=+= getRequests");
+    assert(!(requestedId != null && requesterId != null));
+
+    var url = 'http://localhost:3000/requests';
+    if (requesterId != null) {
+      url += "?requester_id=$requesterId";
+    } else if (requestedId != null) {
+      url += "?requested_id=$requestedId";
+    }
+
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+
+    final List<Request> requests = [];
+    final responseRequests = jsonDecode(response.body) as List<dynamic>;
+    for (var req in responseRequests) {
+      requests.add(
+        Request(
+          id: req['id'],
+          reservationId: req['reservation_id'],
+          message: req['message'],
+          userId: req['user_id'],
+          start: DateTime.parse(req['start']),
+          end: DateTime.parse(req['end']),
+        ),
+      );
+    }
+    return requests;
+  }
+
+  static Future<List<User>> getUsers() async {
+    print("=+= getUsers");
+    final url = Uri.parse('http://localhost:3000/users');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      url,
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+
+    final responseUsers = jsonDecode(response.body) as List<dynamic>;
+
+    final List<User> users = [];
+    for (var user in responseUsers) {
+      users.add(User(user['id'], user['email'], user['role']));
+    }
+    return users;
+  }
+
+  static Future<void> _addCoordinate(
+      int workspaceId, int num, double x, double y) async {
+    print("=+= _addCoordinate");
+    final url = Uri.parse('http://localhost:3000/workspaces/coordinates');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "workspace_id": workspaceId,
+          "num": num,
+          "x": x,
+          "y": y,
+        },
+      ),
+    );
+  }
+
+  static Future<void> _setBlockedMoment(
+      int workspaceId, DateTime start, DateTime end) async {
+    print("=+= _addBlockedMoment");
+    final url = Uri.parse('http://localhost:3000/workspaces/blocked_moments');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "workspace_id": workspaceId,
+          "start": start.toIso8601String(),
+          "end": end.toIso8601String(),
+        },
+      ),
+    );
+  }
+
+  static Future<bool> updateWorkspace(Workspace workspace) async {
+    final url = Uri.parse('http://localhost:3000/workspaces');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+
+    final blockedMoments = jsonEncode(workspace
+        .getBlockedMoments()
+        .map((moment) => {
+              'start': moment.item1.toIso8601String(),
+              'end': moment.item2.toIso8601String(),
+            })
+        .toList());
+
+    final result = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "id": workspace.getId(),
+          "floor_num": int.parse(workspace.getFloor().name.substring(1)),
+          "code": workspace.getIdentifier(),
+          "nickname": workspace.getNickname(),
+          "num_monitors": workspace.getNumMonitors(),
+          "num_screens": workspace.getNumScreens(),
+          "num_whiteboards": workspace.getNumWhiteboards(),
+          "type": workspace.getType(),
+          "blocked_moments": blockedMoments,
+        },
+      ),
+    );
+    return result.statusCode.toString().substring(0, 1) == '2';
+  }
+
+  static Future<void> deleteWorkspace(int id) async {
+    final url = Uri.parse('http://localhost:3000/workspaces/$id');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.delete(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+    _handleCompletion(response);
+  }
+
+  // not a set because adding involved adding coordinates, while updating does not
+  static Future<void> addWorkspace(Workspace workspace) async {
+    print("=+= addWorkspace");
+    final url = Uri.parse('http://localhost:3000/workspaces');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+
+    final coordinates = jsonEncode(workspace
+        .getCoords()
+        .map((coord) => {
+              'x': coord.item1,
+              'y': coord.item2,
+            })
+        .toList());
+
+    final blockedMoments = jsonEncode(workspace
+        .getBlockedMoments()
+        .map((moment) => {
+              'start': moment.item1.toIso8601String(),
+              'end': moment.item2.toIso8601String(),
+            })
+        .toList());
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "floor_num": int.parse(workspace.getFloor().name.substring(1)),
+          "code": workspace.getIdentifier(),
+          "nickname": workspace.getNickname(),
+          "num_monitors": workspace.getNumMonitors(),
+          "num_screens": workspace.getNumScreens(),
+          "num_whiteboards": workspace.getNumWhiteboards(),
+          "type": workspace.getType(),
+          "coordinates": coordinates,
+          "blocked_moments": blockedMoments,
+        },
+      ),
+    );
+
+    // final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+
+    // final coordinates = workspace.getCoords();
+
+    // for (var i = 0; i < coordinates.length; i++) {
+    //   _addCoordinate(responseBody['insertId'], i, coordinates[i].item1,
+    //       coordinates[i].item2);
+    // }
+
+    // final blockedMoments = workspace.getBlockedMoments();
+    // for (var i = 0; i < blockedMoments.length; i++) {
+    //   _setBlockedMoment(responseBody['insertId'], blockedMoments[i].item1,
+    //       blockedMoments[i].item2);
+    // }
+
+    _handleCompletion(response);
+  }
+
+  static Future<void> addReservations(
+      NewReservationNotifier reservations) async {
+    print("=+= addReservations");
+    assert(reservations.getWorkspace() != null);
+    assert(reservations.getStartTime() != null);
+    assert(reservations.getEndTime() != null);
+
+    final workspaceId = reservations.getWorkspace()!.getId();
+    final ranges = reservations.constructSchedule();
+
+    for (var res in ranges) {
+      await _addReservation(workspaceId, res.item1, res.item2);
+    }
+  }
+
+  static Future<void> _addReservation(
+      int workspaceId, DateTime start, DateTime end) async {
+    print("=+= _addReservation");
+    final url = Uri.parse('http://localhost:3000/reservations');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "workspace_id": workspaceId,
+          "start": start.toIso8601String(),
+          "end": end.toIso8601String(),
+        },
+      ),
+    );
+
+    _handleCompletion(response);
+  }
+
+  static Future<void> addUser(
+      String role, String email, String password) async {
+    print("=+= addUser");
+    final url = Uri.parse('http://localhost:3000/users');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "role": role,
+          "email": email,
+          "password": password,
+        },
+      ),
+    );
+
+    _handleCompletion(response);
+  }
+
+  static Future<void> addRequest(Request request) async {
+    print("=+= addRequest");
+    final url = Uri.parse('http://localhost:3000/requests');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "start": request.getStart().toIso8601String(),
+          "end": request.getEnd().toIso8601String(),
+          "user_id": request.getUserId(),
+          "message": request.getMessage(),
+        },
+      ),
+    );
+
+    _handleCompletion(response);
+  }
+
+  static Future<void> addWorkspaceType(String name, Color color) async {
+    print("=+= addWorkspaceType");
+    final url = Uri.parse('http://localhost:3000/workspace_types');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "name": name,
+          "color": color.value,
+        },
+      ),
+    );
+
+    _handleCompletion(response);
+  }
+
+  static Future<void> deleteWorkspaceType(String name) async {
+    print("=+= deleteWorkspaceType");
+    final url = Uri.parse('http://localhost:3000/workspace_types');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.delete(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(
+        {
+          "name": name,
+        },
+      ),
+    );
+
+    _handleCompletion(response);
+  }
+}

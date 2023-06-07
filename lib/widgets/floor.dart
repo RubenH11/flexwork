@@ -1,12 +1,14 @@
+import "package:flexwork/database/database.dart";
 import "package:flexwork/helpers/diagonalPattern.dart";
+import "package:flexwork/models/newReservationNotifier.dart";
 import "package:flexwork/models/workspace.dart";
-import "package:flutter/gestures.dart";
+import "package:flexwork/widgets/futureBuilder.dart";
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 import "package:tuple/tuple.dart";
 import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
 import "dart:typed_data";
-import '../database/firebaseService.dart';
 
 // ------------ INFO ---------------
 // The Canvas width takes up the full available area minus the padding
@@ -19,13 +21,14 @@ class Floor extends StatelessWidget {
   final Floors floor;
   final Workspace? selectedWorkspace;
   final Function(Workspace?) setSelectedWorkspace;
-  final List<String> blockedWorkspaceIds;
-  const Floor(
-      {required this.floor,
-      required this.selectedWorkspace,
-      required this.setSelectedWorkspace,
-      required this.blockedWorkspaceIds,
-      super.key});
+  final List<int> blockedWorkspaceIds;
+  const Floor({
+    required this.floor,
+    required this.selectedWorkspace,
+    required this.setSelectedWorkspace,
+    required this.blockedWorkspaceIds,
+    super.key,
+  });
 
   void _handleWorkspaceTap(
     Offset tapOffset,
@@ -34,13 +37,13 @@ class Floor extends StatelessWidget {
   ) {
     var roomWasTapped = false;
 
-    workspaces.forEach((workspace) {
+    for (var workspace in workspaces) {
       if (workspace.getPath().transform(scale).contains(tapOffset)) {
         roomWasTapped = true;
         // print("room was tapped: ${workspace.getIdentifier()}");
         setSelectedWorkspace(workspace);
       }
-    });
+    }
     if (!roomWasTapped) {
       setSelectedWorkspace(null);
     }
@@ -48,97 +51,101 @@ class Floor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final workspaces = FirebaseService().workspaces.get(floor: floor);
 
-    // print("selected workspace: $selectedWorkspace");
+    return FlexworkFutureBuilder(
+        future: DatabaseFunctions.getWorkspaces(floor),
+        builder: (workspaces) {
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final dependentOnWidth =
-            constraints.maxHeight > constraints.maxWidth / 27 * 12;
-        // print("dependentOnWidth: $dependentOnWidth");
-        final canvasHeight = dependentOnWidth
-            ? constraints.maxWidth / 27 * 12
-            : constraints.maxHeight;
-        final canvasWidth =
-            dependentOnWidth ? constraints.maxWidth : canvasHeight / 12 * 27;
-        // print("canvasHeight: $canvasHeight & canvasWidth: $canvasWidth");
-        final pixelSize = canvasWidth / (27 * 12);
-        final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
-        final scale = matrix.storage;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final dependentOnWidth =
+                  constraints.maxHeight > constraints.maxWidth / 27 * 12;
+              // print("dependentOnWidth: $dependentOnWidth");
+              final canvasHeight = dependentOnWidth
+                  ? constraints.maxWidth / 27 * 12
+                  : constraints.maxHeight;
+              final canvasWidth = dependentOnWidth
+                  ? constraints.maxWidth
+                  : canvasHeight / 12 * 27;
+              final pixelSize = canvasWidth / (27 * 12);
+              final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
+              final scale = matrix.storage;
 
-        List<Tuple2<Color, Path>> scaledWorkspaces = [];
-        List<Path> scaledBlockedWorkspaces = [];
-        Path? scaledSelectedWorkspace;
-        for (final workspace in workspaces) {
-          // print("checking workspace $workspace == $selectedWorkspace");
-          if (selectedWorkspace != null &&
-              workspace.getId() == selectedWorkspace!.getId()) {
-            scaledSelectedWorkspace = workspace.getPath().transform(scale);
-          } else {
-            scaledWorkspaces.add(Tuple2(
-                workspace.getColor(), workspace.getPath().transform(scale)));
-          }
-          if (blockedWorkspaceIds.contains(workspace.getId())) {
-            scaledBlockedWorkspaces.add(workspace.getPath().transform(scale));
-          }
-        }
+              List<Tuple2<Color, Path>> scaledWorkspaces = [];
+              List<Path> scaledBlockedWorkspaces = [];
+              Path? scaledSelectedWorkspace;
+              for (final workspace in workspaces) {
+                // print("checking workspace $workspace == $selectedWorkspace");
+                if (selectedWorkspace != null &&
+                    workspace.getId() == selectedWorkspace!.getId()) {
+                  scaledSelectedWorkspace =
+                      workspace.getPath().transform(scale);
+                } else {
+                  scaledWorkspaces.add(Tuple2(workspace.getColor(),
+                      workspace.getPath().transform(scale)));
+                }
+                if (blockedWorkspaceIds.contains(workspace.getId())) {
+                  scaledBlockedWorkspaces
+                      .add(workspace.getPath().transform(scale));
+                }
+              }
 
-        Path outterWalls = FloorSketcher.getOutterWalls();
-        Path innerWalls;
-        if (floor == Floors.f9) {
-          innerWalls = FloorSketcher.getFloor9InnerWalls();
-        } else if (floor == Floors.f10) {
-          innerWalls = FloorSketcher.getFloor10InnerWalls();
-        } else if (floor == Floors.f11) {
-          innerWalls = FloorSketcher.getFloor11InnerWalls();
-        } else {
-          innerWalls = FloorSketcher.getFloor12InnerWalls();
-        }
-        final scaledInnerWalls = innerWalls.transform(scale);
-        final scaledOutterWalls = outterWalls.transform(scale);
+              Path outterWalls = FloorSketcher.getOutterWalls();
+              Path innerWalls;
+              if (floor == Floors.f9) {
+                innerWalls = FloorSketcher.getFloor9InnerWalls();
+              } else if (floor == Floors.f10) {
+                innerWalls = FloorSketcher.getFloor10InnerWalls();
+              } else if (floor == Floors.f11) {
+                innerWalls = FloorSketcher.getFloor11InnerWalls();
+              } else {
+                innerWalls = FloorSketcher.getFloor12InnerWalls();
+              }
+              final scaledInnerWalls = innerWalls.transform(scale);
+              final scaledOutterWalls = outterWalls.transform(scale);
 
-        return GestureDetector(
-          onTapUp: (details) {
-            _handleWorkspaceTap(details.localPosition, workspaces, scale);
-          },
-          child: Stack(
-            children: [
-              CustomPaint(
-                size: Size(canvasWidth, canvasHeight),
-                painter: _FloorPainter(
-                  freeWorkspaces: scaledWorkspaces,
-                  selectedWorkspace: scaledSelectedWorkspace,
-                  outterWalls: scaledOutterWalls,
-                  innerWalls: scaledInnerWalls,
+              return GestureDetector(
+                onTapUp: (details) {
+                  _handleWorkspaceTap(details.localPosition, workspaces, scale);
+                },
+                child: Stack(
+                  children: [
+                    CustomPaint(
+                      size: Size(canvasWidth, canvasHeight),
+                      painter: _FloorPainter(
+                        freeWorkspaces: scaledWorkspaces,
+                        selectedWorkspace: scaledSelectedWorkspace,
+                        outterWalls: scaledOutterWalls,
+                        innerWalls: scaledInnerWalls,
+                      ),
+                    ),
+                    ClipPath(
+                      clipper: _BlockedSpaceClipper(scaledBlockedWorkspaces),
+                      child: CustomPaint(
+                        size: Size(canvasWidth, canvasHeight),
+                        painter: DiagonalPatternPainter(),
+                        child: Container(
+                          width: canvasWidth,
+                          height: canvasHeight,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: canvasHeight * 0.52,
+                      left: canvasWidth * 0.27,
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        height: canvasHeight * 0.48,
+                        width: canvasWidth * 0.35,
+                        child: _Legend(),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              ClipPath(
-                clipper: _BlockedSpaceClipper(scaledBlockedWorkspaces),
-                child: CustomPaint(
-                  size: Size(canvasWidth, canvasHeight),
-                  painter: DiagonalPatternPainter(),
-                  child: Container(
-                    width: canvasWidth,
-                    height: canvasHeight,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: canvasHeight * 0.52,
-                left: canvasWidth * 0.27,
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  height: canvasHeight * 0.48,
-                  width: canvasWidth * 0.35,
-                  child: _Legend(),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+              );
+            },
+          );
+        });
   }
 }
 
@@ -147,50 +154,50 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColors = FirebaseService().workspaceTypes.getColors();
+    // final typeColors = FirebaseService().workspaceTypes.getColors();
 
     return LayoutBuilder(builder: (context, constraints) {
       final fullHeight = constraints.maxHeight;
-      final boxSize = fullHeight / (typeColors.length+1) - 10;
+      // final boxSize = fullHeight / (typeColors.length + 1) - 10;
 
       final List<Widget> legendItems = [];
-      
-      typeColors.forEach((type, color) {
-        legendItems.add(
-          Expanded(
-            child: Row(
-              children: [
-                Container(color: color, width: boxSize, height: boxSize),
-                SizedBox(width: 10),
-                Text(type),
-              ],
-            ),
-          ),
-        );
-      });
 
-      legendItems.add(
-        Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: boxSize,
-                height: boxSize,
-                child: ClipRect(
-                  child: CustomPaint(
-                    size: Size(double.infinity, double.infinity),
-                    painter: DiagonalPatternPainter(),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Text("Occupied"),
-            ],
-          ),
-        ),
-      );
+      // typeColors.forEach((type, color) {
+      //   legendItems.add(
+      //     Expanded(
+      //       child: Row(
+      //         children: [
+      //           Container(color: color, width: boxSize, height: boxSize),
+      //           SizedBox(width: 10),
+      //           Text(type),
+      //         ],
+      //       ),
+      //     ),
+      //   );
+      // });
+
+      // legendItems.add(
+      //   Expanded(
+      //     child: Row(
+      //       children: [
+      //         Container(
+      //           width: boxSize,
+      //           height: boxSize,
+      //           child: ClipRect(
+      //             child: CustomPaint(
+      //               size: Size(double.infinity, double.infinity),
+      //               painter: DiagonalPatternPainter(),
+      //             ),
+      //           ),
+      //         ),
+      //         SizedBox(
+      //           width: 10,
+      //         ),
+      //         Text("Occupied"),
+      //       ],
+      //     ),
+      //   ),
+      // );
 
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

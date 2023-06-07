@@ -1,14 +1,23 @@
-import 'package:flexwork/database/firebaseService.dart';
+import "package:flexwork/database/database.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/customTextButton.dart";
 import "package:flexwork/widgets/customTextField.dart";
 import "package:flutter/material.dart";
+import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:flutter_typeahead/flutter_typeahead.dart";
 import "package:intl/intl.dart";
 import "package:tuple/tuple.dart";
-import "package:flutter_colorpicker/flutter_colorpicker.dart";
+
+// class EditWorkspace extends StatelessWidget {
+//   const EditWorkspace({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Placeholder();
+//   }
+// }
 
 class EditWorkspace extends StatelessWidget {
   final Workspace selectedWorkspace;
@@ -47,7 +56,7 @@ class EditWorkspace extends StatelessWidget {
                   Container(
                       width: 105,
                       padding: const EdgeInsets.only(left: 10),
-                      child: const Text("Workspace")),
+                      child: const Text("Code")),
                   Expanded(
                     child: CustomTextField(
                         onChanged: (value) => workspace.setIdentifier(value),
@@ -94,6 +103,7 @@ class EditWorkspace extends StatelessWidget {
                       textFieldConfiguration: TextFieldConfiguration(
                         onChanged: (value) {
                           workspace.setType(value);
+                          print("changed");
                         },
                         controller: typeController,
                         decoration: InputDecoration(
@@ -108,8 +118,10 @@ class EditWorkspace extends StatelessWidget {
                           ),
                         ),
                       ),
-                      suggestionsCallback: (value) {
-                        return FirebaseService().workspaceTypes.getColors().keys;
+                      suggestionsCallback: (value) async {
+                        final colors =
+                            await DatabaseFunctions.getWorkspaceTypes();
+                        return colors.keys;
                       },
                       itemBuilder: (ctx, suggestion) {
                         return Row(
@@ -133,8 +145,7 @@ class EditWorkspace extends StatelessWidget {
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
-                                      Color currentColor = FirebaseService()
-                                          .workspaceTypes.getColor(suggestion);
+                                      var currentColor = workspace.getColor();
                                       return AlertDialog(
                                         titleTextStyle: Theme.of(context)
                                             .textTheme
@@ -167,8 +178,9 @@ class EditWorkspace extends StatelessWidget {
                                             selected: true,
                                             onPressed: () {
                                               // Process the selected color
-                                              FirebaseService().workspaceTypes.setColor(
-                                                  suggestion, currentColor);
+                                              DatabaseFunctions
+                                                  .addWorkspaceType(
+                                                      suggestion, currentColor);
                                               print(
                                                   'Selected color: $currentColor');
                                               Navigator.of(context).pop();
@@ -190,10 +202,16 @@ class EditWorkspace extends StatelessWidget {
                               color: Theme.of(context).colorScheme.error,
                               onPressed: () async {
                                 try {
-                                  await FirebaseService().workspaceTypes.delete(suggestion);
-                                  showBottomSheetWithTimer(context, "deleted succesfully", Colors.green, Colors.white);
+                                  await DatabaseFunctions.deleteWorkspaceType(
+                                      suggestion);
+                                  showBottomSheetWithTimer(
+                                      context,
+                                      "deleted succesfully",
+                                      succes: true);
                                 } catch (error) {
-                                  showBottomSheetWithTimer(context, "Could not delete: $error", Theme.of(context).colorScheme.error, Theme.of(context).colorScheme.onError);
+                                  showBottomSheetWithTimer(
+                                      context, "Could not delete: $error",
+                                      error: true);
                                 }
                               },
                             ),
@@ -203,6 +221,7 @@ class EditWorkspace extends StatelessWidget {
                       onSuggestionSelected: (value) {
                         typeController.text = value;
                         workspace.setType(value);
+                        print("selected");
                       },
                     ),
                   ),
@@ -304,7 +323,7 @@ class _TimeSlotListState extends State<TimeSlotList> {
                 lastDate: DateTime.now().add(const Duration(days: 1000)),
               );
               if (startDate == null) {
-                throw ErrorDescription("INTERUPTION");
+                throw ErrorDescription("INTERRUPTION");
               }
               final startTime = await showTimePicker(
                 confirmText: "NEXT",
@@ -312,6 +331,13 @@ class _TimeSlotListState extends State<TimeSlotList> {
                 context: context,
                 initialTime: TimeOfDay.now(),
                 initialEntryMode: TimePickerEntryMode.input,
+                builder: (BuildContext context, Widget? child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(alwaysUse24HourFormat: true),
+                    child: child!,
+                  );
+                },
               );
               if (startTime == null) {
                 throw ErrorDescription("INTERUPTION");
@@ -320,8 +346,8 @@ class _TimeSlotListState extends State<TimeSlotList> {
                 confirmText: "NEXT",
                 helpText: "End date",
                 context: context,
-                initialDate: startDate!,
-                firstDate: startDate!,
+                initialDate: startDate,
+                firstDate: startDate,
                 lastDate: DateTime.now().add(const Duration(days: 1000)),
               );
               if (endDate == null) {
@@ -330,23 +356,32 @@ class _TimeSlotListState extends State<TimeSlotList> {
               final endTime = await showTimePicker(
                 helpText: "End time",
                 context: context,
-                initialTime: TimeOfDay.now(),
+                initialTime: startTime,
                 initialEntryMode: TimePickerEntryMode.input,
+                builder: (BuildContext context, Widget? child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(alwaysUse24HourFormat: true),
+                    child: child!,
+                  );
+                },
               );
               if (endTime == null) {
                 throw ErrorDescription("INTERUPTION");
               }
+              print("1");
               final startDateTime = startDate.add(
                   Duration(hours: startTime.hour, minutes: startTime.minute));
-              final endDateTime = endDate!
+              print("2");
+              final endDateTime = endDate
                   .add(Duration(hours: endTime.hour, minutes: endTime.minute));
-
+              print("3");
               if (startDateTime.isAtSameMomentAs(endDateTime)) {
                 throw ErrorDescription("Start and end time where identical");
               } else if (startDateTime.isAfter(endDateTime)) {
                 throw ErrorDescription("Start time was after end time");
               }
-
+              print("4");
               setState(() {
                 widget.workspace
                     .addBlockedMoment(Tuple2(startDateTime, endDateTime));
@@ -392,7 +427,6 @@ class _TimeSlotListState extends State<TimeSlotList> {
           child: ListView.builder(
             padding: const EdgeInsets.all(10),
             itemBuilder: (ctx, index) {
-              // print("building something");
               return Column(
                 children: [
                   Row(

@@ -1,11 +1,9 @@
-import 'package:flexwork/database/firebaseService.dart';
-import "package:flexwork/models/reservation.dart";
 import "package:tuple/tuple.dart";
 import "package:flutter/material.dart";
 import "./floors.dart";
 
 class Workspace extends ChangeNotifier {
-  String _id;
+  int _id;
   final Floors _floor;
   List<Tuple2<double, double>> _coordinates;
   String _identifier;
@@ -16,11 +14,13 @@ class Workspace extends ChangeNotifier {
   int _numScreens;
   List<Tuple2<DateTime, DateTime>> _blockedMoments;
   Color _color;
-
+  var _hasChanged = false;
+  bool _changeNotifyBasics;
 
   Workspace({
-    required String id,
+    required int id,
     required Floors floor,
+    required bool changeNotifyBasics,
     List<Tuple2<double, double>> coordinates = const [
       Tuple2(0.0, 0.0),
       Tuple2(12.0, 0.0),
@@ -34,7 +34,6 @@ class Workspace extends ChangeNotifier {
     int numWhiteboards = 0,
     int numScreens = 0,
     List<Tuple2<DateTime, DateTime>> blockedMoments = const [],
-    List<Tuple2<DateTime, DateTime>> possibleConflicts = const [],
     required Color color,
   })  : _id = id,
         _coordinates = coordinates,
@@ -46,6 +45,7 @@ class Workspace extends ChangeNotifier {
         _numWhiteboards = numWhiteboards,
         _type = type,
         _color = color,
+        _changeNotifyBasics = changeNotifyBasics,
         _blockedMoments = blockedMoments;
 
   Workspace.fromWorkspace({required Workspace workspace})
@@ -59,6 +59,7 @@ class Workspace extends ChangeNotifier {
         _numWhiteboards = workspace.getNumWhiteboards(),
         _type = workspace.getType(),
         _color = workspace.getColor(),
+        _changeNotifyBasics = true, //
         _blockedMoments = workspace.getBlockedMoments();
 
   bool hasDifferentBasics(Workspace other) {
@@ -71,24 +72,28 @@ class Workspace extends ChangeNotifier {
         _type != other.getType());
   }
 
-  bool hasDifferentCoordinates(Workspace workspace) {
-    if (_coordinates.length != workspace.getCoords().length) {
-      return true;
-    }
-    final coords = workspace.getCoords();
-    for (var i = 0; i < _coordinates.length; i++) {
-      if (_coordinates[i] != coords[i]) {
-        return true;
-      }
-    }
-    return false;
+  // bool hasDifferentCoordinates(Workspace workspace) {
+  //   if (_coordinates.length != workspace.getCoords().length) {
+  //     return true;
+  //   }
+  //   final coords = workspace.getCoords();
+  //   for (var i = 0; i < _coordinates.length; i++) {
+  //     if (_coordinates[i] != coords[i]) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
+
+  bool hasChanged() {
+    return _hasChanged;
   }
 
   bool hasDifferentBlockedMoments(Workspace workspace) {
     if (_blockedMoments.length != workspace.getBlockedMoments().length) {
       return true;
     }
-    final blockedMoments = workspace.getCoords();
+    final blockedMoments = workspace.getBlockedMoments();
     for (var i = 0; i < _blockedMoments.length; i++) {
       if (_blockedMoments[i] != blockedMoments[i]) {
         return true;
@@ -141,8 +146,8 @@ class Workspace extends ChangeNotifier {
   Path getPath() {
     // print("== newSpaceNotifer: get path");
     if (_coordinates.length <= 2) {
-      print(
-          "ERROR: in getPath() in newSpaceNotifier. There were not enough coords");
+      print("ERROR: in getPath() in workspace. There were not enough coords");
+      return Path();
     }
     // start path
     final path = Path()..moveTo(_coordinates[0].item1, _coordinates[0].item2);
@@ -156,11 +161,11 @@ class Workspace extends ChangeNotifier {
     return path;
   }
 
-  String getId() {
+  int getId() {
     return _id;
   }
 
-  Color getColor(){
+  Color getColor() {
     return _color;
   }
 
@@ -170,41 +175,79 @@ class Workspace extends ChangeNotifier {
 
   void addBlockedMoment(Tuple2<DateTime, DateTime> blockedMoment) {
     _blockedMoments.add(blockedMoment);
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void deleteBlockedMoment(int index) {
     _blockedMoments.removeAt(index);
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
-  void setId(String id) {
+  void setId(int id) {
     _id = id;
+    _hasChanged = true;
   }
 
-  void setColor(Color color){
+  void setColor(Color color) {
     _color = color;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setIdentifier(String identifier) {
     _identifier = identifier;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setNickname(String nickname) {
     _nickname = nickname;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setNumMonitors(int numMonitors) {
     _numMonitors = numMonitors;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setNumWhiteboards(int numWhiteboards) {
     _numWhiteboards = numWhiteboards;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setNumScreens(int numScreens) {
     _numScreens = numScreens;
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 
   void setType(String type) {
     _type = type;
+    print("change type");
+    _hasChanged = true;
+    if (_changeNotifyBasics) {
+      notifyListeners();
+    }
   }
 }
