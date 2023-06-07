@@ -1,30 +1,29 @@
 import 'package:flexwork/auth.dart';
-import 'package:flexwork/models/adminState.dart';
+import 'package:flexwork/database/database.dart';
 import 'package:flexwork/user/flexwork.dart';
+import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'database/firebaseService.dart';
+import 'package:provider/provider.dart';
 import "./admin/admin.dart";
-import "package:provider/provider.dart";
-import 'models/newReservationNotifier.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import "package:firebase_auth/firebase_auth.dart";
+import "package:universal_html/html.dart" as html;
 
 void main() async {
   // Hook up to Firestore database
   WidgetsFlutterBinding.ensureInitialized();
-  await FirebaseService.initializeApp();
-  final _auth = FirebaseAuth.instance;
+  // await FirebaseService.initializeApp();
+  // final _auth = FirebaseAuth.instance;
   // await FirebaseService().initializeState();
 
   // Provide NewReservationNotifier (should only be for users)
-  runApp(MyApp());
+  runApp(
+    MyApp(),
+  );
 }
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -70,24 +69,49 @@ class MyApp extends StatelessWidget {
               onBackground: Colors.grey,
               surface: Colors.white,
               onSurface: Colors.grey)),
-      home: ChangeNotifierProvider(
-        create: (context) => AdminState(),
-        child: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, userSnapshot) {
-            if (userSnapshot.hasData) {
-              print("tt");
-              if (userSnapshot.data!.uid == "adlHpN0cY3bHT6KXPJuKSEVTJbk2") {
-                return Scaffold(body: Admin());
-              }
-              print("tttt");
-              return const Scaffold(body: FlexWork());
-            } else {
-              return Scaffold(body: AuthScreen());
+      home: Scaffold(
+        body: ChangeNotifierProvider.value(
+          value: DatabaseFunctions(),
+          builder: (context, _) {
+            Provider.of<DatabaseFunctions>(context);
+            if (DatabaseFunctions.getCookieValue('authToken') == null) {
+              return AuthScreen();
             }
+
+            return FlexworkFutureBuilder(
+              future: DatabaseFunctions.getMyRole(),
+              builder: (role) {
+                print(role);
+                if (role == 'admin') {
+                  return Admin();
+                } else if (role == 'user') {
+                  return FlexWork();
+                }
+                return AuthScreen();
+              },
+            );
           },
         ),
       ),
+      //const Scaffold(body: FlexWork()),
+      // ChangeNotifierProvider(
+      //   create: (context) => AdminState(),
+      //   child: StreamBuilder(
+      //     stream: FirebaseAuth.instance.authStateChanges(),
+      //     builder: (context, userSnapshot) {
+      //       if (userSnapshot.hasData) {
+      //         print("tt");
+      //         if (userSnapshot.data!.uid == "adlHpN0cY3bHT6KXPJuKSEVTJbk2") {
+      //           return Scaffold(body: Admin());
+      //         }
+      //         print("tttt");
+      //         return const Scaffold(body: FlexWork());
+      //       } else {
+      //         return Scaffold(body: AuthScreen());
+      //       }
+      //     },
+      //   ),
+      // ),
     );
   }
 }
