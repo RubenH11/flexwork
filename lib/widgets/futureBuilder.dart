@@ -16,10 +16,12 @@ class FlexworkFutureBuilder<T> extends StatelessWidget {
         }
 
         if (!snapshot.hasData) {
+          // print(snapshot.data);
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
+        // print(snapshot.data);
 
         return builder(snapshot.data!);
       }),

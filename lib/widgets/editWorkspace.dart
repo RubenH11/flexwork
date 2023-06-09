@@ -1,3 +1,4 @@
+import "package:collection/collection.dart";
 import "package:flexwork/database/database.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/bottomSheets.dart";
@@ -21,8 +22,12 @@ import "package:tuple/tuple.dart";
 
 class EditWorkspace extends StatelessWidget {
   final Workspace selectedWorkspace;
+  final void Function() updatedLegend;
+  final Map<String, Color> legend;
   EditWorkspace({
     required this.selectedWorkspace,
+    required this.legend,
+    required this.updatedLegend,
     super.key,
   });
 
@@ -101,10 +106,16 @@ class EditWorkspace extends StatelessWidget {
                       },
                       getImmediateSuggestions: true,
                       textFieldConfiguration: TextFieldConfiguration(
-                        onChanged: (value) {
-                          workspace.setType(value);
-                          print("changed");
+                        onEditingComplete: () {
+                          workspace.setType(typeController.text);
+                          DatabaseFunctions.addWorkspaceType(
+                              typeController.text, Colors.black);
+                          updatedLegend();
                         },
+                        // onChanged: (value) {
+                        //   workspace.setType(value);
+                        //   print("changed");
+                        // },
                         controller: typeController,
                         decoration: InputDecoration(
                           isDense: true,
@@ -118,10 +129,8 @@ class EditWorkspace extends StatelessWidget {
                           ),
                         ),
                       ),
-                      suggestionsCallback: (value) async {
-                        final colors =
-                            await DatabaseFunctions.getWorkspaceTypes();
-                        return colors.keys;
+                      suggestionsCallback: (value) {
+                        return legend.keys;
                       },
                       itemBuilder: (ctx, suggestion) {
                         return Row(
@@ -142,15 +151,16 @@ class EditWorkspace extends StatelessWidget {
                                 text: "select color",
                                 textAlign: TextAlign.center,
                                 onPressed: () {
+                                  final ctx = context;
                                   showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
+                                    context: ctx,
+                                    builder: (BuildContext dialogContext) {
                                       var currentColor = workspace.getColor();
                                       return AlertDialog(
-                                        titleTextStyle: Theme.of(context)
+                                        titleTextStyle: Theme.of(ctx)
                                             .textTheme
                                             .bodyLarge,
-                                        title: Text(
+                                        title: const Text(
                                           'Scroll and select a color',
                                           textAlign: TextAlign.center,
                                         ),
@@ -176,14 +186,31 @@ class EditWorkspace extends StatelessWidget {
                                           CustomTextButton(
                                             text: "Select",
                                             selected: true,
-                                            onPressed: () {
+                                            onPressed: () async {
                                               // Process the selected color
-                                              DatabaseFunctions
-                                                  .addWorkspaceType(
-                                                      suggestion, currentColor);
+                                              Navigator.of(dialogContext).pop();
                                               print(
                                                   'Selected color: $currentColor');
-                                              Navigator.of(context).pop();
+                                              final success =
+                                                  await DatabaseFunctions
+                                                      .updateWorkspaceType(
+                                                          suggestion,
+                                                          currentColor);
+                                              if (success) {
+                                                workspace.setType(suggestion);
+                                                updatedLegend();
+                                                // ignore: use_build_context_synchronously
+                                                showBottomSheetWithTimer(
+                                                    ctx,
+                                                    "Succesfully updated color",
+                                                    succes: true);
+                                              } else {
+                                                // ignore: use_build_context_synchronously
+                                                showBottomSheetWithTimer(
+                                                    ctx,
+                                                    "Could not update color",
+                                                    error: true);
+                                              }
                                             },
                                           ),
                                         ],
@@ -201,16 +228,17 @@ class EditWorkspace extends StatelessWidget {
                               textAlign: TextAlign.center,
                               color: Theme.of(context).colorScheme.error,
                               onPressed: () async {
-                                try {
-                                  await DatabaseFunctions.deleteWorkspaceType(
-                                      suggestion);
+                                final succes =
+                                    await DatabaseFunctions.deleteWorkspaceType(
+                                        suggestion);
+                                if (succes) {
                                   showBottomSheetWithTimer(
-                                      context,
-                                      "deleted succesfully",
+                                      context, "deleted succesfully",
                                       succes: true);
-                                } catch (error) {
+                                  updatedLegend();
+                                } else {
                                   showBottomSheetWithTimer(
-                                      context, "Could not delete: $error",
+                                      context, "Could not delete type",
                                       error: true);
                                 }
                               },
@@ -303,6 +331,7 @@ class _TimeSlotListState extends State<TimeSlotList> {
   @override
   Widget build(BuildContext context) {
     final timestamps = widget.workspace.getBlockedMoments();
+    timestamps.sort((a, b) => a.item1.compareTo(b.item1));
 
     return Column(
       children: [
@@ -385,6 +414,7 @@ class _TimeSlotListState extends State<TimeSlotList> {
               setState(() {
                 widget.workspace
                     .addBlockedMoment(Tuple2(startDateTime, endDateTime));
+                print("test");
               });
             } catch (error) {
               final errorExplanation = error.toString();

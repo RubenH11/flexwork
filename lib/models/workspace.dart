@@ -176,7 +176,9 @@ class Workspace extends ChangeNotifier {
   void addBlockedMoment(Tuple2<DateTime, DateTime> blockedMoment) {
     _blockedMoments.add(blockedMoment);
     _hasChanged = true;
+    print("added a blockedmoment");
     if (_changeNotifyBasics) {
+      print("and let everyone know");
       notifyListeners();
     }
   }

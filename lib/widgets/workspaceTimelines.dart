@@ -3,32 +3,56 @@ import 'package:flexwork/helpers/dateTimeHelper.dart';
 import 'package:flexwork/helpers/diagonalPattern.dart';
 import 'package:flexwork/models/reservation.dart';
 import 'package:flexwork/models/workspace.dart';
+import 'package:flexwork/widgets/customElevatedButton.dart';
 import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tuple/tuple.dart';
 
-class WorkspaceTimelines extends StatelessWidget {
+class WorkspaceTimelines extends StatefulWidget {
   final List<DateTime> days;
   final int numSurroundingDays;
   final Workspace workspace;
   final bool boldFocus;
   final List<Tuple2<DateTime, DateTime>> selectedReservations;
+  final bool moveDays;
   const WorkspaceTimelines({
     required this.boldFocus,
     required this.days,
     this.numSurroundingDays = 0,
     required this.workspace,
     required this.selectedReservations,
+    this.moveDays = false,
     super.key,
   });
 
   @override
+  State<WorkspaceTimelines> createState() => _WorkspaceTimelinesState();
+}
+
+class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
+  late List<DateTime> focusDays;
+  var moveDaysBy = 0;
+
+  @override
+  void initState() {
+    focusDays = widget.days;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     print("|||| WorkspaceTimelines ||||");
-    assert(numSurroundingDays >= 0);
+    assert(widget.numSurroundingDays >= 0);
+
+    var movedFocusDays = [];
+    for (var day in focusDays) {
+      movedFocusDays.add(day.add(Duration(days: moveDaysBy)));
+    }
+
+
     final List<Widget> icons = List.generate(
-      workspace.getNumMonitors(),
+      widget.workspace.getNumMonitors(),
       (index) => Icon(
         Icons.monitor,
         color: Theme.of(context).colorScheme.onBackground,
@@ -36,7 +60,7 @@ class WorkspaceTimelines extends StatelessWidget {
     );
     icons.addAll(
       List.generate(
-        workspace.getNumWhiteboards(),
+        widget.workspace.getNumWhiteboards(),
         (index) => Icon(
           Icons.width_normal,
           color: Theme.of(context).colorScheme.onBackground,
@@ -45,7 +69,7 @@ class WorkspaceTimelines extends StatelessWidget {
     );
     icons.addAll(
       List.generate(
-        workspace.getNumScreens(),
+        widget.workspace.getNumScreens(),
         (index) => Icon(
           Icons.connected_tv,
           color: Theme.of(context).colorScheme.onBackground,
@@ -62,8 +86,8 @@ class WorkspaceTimelines extends StatelessWidget {
     }
 
     List<DateTime> timelineDays = [];
-    for (var day in days) {
-      for (var i = -numSurroundingDays; i <= numSurroundingDays; i++) {
+    for (var day in movedFocusDays) {
+      for (var i = -widget.numSurroundingDays; i <= widget.numSurroundingDays; i++) {
         timelineDays.add(day.add(Duration(days: i)));
       }
     }
@@ -71,29 +95,34 @@ class WorkspaceTimelines extends StatelessWidget {
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              "${workspace.getIdentifier()}",
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Text(
-              "    ●    ",
-              style: TextStyle(
-                  fontSize: 8, color: Theme.of(context).colorScheme.background),
-            ),
-            Text(
-              "${workspace.getType()}",
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Text(
-              "    ●    ",
-              style: TextStyle(
-                  fontSize: 8, color: Theme.of(context).colorScheme.background),
-            ),
-            ...icons,
-          ],
+        SizedBox(
+          height: 50,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                "${widget.workspace.getIdentifier()}",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Text(
+                "    ●    ",
+                style: TextStyle(
+                    fontSize: 8,
+                    color: Theme.of(context).colorScheme.background),
+              ),
+              Text(
+                "${widget.workspace.getType()}",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Text(
+                "    ●    ",
+                style: TextStyle(
+                    fontSize: 8,
+                    color: Theme.of(context).colorScheme.background),
+              ),
+              ...icons,
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         const Row(
@@ -115,47 +144,119 @@ class WorkspaceTimelines extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(width: 50),
           ],
         ),
         SizedBox(
           height: timelineDays.length * 24,
-          child: ListView.builder(
-            itemCount: timelineDays.length,
-            itemBuilder: (context, index) {
-              return Column(
-                children: [
-                  const SizedBox(height: 4),
-                  Row(
+          child: Row(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: timelineDays.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              child: Text(
+                                DateFormat('EEEE d MMM')
+                                    .format(timelineDays[index]),
+                                style: TextStyle(
+                                    fontWeight: widget.boldFocus &&
+                                            movedFocusDays.contains(timelineDays[index])
+                                        ? FontWeight.bold
+                                        : null),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0),
+                                child: WorkspaceTimeline(
+                                  key: ValueKey(timelineDays[index]),
+                                  timelineDay: timelineDays[index],
+                                  userId: 1,
+                                  workspace: widget.workspace,
+                                  selectedReservations: DateTimeHelper
+                                      .getOverlappingDateRangesOverDay(
+                                    widget.selectedReservations,
+                                    timelineDays[index],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              if (widget.moveDays)
+                Container(
+                  width: 50,
+                  padding: const EdgeInsets.all(4),
+                  child: Column(
                     children: [
-                      SizedBox(
-                        width: 150,
-                        child: Text(
-                          DateFormat('EEEE d MMM').format(timelineDays[index]),
-                          style: TextStyle(
-                              fontWeight: boldFocus &&
-                                      days.contains(timelineDays[index])
-                                  ? FontWeight.bold
-                                  : null),
+                      Expanded(
+                        child: CustomElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              moveDaysBy = moveDaysBy - 7;
+                            });
+                          },
+                          active: true,
+                          selected: true,
+                          icon: Icons.arrow_upward,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: WorkspaceTimeline(
-                            timelineDay: timelineDays[index],
-                            userId: 1,
-                            workspaceId: workspace.getId(),
-                            selectedReservations:
-                                DateTimeHelper.getOverlappingDateRangesOverDay(
-                                    selectedReservations, timelineDays[index]),
-                          ),
+                        child: CustomElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              moveDaysBy--;
+                            });
+                          },
+                          active: true,
+                          selected: true,
+                          icon: Icons.arrow_drop_up,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: CustomElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              moveDaysBy++;
+                            });
+                          },
+                          active: true,
+                          selected: true,
+                          icon: Icons.arrow_drop_down,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: CustomElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              moveDaysBy = moveDaysBy + 7;
+                            });
+                          },
+                          active: true,
+                          selected: true,
+                          icon: Icons.arrow_downward,
                         ),
                       ),
                     ],
                   ),
-                ],
-              );
-            },
+                ),
+            ],
           ),
         ),
       ],
@@ -166,18 +267,23 @@ class WorkspaceTimelines extends StatelessWidget {
 class WorkspaceTimeline extends StatelessWidget {
   final List<Tuple2<DateTime, DateTime>> selectedReservations;
   final DateTime timelineDay;
-  final int workspaceId;
+  final Workspace workspace;
   final int userId;
   const WorkspaceTimeline(
       {required this.timelineDay,
-      required this.workspaceId,
+      required this.workspace,
       required this.selectedReservations,
       required this.userId,
       super.key});
 
   Future<Map<String, List<Reservation>>> getReservations() async {
-    final allRes = await DatabaseFunctions.getReservations(timeRange: DateTimeHelper.getFullDayRange(timelineDay), workspaceId: workspaceId);
-    final personalRes = await DatabaseFunctions.getReservations(timeRange: DateTimeHelper.getFullDayRange(timelineDay), workspaceId: workspaceId, personal: true);
+    final allRes = await DatabaseFunctions.getReservations(
+        timeRange: DateTimeHelper.getFullDayRange(timelineDay),
+        workspaceId: workspace.getId());
+    final personalRes = await DatabaseFunctions.getReservations(
+        timeRange: DateTimeHelper.getFullDayRange(timelineDay),
+        workspaceId: workspace.getId(),
+        personal: true);
     for (var res in personalRes) {
       allRes.remove(res);
     }
@@ -186,11 +292,11 @@ class WorkspaceTimeline extends StatelessWidget {
       "Personal reservations": personalRes,
     };
   }
-  
 
   @override
   Widget build(BuildContext context) {
-    assert(timelineDay.hour == 0, timelineDay.minute == 0);
+    assert(timelineDay.hour == 0 || timelineDay.minute == 0);
+    print("------- build timeline! ------------");
 
     Widget getPositionedContainer({
       required DateTime start,
@@ -248,6 +354,13 @@ class WorkspaceTimeline extends StatelessWidget {
               final fullWidth = constraints.maxWidth;
               final height = constraints.maxHeight;
 
+              final todaysBlockedMoments = workspace.getBlockedMoments().where(
+                  (moment) =>
+                      DateTimeHelper.extractOnlyDay(moment.item1) ==
+                          timelineDay ||
+                      DateTimeHelper.extractOnlyDay(moment.item2) ==
+                          timelineDay);
+
               final timelineBlocks = otherRes
                   .map((res) => getPositionedContainer(
                         start: res.getStart(),
@@ -258,6 +371,17 @@ class WorkspaceTimeline extends StatelessWidget {
                         height: height,
                       ))
                   .toList();
+
+              timelineBlocks.addAll(todaysBlockedMoments
+                  .map((moment) => getPositionedContainer(
+                        start: moment.item1,
+                        end: moment.item2,
+                        timelineDay: timelineDay,
+                        boxColor: Colors.grey,
+                        fullWidth: fullWidth,
+                        height: height,
+                      ))
+                  .toList());
 
               final personalTimelineBlocks = personalRes
                   .map((res) => getPositionedContainer(
@@ -281,18 +405,24 @@ class WorkspaceTimeline extends StatelessWidget {
                       ))
                   .toList();
 
+              final blockedMoments = otherRes
+                  .map((res) => Tuple2(res.getStart(), res.getEnd()))
+                  .toList();
+              blockedMoments.addAll(todaysBlockedMoments);
               final List<Widget> overlappingBlocks = [];
-              for (var res in otherRes) {
+              for (var moment in blockedMoments) {
                 for (var selectedRes in selectedReservations) {
-                  if (DateTimeHelper.dateRangesOverlap(Tuple2(res.getStart(), res.getEnd()), selectedRes)) {
+                  print(moment);
+                  print(selectedRes);
+                  if (DateTimeHelper.dateRangesOverlap(moment, selectedRes)) {
                     final listOfDateTimes = [
-                      res.getStart(),
-                      res.getEnd(),
+                      moment.item1,
+                      moment.item2,
                       selectedRes.item1,
                       selectedRes.item2
                     ];
                     listOfDateTimes.sort();
-                    // print(listOfDateTimes);
+                    print(listOfDateTimes);
 
                     overlappingBlocks.add(getPositionedContainer(
                       start: listOfDateTimes[1],

@@ -41,6 +41,7 @@ class _AdminNewSpaceMenuState extends State<AdminNewSpaceMenu> {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<NewSpaceNotifier>(context);
     return Column(
       children: [
         Row(
@@ -74,36 +75,39 @@ class _AdminNewSpaceMenuState extends State<AdminNewSpaceMenu> {
                     newSpaceFocusNode: widget.newSpaceFocusNode),
           ),
         ),
-        Row(
-          children: [
-            Expanded(
-              child: CustomElevatedButton(
-                onPressed: () => widget.setNewSpace(false),
-                active: true,
-                selected: false,
-                text: "cancel",
+        Padding(
+          padding: EdgeInsets.all(10),
+          child: Row(
+            children: [
+              Expanded(
+                child: CustomElevatedButton(
+                  onPressed: () => widget.setNewSpace(false),
+                  active: true,
+                  selected: false,
+                  text: "cancel",
+                ),
               ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: Consumer<NewSpaceNotifier>(
-                builder: (context, newSpaceNotif, _) {
-                  return CustomElevatedButton(
-                    onPressed: () async {
-                      await DatabaseFunctions.addWorkspace(newSpaceNotif);
-                      widget.setNewSpace(false);
-                    },
-                    active:
-                        newSpaceNotif.isValid(widget.floor, widget.workspaces),
-                    selected: true,
-                    text: "add",
-                  );
-                },
+              SizedBox(
+                width: 10,
               ),
-            ),
-          ],
+              Expanded(
+                child: Consumer<NewSpaceNotifier>(
+                  builder: (context, newSpaceNotif, _) {
+                    return CustomElevatedButton(
+                      onPressed: () async {
+                        await DatabaseFunctions.addWorkspace(newSpaceNotif);
+                        widget.setNewSpace(false);
+                      },
+                      active:
+                          newSpaceNotif.isValid(widget.floor, widget.workspaces),
+                      selected: true,
+                      text: "add",
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

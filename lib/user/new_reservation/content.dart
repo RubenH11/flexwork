@@ -8,8 +8,17 @@ import "package:provider/provider.dart";
 import 'package:tuple/tuple.dart';
 import '../../widgets/floor.dart';
 
-class NewReservationContent extends StatelessWidget {
-  const NewReservationContent({super.key});
+class NewReservationContent extends StatefulWidget {
+  final Map<String, Color> legend;
+  const NewReservationContent({super.key, required this.legend});
+
+  @override
+  State<NewReservationContent> createState() => _NewReservationContentState();
+}
+
+class _NewReservationContentState extends State<NewReservationContent> {
+  var numMovedDays = 0;
+  DateTime focusDay = DateTimeHelper.extractOnlyDay(DateTime.now());
 
   Future<List<int>> getBlockedWorkspaceIds(
       DateTime? start, DateTime? end) async {
@@ -36,12 +45,13 @@ class NewReservationContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          flex: 2,
+          flex: 3,
           child: FlexworkFutureBuilder(
             future: getBlockedWorkspaceIds(
                 newResNotif.getStartTime(), newResNotif.getEndTime()),
             builder: (blockedWorkspaceIds) {
               return Floor(
+                legend: widget.legend,
                 setSelectedWorkspace: (workspace) {
                   newResNotif.setWorkspace(workspace);
                 },
@@ -54,11 +64,12 @@ class NewReservationContent extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Expanded(
-          flex: 1,
+          flex: 2,
           child: newResNotif.getWorkspace() != null
               ? WorkspaceTimelines(
+                  moveDays: true,
                   days: [
-                    DateTimeHelper.extractOnlyDay(DateTime.now()),
+                    focusDay,
                   ],
                   boldFocus: true,
                   numSurroundingDays: 3,

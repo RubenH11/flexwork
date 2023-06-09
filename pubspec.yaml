@@ -49,6 +49,7 @@ dependencies:
   cookie_jar: ^4.0.3
   email_validator: ^2.1.17
   universal_html: ^2.2.3
+  url_launcher: ^6.1.11
 
 
 

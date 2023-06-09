@@ -5,9 +5,14 @@ import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/material.dart';
 import "dart:math" as math;
 
-class AdminUsersContent extends StatelessWidget {
+class AdminUsersContent extends StatefulWidget {
   const AdminUsersContent({super.key});
 
+  @override
+  State<AdminUsersContent> createState() => _AdminUsersContentState();
+}
+
+class _AdminUsersContentState extends State<AdminUsersContent> {
   String generateRandomPassword(int length) {
     const String chars =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%&*()-_=+';
@@ -22,12 +27,12 @@ class AdminUsersContent extends StatelessWidget {
     return password;
   }
 
-  void openCreateUserDialog(
-      BuildContext context, void Function(String) confirm) {
+  void openCreateUserDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: ((context) {
-        final messageController = TextEditingController();
+      builder: ((dialogContext) {
+        final emailController = TextEditingController();
+        final nameController = TextEditingController();
         return AlertDialog(
           contentPadding:
               const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
@@ -43,9 +48,36 @@ class AdminUsersContent extends StatelessWidget {
                   textAlignVertical: TextAlignVertical.top,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
-                  controller: messageController,
+                  controller: emailController,
                   decoration: InputDecoration(
                     hintText: "Enter email address",
+                    hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.onBackground),
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              SizedBox(
+                height: 50,
+                width: 400,
+                child: TextField(
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlignVertical: TextAlignVertical.top,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: "Optional: enter the (full) name of the user",
                     hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onBackground),
                     enabledBorder: OutlineInputBorder(
@@ -74,7 +106,7 @@ class AdminUsersContent extends StatelessWidget {
                   child: CustomElevatedButton(
                     active: true,
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
                     },
                     selected: false,
                     text: "Cancel",
@@ -84,9 +116,39 @@ class AdminUsersContent extends StatelessWidget {
                 Expanded(
                   child: CustomElevatedButton(
                     active: true,
-                    onPressed: () {
-                      confirm(messageController.text);
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      final result = await DatabaseFunctions.registerUser(
+                          emailController.text, "123456", nameController.text);
+
+                      if (result.item1) {
+                        // ignore: use_build_context_synchronously
+                        showBottomSheetWithTimer(
+                          context,
+                          "Succesfullt added user with email ${emailController.text}",
+                          succes: true,
+                        );
+                      } else {
+                        // ignore: use_build_context_synchronously
+                        String message = "Something went wrong";
+                        switch (result.item2) {
+                          case "INVALID_EMAIL":
+                            message = "Email adress was badly formatted";
+                            break;
+                          case "ER_DUP_ENTRY":
+                            message = "Email address already exists";
+                            break;
+                          default:
+                            print("error code was: ${result.item2}");
+                        }
+                        showBottomSheetWithTimer(
+                          context,
+                          message,
+                          error: true,
+                        );
+                      }
+
+                      Navigator.pop(dialogContext);
+                      setState(() {});
                     },
                     selected: true,
                     text: "Confirm",
@@ -102,72 +164,81 @@ class AdminUsersContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlexworkFutureBuilder(
-      future: DatabaseFunctions.getUsers(),
-      builder: (users) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 200),
-          child: Column(
-            children: [
-              CustomElevatedButton(
-                onPressed: () {
-                  openCreateUserDialog(
-                    context,
-                    (email) async {
-                      try {
-                        await DatabaseFunctions.registerUser(email, "123456");
-                      } catch (error) {
-                        showBottomSheetWithTimer(
-                          context,
-                          "Something went wrong",
-                          error: true,
-                        );
-                      }
-                    },
-                  );
-                },
-                active: true,
-                selected: true,
-                text: "Add a new user",
-                icon: Icons.add,
-              ),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(child: Text(users[index].id.toString())),
-                            Expanded(child: Text(users[index].email)),
-                            IconButton(
-                              onPressed: () async {
-                                final statusCode = await DatabaseFunctions.deleteUser(users[index].id);
-                                if(statusCode == 200){
-                                  showBottomSheetWithTimer(context, "User deleted succesfully", succes: true);
-                                }
-                                else{
-                                  showBottomSheetWithTimer(context, "Could not delete user", error: true);
-                                }
-                                DatabaseFunctions().notifyListeners();
-                              },
-                              icon: const Icon(Icons.delete),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
+    return Row(
+      children: [
+        SizedBox(
+          width: 350,
+        ),
+        VerticalDivider(),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+            child: FlexworkFutureBuilder(
+              future: DatabaseFunctions.getUsers(),
+              builder: (users) {
+                return Column(
+                  children: [
+                    CustomElevatedButton(
+                      onPressed: () => openCreateUserDialog(context),
+                      active: true,
+                      selected: true,
+                      text: "Add a new user",
+                      icon: Icons.add,
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: users.length,
+                        itemBuilder: (context, index) {
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const SizedBox(width: 20),
+                                  Expanded(child: Text(users[index].email)),
+                                  Expanded(child: Text(users[index].role)),
+                                  IconButton(
+                                    onPressed: users[index].role == "admin"
+                                        ? null
+                                        : () async {
+                                            final statusCode =
+                                                await DatabaseFunctions
+                                                    .deleteUser(
+                                                        users[index].id);
+                                            if (statusCode == 200) {
+                                              showBottomSheetWithTimer(context,
+                                                  "User deleted succesfully",
+                                                  succes: true);
+                                            } else {
+                                              showBottomSheetWithTimer(context,
+                                                  "Could not delete user",
+                                                  error: true);
+                                            }
+                                            setState(() {});
+                                          },
+                                    icon: const Icon(Icons.delete),
+                                  ),
+                                ],
+                              ),
+                              const Divider(),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        );
-      },
+        ),
+        VerticalDivider(),
+        SizedBox(
+          width: 350,
+        ),
+      ],
     );
   }
 }

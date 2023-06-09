@@ -249,7 +249,7 @@ class ConflictItem extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
+        if(conflict.getReservationId() != -1) IconButton(
           icon: Icon(
             Icons.question_answer,
             color: requestColor,

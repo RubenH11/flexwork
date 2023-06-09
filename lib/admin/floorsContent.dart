@@ -9,11 +9,15 @@ class AdminFloorsContent extends StatelessWidget {
   final Workspace? workspace;
   final void Function(Workspace?) selectWorkspace;
   final void Function(Floors) selectFloor;
+  final Map<String, Color> legend;
+  final void Function() updatedLegend;
   const AdminFloorsContent({
     required this.floor,
     required this.selectFloor,
     required this.selectWorkspace,
     required this.workspace,
+    required this.legend,
+    required this.updatedLegend,
     super.key,
   });
   @override
@@ -28,6 +32,7 @@ class AdminFloorsContent extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Floor(
+              legend: legend,
               floor: floor,
               selectedWorkspace: workspace,
               setSelectedWorkspace: (workspace) {
@@ -39,7 +44,7 @@ class AdminFloorsContent extends StatelessWidget {
           const SizedBox(height: 10),
           Expanded(
             flex: 1,
-            child: workspace != null ? EditWorkspace(selectedWorkspace: workspace!,) : const SizedBox(),
+            child: workspace != null ? EditWorkspace(selectedWorkspace: workspace!, legend: legend, updatedLegend: updatedLegend,) : const SizedBox(),
           ),
         ],
       ),

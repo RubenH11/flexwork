@@ -9,7 +9,6 @@ import "dart:async";
 import "package:provider/provider.dart";
 import '../../models/newSpaceNotifier.dart';
 import 'rectMenu.dart';
-import "../../widgets/layout.dart";
 import "../../models/floors.dart";
 import "../../widgets/customElevatedButton.dart";
 import 'advancedMenu.dart';
@@ -18,10 +17,14 @@ class AdminNewSpaceContent extends StatefulWidget {
   final Floors floor;
   final FocusNode focusNode;
   final List<Workspace> workspaces;
+  final Map<String, Color> legend;
+  final void Function() updatedLegend;
   const AdminNewSpaceContent({
     required this.floor,
     required this.focusNode,
     required this.workspaces,
+    required this.legend,
+    required this.updatedLegend,
     super.key,
   });
 
@@ -172,6 +175,8 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
       child: _AdminNewSpaceContent(
         isValid: newSpace.isValid(widget.floor, widget.workspaces),
         moveFocusNode: widget.focusNode,
+        legend: widget.legend,
+        updatedLegend: widget.updatedLegend,
       ),
     );
   }
@@ -182,9 +187,13 @@ class IgnoreOthersFocusnode extends FocusNode {}
 class _AdminNewSpaceContent extends StatelessWidget {
   final bool isValid;
   final FocusNode moveFocusNode;
+  final Map<String, Color> legend;
+  final void Function() updatedLegend;
   const _AdminNewSpaceContent({
     required this.moveFocusNode,
     required this.isValid,
+    required this.legend,
+    required this.updatedLegend,
     super.key,
   });
 
@@ -204,6 +213,8 @@ class _AdminNewSpaceContent extends StatelessWidget {
         Expanded(
           flex: 1,
           child: EditWorkspace(
+            legend: legend,
+            updatedLegend: updatedLegend,
             selectedWorkspace: newSpaceNotifier,
           ),
         ),

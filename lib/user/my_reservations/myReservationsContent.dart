@@ -41,7 +41,7 @@ class MyReservationsOverview extends StatelessWidget {
                   final days = startDays.toList();
                   days.sort();
 
-                  return FlexworkFutureBuilder<Workspace?>(
+                  return FlexworkFutureBuilder(
                     future: DatabaseFunctions.getWorkspace(
                         workspaceId: workspaceId),
                     builder: (workspace) {
@@ -51,7 +51,7 @@ class MyReservationsOverview extends StatelessWidget {
                           WorkspaceTimelines(
                             boldFocus: false,
                             days: days,
-                            workspace: workspace!,
+                            workspace: workspace[0],
                             selectedReservations: const [],
                           ),
                         ],

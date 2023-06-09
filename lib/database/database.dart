@@ -12,6 +12,7 @@ import "dart:convert";
 import "package:http/http.dart" as http;
 import "package:tuple/tuple.dart";
 import "package:universal_html/html.dart" as html;
+import 'package:url_launcher/url_launcher.dart';
 
 class CustomError extends Error {
   final String code;
@@ -108,6 +109,7 @@ class DatabaseFunctions extends ChangeNotifier {
     final authToken = DatabaseFunctions.getCookieValue('authToken');
     final result =
         await http.delete(url, headers: {'Authorization': "Bearer $authToken"});
+    print(jsonDecode(result.body));
     return result.statusCode;
   }
 
@@ -122,11 +124,12 @@ class DatabaseFunctions extends ChangeNotifier {
     return body[0]['role'];
   }
 
-  static Future<void> registerUser(String email, String password) async {
+  static Future<Tuple2<bool, String>> registerUser(
+      String email, String password, String name) async {
     print("=+= registerUser");
     final url = Uri.parse('http://localhost:3000/register');
     final authToken = DatabaseFunctions.getCookieValue('authToken');
-    final response = await http.post(
+    final result = await http.post(
       url,
       headers: {
         "Content-Type": "application/json",
@@ -140,6 +143,31 @@ class DatabaseFunctions extends ChangeNotifier {
         },
       ),
     );
+    final errorCode = jsonDecode(result.body)['code'] ??= "NO_ERROR";
+
+    if (result.statusCode.toString().startsWith('2')) {
+      final Uri emailUri = Uri(
+        scheme: 'mailto',
+        path: email,
+        queryParameters: {
+          'subject': 'Your%20NU%20flexwork%20account',
+          'body':
+              'Dear%20$name,\n\n%20Your%20now%20have%20access%20to%20an%20account%20with%20which%20you%20will%20be%20able%20to%20make%20reservations%20for%20workspaces%20in%20the%20NU%20building%20at%20the%20VU.\n\nYou%20can%20log%20in%20with%20your%20email%20address:%20$email\nAnd%20your%20password:%20$password',
+        },
+      );
+
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
+      } else {
+        return Tuple2(
+          result.statusCode.toString().substring(0, 1) == '2',
+          'NO_EMAIL_LAUNCHER',
+        );
+      }
+    }
+
+    return Tuple2(
+        result.statusCode.toString().substring(0, 1) == '2', errorCode);
   }
 
   static Future<void> login(String email, String password) async {
@@ -232,7 +260,7 @@ class DatabaseFunctions extends ChangeNotifier {
     return reservations;
   }
 
-  static Future<Workspace?> getWorkspace(
+  static Future<List<Workspace>> getWorkspace(
       {int? reservationId, int? workspaceId}) async {
     print("=+= getWorkspace");
     assert(!(reservationId != null && workspaceId != null));
@@ -310,7 +338,7 @@ class DatabaseFunctions extends ChangeNotifier {
         Workspace(
           id: workspace['id'],
           floor: floor,
-          color: Color(workspace['color']),
+          color: Color(workspace['color'] ??= Colors.black.value),
           blockedMoments: blockedMoments,
           coordinates: coordinates,
           identifier: workspace['code'],
@@ -318,12 +346,13 @@ class DatabaseFunctions extends ChangeNotifier {
           numMonitors: workspace['num_monitors'],
           numScreens: workspace['num_screens'],
           numWhiteboards: workspace['num_whiteboards'],
-          type: workspace['type'],
+          type: workspace['type'] ??= "No type set",
           changeNotifyBasics: true,
         ),
       );
     }
-    return workspaces.isEmpty ? null : workspaces[0];
+    print("got workspaces: ${workspaces}");
+    return workspaces;
   }
 
   static Future<List<Workspace>> getWorkspaces(Floors floor) async {
@@ -396,7 +425,7 @@ class DatabaseFunctions extends ChangeNotifier {
         Workspace(
           id: workspace['id'],
           floor: floor,
-          color: Color(workspace['color']),
+          color: Color(workspace['color'] ??= Colors.black.value),
           blockedMoments: blockedMoments,
           coordinates: coordinates,
           identifier: workspace['code'],
@@ -404,7 +433,7 @@ class DatabaseFunctions extends ChangeNotifier {
           numMonitors: workspace['num_monitors'],
           numScreens: workspace['num_screens'],
           numWhiteboards: workspace['num_whiteboards'],
-          type: workspace['type'],
+          type: workspace['type'] ??= "Set a type here",
           changeNotifyBasics: true,
         ),
       );
@@ -431,15 +460,15 @@ class DatabaseFunctions extends ChangeNotifier {
   }
 
   static Future<List<Request>> getRequests(
-      {int? requesterId, int? requestedId}) async {
+      {bool mine = false, bool others = false}) async {
     print("=+= getRequests");
-    assert(!(requestedId != null && requesterId != null));
+    assert((!mine && others) || (mine && !others));
 
     var url = 'http://localhost:3000/requests';
-    if (requesterId != null) {
-      url += "?requester_id=$requesterId";
-    } else if (requestedId != null) {
-      url += "?requested_id=$requestedId";
+    if (mine) {
+      url += "?mine=true";
+    } else {
+      url += "?others=true";
     }
 
     final authToken = DatabaseFunctions.getCookieValue('authToken');
@@ -450,6 +479,7 @@ class DatabaseFunctions extends ChangeNotifier {
 
     final List<Request> requests = [];
     final responseRequests = jsonDecode(response.body) as List<dynamic>;
+    print(responseRequests);
     for (var req in responseRequests) {
       requests.add(
         Request(
@@ -696,6 +726,38 @@ class DatabaseFunctions extends ChangeNotifier {
     _handleCompletion(response);
   }
 
+  static Future<Tuple2<bool, String>> acceptRequest(int id) async {
+    final url = Uri.parse('http://localhost:3000/requests/accept/${id}');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final result = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    final errorCode = jsonDecode(result.body)['code'] ??= "NO_ERROR";
+    return Tuple2(
+        result.statusCode.toString().substring(0, 1) == '2', errorCode);
+  }
+
+  static Future<Tuple2<bool, String>> deleteRequest(int id) async {
+    final url = Uri.parse('http://localhost:3000/requests/${id}');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final result = await http.delete(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    final errorCode = jsonDecode(result.body)['code'] ??= "NO_ERROR";
+    return Tuple2(
+        result.statusCode.toString().substring(0, 1) == '2', errorCode);
+  }
+
   static Future<void> addRequest(Request request) async {
     print("=+= addRequest");
     final url = Uri.parse('http://localhost:3000/requests');
@@ -710,8 +772,8 @@ class DatabaseFunctions extends ChangeNotifier {
         {
           "start": request.getStart().toIso8601String(),
           "end": request.getEnd().toIso8601String(),
-          "user_id": request.getUserId(),
           "message": request.getMessage(),
+          "reservation_id": request.getReservationId(),
         },
       ),
     );
@@ -740,9 +802,9 @@ class DatabaseFunctions extends ChangeNotifier {
     _handleCompletion(response);
   }
 
-  static Future<void> deleteWorkspaceType(String name) async {
+  static Future<bool> deleteWorkspaceType(String name) async {
     print("=+= deleteWorkspaceType");
-    final url = Uri.parse('http://localhost:3000/workspace_types');
+    final url = Uri.parse('http://localhost:3000/workspace_types/${name}');
     final authToken = DatabaseFunctions.getCookieValue('authToken');
     final response = await http.delete(
       url,
@@ -750,13 +812,28 @@ class DatabaseFunctions extends ChangeNotifier {
         "Content-Type": "application/json",
         'Authorization': 'Bearer $authToken',
       },
-      body: jsonEncode(
-        {
-          "name": name,
-        },
-      ),
     );
 
-    _handleCompletion(response);
+    return response.statusCode.toString().substring(0, 1) == "2";
+  }
+
+  static Future<bool> updateWorkspaceType(String name, Color color) async {
+    print("=+= deleteWorkspaceType");
+    final url = Uri.parse('http://localhost:3000/workspace_types');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode({
+        "name": name,
+        "color": color.value,
+      }),
+    );
+    print(response.body);
+
+    return response.statusCode.toString().substring(0, 1) == "2";
   }
 }

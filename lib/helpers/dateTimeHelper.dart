@@ -50,6 +50,16 @@ class DateTimeHelper {
     return true;
   }
 
+  static Tuple2<DateTime, DateTime>? getOverlappingRange(
+      Tuple2<DateTime, DateTime> range1, Tuple2<DateTime, DateTime> range2) {
+    if (dateRangesOverlap(range1, range2)) {
+      final moments = [range1.item1, range1.item2, range2.item1, range2.item2];
+      moments.sort();
+      return Tuple2(moments[1], moments[2]);
+    }
+    return null;
+  }
+
   static List<Tuple2<DateTime, DateTime>> getOverlappingDateRangesOverDay(
       List<Tuple2<DateTime, DateTime>> ranges, DateTime comparisonDay) {
     return ranges

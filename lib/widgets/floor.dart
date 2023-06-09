@@ -22,11 +22,13 @@ class Floor extends StatelessWidget {
   final Workspace? selectedWorkspace;
   final Function(Workspace?) setSelectedWorkspace;
   final List<int> blockedWorkspaceIds;
+  final Map<String, Color> legend;
   const Floor({
     required this.floor,
     required this.selectedWorkspace,
     required this.setSelectedWorkspace,
     required this.blockedWorkspaceIds,
+    required this.legend,
     super.key,
   });
 
@@ -51,6 +53,7 @@ class Floor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("|||| Floor ||||");
 
     return FlexworkFutureBuilder(
         future: DatabaseFunctions.getWorkspaces(floor),
@@ -137,7 +140,9 @@ class Floor extends StatelessWidget {
                         padding: EdgeInsets.all(20),
                         height: canvasHeight * 0.48,
                         width: canvasWidth * 0.35,
-                        child: _Legend(),
+                        child: _Legend(
+                          typeColors: legend,
+                        ),
                       ),
                     ),
                   ],
@@ -150,7 +155,8 @@ class Floor extends StatelessWidget {
 }
 
 class _Legend extends StatelessWidget {
-  const _Legend({super.key});
+  final Map<String, Color> typeColors;
+  const _Legend({super.key, required this.typeColors,});
 
   @override
   Widget build(BuildContext context) {
@@ -158,46 +164,46 @@ class _Legend extends StatelessWidget {
 
     return LayoutBuilder(builder: (context, constraints) {
       final fullHeight = constraints.maxHeight;
-      // final boxSize = fullHeight / (typeColors.length + 1) - 10;
+      final boxSize = fullHeight / (typeColors.length + 1) - 10;
 
       final List<Widget> legendItems = [];
 
-      // typeColors.forEach((type, color) {
-      //   legendItems.add(
-      //     Expanded(
-      //       child: Row(
-      //         children: [
-      //           Container(color: color, width: boxSize, height: boxSize),
-      //           SizedBox(width: 10),
-      //           Text(type),
-      //         ],
-      //       ),
-      //     ),
-      //   );
-      // });
+      typeColors.forEach((type, color) {
+        legendItems.add(
+          Expanded(
+            child: Row(
+              children: [
+                Container(color: color, width: boxSize, height: boxSize),
+                SizedBox(width: 10),
+                Text(type),
+              ],
+            ),
+          ),
+        );
+      });
 
-      // legendItems.add(
-      //   Expanded(
-      //     child: Row(
-      //       children: [
-      //         Container(
-      //           width: boxSize,
-      //           height: boxSize,
-      //           child: ClipRect(
-      //             child: CustomPaint(
-      //               size: Size(double.infinity, double.infinity),
-      //               painter: DiagonalPatternPainter(),
-      //             ),
-      //           ),
-      //         ),
-      //         SizedBox(
-      //           width: 10,
-      //         ),
-      //         Text("Occupied"),
-      //       ],
-      //     ),
-      //   ),
-      // );
+      legendItems.add(
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: boxSize,
+                height: boxSize,
+                child: ClipRect(
+                  child: CustomPaint(
+                    size: Size(double.infinity, double.infinity),
+                    painter: DiagonalPatternPainter(),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text("Occupied"),
+            ],
+          ),
+        ),
+      );
 
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

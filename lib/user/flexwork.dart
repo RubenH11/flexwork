@@ -7,6 +7,7 @@ import 'package:flexwork/user/my_reservations/myReservationsContent.dart';
 import 'package:flexwork/user/my_reservations/myReservationsMenu.dart';
 import 'package:flexwork/user/new_reservation/content.dart';
 import 'package:flexwork/user/new_reservation/menu.dart';
+import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flexwork/widgets/navButton.dart';
 import "package:flutter/material.dart";
 import 'package:provider/provider.dart';
@@ -167,21 +168,27 @@ class _NewReservationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-          width: 350,
-          child: const NewReservationMenu(),
-        ),
-        const VerticalDivider(),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
-            child: const NewReservationContent(),
-          ),
-        ),
-      ],
+    return FlexworkFutureBuilder(
+      future: DatabaseFunctions.getWorkspaceTypes(),
+      builder: (legend) {
+        return Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+              width: 350,
+              child: const NewReservationMenu(),
+            ),
+            const VerticalDivider(),
+            Expanded(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
+                child: NewReservationContent(legend: legend),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

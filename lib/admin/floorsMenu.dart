@@ -11,19 +11,22 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "../models/floors.dart";
 
-
 class AdminFloorsMenu extends StatelessWidget {
   final Floors floor;
   final Workspace? workspace;
   final void Function(Workspace?) selectWorkspace;
   final void Function(Floors) selectFloor;
   final void Function(bool) setNewSpace;
+  final void Function() updatedLegend;
+  final Map<String, Color> legend;
   const AdminFloorsMenu({
     required this.floor,
     required this.selectFloor,
     required this.selectWorkspace,
     required this.workspace,
     required this.setNewSpace,
+    required this.legend,
+    required this.updatedLegend,
     super.key,
   });
 
@@ -81,11 +84,10 @@ class AdminFloorsMenu extends StatelessWidget {
                 child: CustomElevatedButton(
                   onPressed: () async {
                     selectWorkspace(null);
-                    await DatabaseFunctions.deleteWorkspace(
-                        workspace!.getId());
+                    await DatabaseFunctions.deleteWorkspace(workspace!.getId());
                   },
                   active: workspace != null,
-                  selected: true,
+                  selected: workspace != null,
                   text: "Delete",
                   selectedColor: Theme.of(context).colorScheme.error,
                 ),
@@ -94,34 +96,46 @@ class AdminFloorsMenu extends StatelessWidget {
                 width: 10,
               ),
               Expanded(
-                child: Consumer<Workspace?>(
-                  builder: (context, workspace, _) {
-                    return CustomElevatedButton(
-                      onPressed: () async {
-                        final succes =
-                            await DatabaseFunctions.updateWorkspace(workspace!);
-                        if (succes) {
-                          showBottomSheetWithTimer(
-                            context,
-                            "Updated succesfully",
-                            succes: true,
+                child: workspace == null
+                    ? CustomElevatedButton(
+                        onPressed: () {},
+                        active: false,
+                        selected: false,
+                        text: "Confirm edit",
+                      )
+                    : ChangeNotifierProvider.value(
+                        value: workspace,
+                        builder: (context, _) {
+                          final workspace = Provider.of<Workspace>(context);
+                          print("rebuilding confirm button");
+                          return CustomElevatedButton(
+                            onPressed: () async {
+                              final succes =
+                                  await DatabaseFunctions.updateWorkspace(
+                                      workspace);
+                              if (succes) {
+                                showBottomSheetWithTimer(
+                                  context,
+                                  "Updated succesfully",
+                                  succes: true,
+                                );
+                                selectWorkspace(null);
+                              } else {
+                                showBottomSheetWithTimer(
+                                  context,
+                                  "Could not update workspace",
+                                  error: true,
+                                );
+                              }
+                            },
+                            active: workspace == null
+                                ? false
+                                : workspace.hasChanged(),
+                            selected: workspace != null,
+                            text: "Confirm edit",
                           );
-                          selectWorkspace(null);
-                        } else {
-                          showBottomSheetWithTimer(
-                            context,
-                            "Could not update workspace",
-                            error: true,
-                          );
-                        }
-                      },
-                      active:
-                          workspace == null ? false : workspace.hasChanged(),
-                      selected: workspace != null,
-                      text: "Confirm edit",
-                    );
-                  },
-                ),
+                        },
+                      ),
               ),
             ],
           )

@@ -53,6 +53,7 @@ class NewReservationNotifier extends ChangeNotifier {
           rejResConf.getStart() == resConflict.getStart() &&
           rejResConf.getEnd() == resConflict.getEnd(),
     );
+
     _acceptedConflicts.add(resConflict);
     notifyListeners();
   }
@@ -76,18 +77,13 @@ class NewReservationNotifier extends ChangeNotifier {
   Future<bool> allConflictsResolved() async {
     print("-allConflictsResolved check-");
     final upToDateConflicts = await getConflicts();
-    print("isValid (4)?");
-    print(upToDateConflicts);
     final resolvedConflicts = [..._acceptedConflicts];
     resolvedConflicts.addAll(_rejectedConflicts.keys);
-    print("accepted: $_acceptedConflicts");
-    print("rejectedL ${_rejectedConflicts.keys}");
     for (var resolvedConf in resolvedConflicts) {
       upToDateConflicts.removeWhere((upToDateConflict) =>
           upToDateConflict.getReservationId() ==
           resolvedConf.getReservationId());
     }
-    print("unresolvedConlflicts: $upToDateConflicts");
     return upToDateConflicts.isEmpty;
   }
 
@@ -130,15 +126,46 @@ class NewReservationNotifier extends ChangeNotifier {
           },
         ),
       );
+
+      for (var blockedRange in _workspace!.getBlockedMoments()) {
+        final overlappingRange =
+            DateTimeHelper.getOverlappingRange(blockedRange, range);
+        if (overlappingRange != null) {
+          reservationConflicts.add(
+            ReservationConflict(
+              start: overlappingRange.item1,
+              end: overlappingRange.item2,
+              reservationId: -1,
+              workspaceId: _workspace!.getId(),
+            ),
+          );
+        }
+      }
     }
+
+    _cleanseReservationConflicts(reservationConflicts);
 
     return reservationConflicts;
   }
 
+  void _cleanseReservationConflicts(List<ReservationConflict> conflicts) {
+    _acceptedConflicts.removeWhere(
+        (accConf) => conflicts.every((conf) => !conf.isEqual(accConf)));
+    _rejectedConflicts.removeWhere(
+        (rejConf, _) => conflicts.every((conf) => !conf.isEqual(rejConf)));
+  }
+
   bool? conflictIsAccepted(ReservationConflict conflict) {
+    print("all accepted Conflicts:");
+    for (var conf in _acceptedConflicts) {
+      print(" ${conf.getStart()} - ${conf.getEnd()}");
+    }
     for (var accConflict in _acceptedConflicts) {
       if (accConflict.getStart() == conflict.getStart() &&
           accConflict.getEnd() == conflict.getEnd()) {
+        print("43");
+        print(accConflict.getStart());
+        print(accConflict.getEnd());
         return true;
       }
     }
@@ -153,8 +180,43 @@ class NewReservationNotifier extends ChangeNotifier {
     return null;
   }
 
+  List<Tuple2<DateTime, DateTime>> clipSchedule(
+      List<Tuple2<DateTime, DateTime>> schedule,
+      Tuple2<DateTime, DateTime> clip) {
+    List<Tuple2<DateTime, DateTime>> clippedSchedule = [];
+
+    for (var range in schedule) {
+      // Check if the range is entirely before or after the clip
+      if (range.item2.isBefore(clip.item1) || range.item1.isAfter(clip.item2)) {
+        // No overlap, add the range as it is
+        clippedSchedule.add(range);
+      }
+      // Check if the range is entirely within the clip
+      else if (range.item1.isAfter(clip.item1) &&
+          range.item2.isBefore(clip.item2)) {
+        // Completely clipped, ignore this range
+      }
+      // Check if the range overlaps the clip and needs to be clipped
+      else {
+        // Clip the range and add the clipped parts to the new schedule
+
+        // Clip the start if necessary
+        if (range.item1.isBefore(clip.item1)) {
+          clippedSchedule.add(Tuple2(range.item1, clip.item1));
+        }
+
+        // Clip the end if necessary
+        if (range.item2.isAfter(clip.item2)) {
+          clippedSchedule.add(Tuple2(clip.item2, range.item2));
+        }
+      }
+    }
+
+    return clippedSchedule;
+  }
+
   List<Tuple2<DateTime, DateTime>> constructSchedule() {
-    final schedule = constructScheduleIncludingConflicts();
+    var schedule = constructScheduleIncludingConflicts();
 
     final handledConflicts = _acceptedConflicts
         .where((conf) => conf.getWorkspaceId() == _workspace!.getId())
@@ -163,48 +225,49 @@ class NewReservationNotifier extends ChangeNotifier {
         .where((conf) => conf.getWorkspaceId() == _workspace!.getId())
         .toList());
 
-    // print("schedule: $schedule");
-    // print("_acceptedConflicts: $_acceptedConflicts");
-    // if (_acceptedConflicts.length > 0) {
-    //   print("  ${_acceptedConflicts[0].getWorkspaceId()}");
-    //   print("  ${_workspace!.getId()}");
-    // }
-    // print("_rejectedConflicts: $_rejectedConflicts");
-    // print("handledConflicts: $handledConflicts");
-
-    for (final res in schedule) {
-      for (final conf in handledConflicts) {
-        if (DateTimeHelper.dateRangesOverlap(
-            res, Tuple2(conf.getStart(), conf.getEnd()))) {
-          //remove reservation
-          if (conf.getStart().isAtSameMomentAs(res.item1) &&
-              conf.getEnd().isAtSameMomentAs(res.item2)) {
-            schedule.remove(res);
-          }
-          //split in two
-          else if (conf.getStart().isAfter(res.item1) &&
-              conf.getEnd().isBefore(res.item2)) {
-            schedule.remove(res);
-            schedule.add(Tuple2(res.item1, conf.getStart()));
-            schedule.add(Tuple2(conf.getEnd(), res.item2));
-          }
-          //clip off beginning
-          else if (conf.getEnd().isAfter(res.item1) &&
-              conf.getEnd().isBefore(res.item2)) {
-            schedule.remove(res);
-            schedule.add(Tuple2(conf.getEnd(), res.item2));
-          }
-          //clip off end
-          else if (conf.getStart().isAfter(res.item1) &&
-              conf.getStart().isBefore(res.item2)) {
-            schedule.remove(res);
-            schedule.add(Tuple2(res.item1, conf.getStart()));
-          } else {
-            print("something strange happened");
-          }
-        }
-      }
+    for (var conflict in handledConflicts
+        .map((conf) => Tuple2(conf.getStart(), conf.getEnd()))) {
+      schedule = clipSchedule(schedule, conflict);
+      print("schedule after clip: $schedule, from conflict: $conflict");
     }
+
+    // for (final res in schedule) {
+    //   for (final conf in handledConflicts) {
+    //     if (DateTimeHelper.dateRangesOverlap(
+    //         res, Tuple2(conf.getStart(), conf.getEnd()))) {
+    //       //remove reservation
+    //       if (conf.getStart().isAtSameMomentAs(res.item1) &&
+    //           conf.getEnd().isAtSameMomentAs(res.item2)) {
+    //             print("000: remove reservation");
+    //         schedule.remove(res);
+    //       }
+    //       //split in two
+    //       else if (conf.getStart().isAfter(res.item1) &&
+    //           conf.getEnd().isBefore(res.item2)) {
+    //             print("000: split in two");
+    //         schedule.remove(res);
+    //         schedule.add(Tuple2(res.item1, conf.getStart()));
+    //         schedule.add(Tuple2(conf.getEnd(), res.item2));
+    //       }
+    //       //clip off beginning
+    //       else if (conf.getEnd().isAfter(res.item1) &&
+    //           conf.getEnd().isBefore(res.item2)) {
+    //             print("000: clip off beginning");
+    //         schedule.remove(res);
+    //         schedule.add(Tuple2(conf.getEnd(), res.item2));
+    //       }
+    //       //clip off end
+    //       else if (conf.getStart().isAfter(res.item1) &&
+    //           conf.getStart().isBefore(res.item2)) {
+    //             print("000: ");
+    //         schedule.remove(res);
+    //         schedule.add(Tuple2(res.item1, conf.getStart()));
+    //       } else {
+    //         print("something strange happened");
+    //       }
+    //     }
+    //   }
+    // }
     // print(schedule);
     return [...schedule];
   }
@@ -296,6 +359,13 @@ class NewReservationNotifier extends ChangeNotifier {
     final reservations = constructSchedule();
     if (reservations.length == 0) {
       return false;
+    }
+    for (var moment in _workspace!.getBlockedMoments()) {
+      for (var res in reservations) {
+        if (DateTimeHelper.dateRangesOverlap(moment, res)) {
+          return false;
+        }
+      }
     }
     if (hasSchedule()) {
       //check for overlap
