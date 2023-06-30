@@ -1,10 +1,8 @@
-import "package:flexwork/database/database.dart";
-import "package:flexwork/helpers/diagonalPattern.dart";
-import "package:flexwork/models/newReservationNotifier.dart";
+import 'package:flexwork/helpers/database.dart';
+import 'package:flexwork/widgets/diagonalPattern.dart';
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/futureBuilder.dart";
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
 import "package:tuple/tuple.dart";
 import '../helpers/floorSketcher.dart';
 import "../models/floors.dart";
@@ -38,6 +36,7 @@ class Floor extends StatelessWidget {
     Float64List scale,
   ) {
     var roomWasTapped = false;
+    print("tap");
 
     for (var workspace in workspaces) {
       if (workspace.getPath().transform(scale).contains(tapOffset)) {
@@ -71,7 +70,8 @@ class Floor extends StatelessWidget {
                   ? constraints.maxWidth
                   : canvasHeight / 12 * 27;
               final pixelSize = canvasWidth / (27 * 12);
-              final matrix = Matrix4.identity()..scale(pixelSize, pixelSize);
+              
+              final matrix = Matrix4.identity()..scale(pixelSize);
               final scale = matrix.storage;
 
               List<Tuple2<Color, Path>> scaledWorkspaces = [];
@@ -127,10 +127,6 @@ class Floor extends StatelessWidget {
                       child: CustomPaint(
                         size: Size(canvasWidth, canvasHeight),
                         painter: DiagonalPatternPainter(),
-                        child: Container(
-                          width: canvasWidth,
-                          height: canvasHeight,
-                        ),
                       ),
                     ),
                     Positioned(

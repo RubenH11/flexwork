@@ -1,4 +1,4 @@
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/models/floors.dart';
 import 'package:flexwork/models/newReservationNotifier.dart';
 import 'package:flexwork/models/uiState.dart';

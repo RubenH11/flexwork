@@ -1,4 +1,3 @@
-import "package:firebase_core/firebase_core.dart";
 import "package:flexwork/admin/newSpace/menuCoordinates.dart";
 import 'package:flexwork/admin/newSpace/advancedMenu.dart';
 import "package:flexwork/admin/newSpace/menuRotation.dart";

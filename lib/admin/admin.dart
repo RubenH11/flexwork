@@ -1,10 +1,10 @@
-import "package:flexwork/admin/floors.dart";
-import 'package:flexwork/admin/users.dart';
+import "package:flexwork/admin/floors/floors.dart";
+import 'package:flexwork/admin/users/users.dart';
 import "package:flexwork/widgets/navButton.dart";
 import "package:flexwork/widgets/topBar.dart";
 import "package:flutter/material.dart";
 
-enum AdminPages {
+enum _AdminPages {
   floors,
   newSpaceAdvanced,
   newSpaceRect,
@@ -19,9 +19,9 @@ class Admin extends StatefulWidget {
 }
 
 class _AdminState extends State<Admin> {
-  var _openPage = AdminPages.floors;
+  var _openPage = _AdminPages.floors;
 
-  void setOpenPage(AdminPages page) {
+  void setOpenPage(_AdminPages page) {
     setState(() {
       _openPage = page;
     });
@@ -34,19 +34,19 @@ class _AdminState extends State<Admin> {
         TopBar(
           nav: [
             NavButton(
-              selected: _openPage == AdminPages.floors,
-              action: () => setOpenPage(AdminPages.floors),
+              selected: _openPage == _AdminPages.floors,
+              action: () => setOpenPage(_AdminPages.floors),
               text: "Floors",
             ),
             NavButton(
-              selected: _openPage == AdminPages.users,
-              action: () => setOpenPage(AdminPages.users),
+              selected: _openPage == _AdminPages.users,
+              action: () => setOpenPage(_AdminPages.users),
               text: "Users",
             ),
           ],
         ),
         Expanded(
-          child: _openPage == AdminPages.floors
+          child: _openPage == _AdminPages.floors
               ? const AdminFloors()
               : const AdminUsersContent(),
         ),
@@ -64,11 +64,11 @@ class _AdminState extends State<Admin> {
 
 // class _AdminState extends State<Admin> {
 //   final _newSpaceFocusNode = FocusNode();
-//   var _openPage = AdminPages.users;
+//   var _openPage = _AdminPages.users;
 //   Workspace? _selectedWorkspace;
 //   Floors _selectedFloor = Floors.f9;
 
-//   void _setPage(AdminPages page) {
+//   void _setPage(_AdminPages page) {
 //     setState(() {
 //       _openPage = page;
 //     });
@@ -90,8 +90,8 @@ class _AdminState extends State<Admin> {
 //   Widget build(BuildContext context) {
 //     late final Widget screen;
 
-//     if (_openPage == AdminPages.newSpaceRect ||
-//         _openPage == AdminPages.newSpaceAdvanced) {
+//     if (_openPage == _AdminPages.newSpaceRect ||
+//         _openPage == _AdminPages.newSpaceAdvanced) {
 //       screen = ChangeNotifierProvider<NewSpaceNotifier>(
 //         create: (_) {
 //           if (_selectedWorkspace == null) {
@@ -116,7 +116,7 @@ class _AdminState extends State<Admin> {
 //                   //   setOpenMenu: _setPage,
 //                   // ),
 //                   // Expanded(
-//                   //   child: _openPage == AdminPages.newSpaceRect
+//                   //   child: _openPage == _AdminPages.newSpaceRect
 //                   //       ? NewSpaceDefaultMenu(
 //                   //           newSpaceFocusNode: _newSpaceFocusNode,
 //                   //         )
@@ -131,7 +131,7 @@ class _AdminState extends State<Admin> {
 //                         child: CustomElevatedButton(
 //                           onPressed: () {
 //                             setState(() {
-//                               _openPage = AdminPages.floors;
+//                               _openPage = _AdminPages.floors;
 //                             });
 //                           },
 //                           active: true,
@@ -151,7 +151,7 @@ class _AdminState extends State<Admin> {
 //                               onPressed: () async {
 //                                 await DatabaseFunctions.addWorkspace(newSpace);
 //                                 setState(() {
-//                                   _openPage = AdminPages.floors;
+//                                   _openPage = _AdminPages.floors;
 //                                 });
 //                               },
 //                               active:
@@ -187,7 +187,7 @@ class _AdminState extends State<Admin> {
 //           );
 //         },
 //       );
-//     } else if (_openPage == AdminPages.users) {
+//     } else if (_openPage == _AdminPages.users) {
 //       screen = Container(
 //         padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
 //         child: const AdminUsersContent(),
@@ -225,19 +225,19 @@ class _AdminState extends State<Admin> {
 //       children: [
 //         TopBar(nav: [
 //           NavButton(
-//             selected: _openPage == AdminPages.floors,
+//             selected: _openPage == _AdminPages.floors,
 //             action: () {
 //               setState(() {
-//                 _openPage = AdminPages.floors;
+//                 _openPage = _AdminPages.floors;
 //               });
 //             },
 //             text: "Floors",
 //           ),
 //           NavButton(
-//             selected: _openPage == AdminPages.users,
+//             selected: _openPage == _AdminPages.users,
 //             action: () {
 //               setState(() {
-//                 _openPage = AdminPages.users;
+//                 _openPage = _AdminPages.users;
 //               });
 //             },
 //             text: "Users",

@@ -1,15 +1,12 @@
-import "package:flexwork/admin/admin.dart";
-import "package:flexwork/database/database.dart";
-import "package:flexwork/models/adminState.dart";
+import 'package:flexwork/helpers/database.dart';
+import "package:flexwork/models/floors.dart";
 import "package:flexwork/models/workspace.dart";
-import "package:flexwork/models/workspaceSelectionNotifier.dart";
 import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/customTextButton.dart";
 import 'package:flexwork/widgets/menuItem.dart';
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "../models/floors.dart";
 
 class AdminFloorsMenu extends StatelessWidget {
   final Floors floor;
@@ -84,7 +81,17 @@ class AdminFloorsMenu extends StatelessWidget {
                 child: CustomElevatedButton(
                   onPressed: () async {
                     selectWorkspace(null);
-                    await DatabaseFunctions.deleteWorkspace(workspace!.getId());
+                    final success = await DatabaseFunctions.deleteWorkspace(
+                        workspace!.getId());
+                    if (success) {
+                      showBottomSheetWithTimer(
+                          context, "Deleted workspace sucessfully",
+                          succes: true);
+                    } else {
+                      showBottomSheetWithTimer(
+                          context, "Could not delete workspace",
+                          error: true);
+                    }
                   },
                   active: workspace != null,
                   selected: workspace != null,

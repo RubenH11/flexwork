@@ -1,4 +1,4 @@
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
 import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/reservation.dart';
@@ -22,6 +22,7 @@ class NewReservationNotifier extends ChangeNotifier {
 
   NewReservationNotifier(this._floor);
 
+  //E
   void _removeExceptions(List<Tuple2<DateTime, DateTime>> dates) {
     for (var exception in _scheduleExceptions) {
       final exceptionDate = DateTimeHelper.extractOnlyDay(exception.item2);
@@ -46,6 +47,7 @@ class NewReservationNotifier extends ChangeNotifier {
     }
   }
 
+  //E
   void acceptReservationConflict(ReservationConflict resConflict) {
     print("== accept");
     _rejectedConflicts.removeWhere(
@@ -58,6 +60,7 @@ class NewReservationNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  //E
   void rejectReservationConflict(
       ReservationConflict resConflict, Request request) {
     print("== reject");
@@ -74,6 +77,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return _rejectedConflicts.values.toList();
   }
 
+  //E
   Future<bool> allConflictsResolved() async {
     print("-allConflictsResolved check-");
     final upToDateConflicts = await getConflicts();
@@ -87,6 +91,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return upToDateConflicts.isEmpty;
   }
 
+  //E
   Future<List<ReservationConflict>> getConflicts() async {
     if (_startTime == null || _endTime == null || _workspace == null) {
       return [];
@@ -101,11 +106,6 @@ class NewReservationNotifier extends ChangeNotifier {
         workspaceId: _workspace!.getId(),
         others: true,
       );
-
-      // print("adding conflicts from range: $range");
-      for (var res in reservations) {
-        print("  ${res.getStart()} - ${res.getEnd()}");
-      }
 
       reservationConflicts.addAll(
         reservations.map(
@@ -148,6 +148,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return reservationConflicts;
   }
 
+  //X
   void _cleanseReservationConflicts(List<ReservationConflict> conflicts) {
     _acceptedConflicts.removeWhere(
         (accConf) => conflicts.every((conf) => !conf.isEqual(accConf)));
@@ -155,6 +156,7 @@ class NewReservationNotifier extends ChangeNotifier {
         (rejConf, _) => conflicts.every((conf) => !conf.isEqual(rejConf)));
   }
 
+  //X
   bool? conflictIsAccepted(ReservationConflict conflict) {
     print("all accepted Conflicts:");
     for (var conf in _acceptedConflicts) {
@@ -180,6 +182,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return null;
   }
 
+  //E
   List<Tuple2<DateTime, DateTime>> clipSchedule(
       List<Tuple2<DateTime, DateTime>> schedule,
       Tuple2<DateTime, DateTime> clip) {
@@ -215,6 +218,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return clippedSchedule;
   }
 
+  //E
   List<Tuple2<DateTime, DateTime>> constructSchedule() {
     var schedule = constructScheduleIncludingConflicts();
 
@@ -230,48 +234,10 @@ class NewReservationNotifier extends ChangeNotifier {
       schedule = clipSchedule(schedule, conflict);
       print("schedule after clip: $schedule, from conflict: $conflict");
     }
-
-    // for (final res in schedule) {
-    //   for (final conf in handledConflicts) {
-    //     if (DateTimeHelper.dateRangesOverlap(
-    //         res, Tuple2(conf.getStart(), conf.getEnd()))) {
-    //       //remove reservation
-    //       if (conf.getStart().isAtSameMomentAs(res.item1) &&
-    //           conf.getEnd().isAtSameMomentAs(res.item2)) {
-    //             print("000: remove reservation");
-    //         schedule.remove(res);
-    //       }
-    //       //split in two
-    //       else if (conf.getStart().isAfter(res.item1) &&
-    //           conf.getEnd().isBefore(res.item2)) {
-    //             print("000: split in two");
-    //         schedule.remove(res);
-    //         schedule.add(Tuple2(res.item1, conf.getStart()));
-    //         schedule.add(Tuple2(conf.getEnd(), res.item2));
-    //       }
-    //       //clip off beginning
-    //       else if (conf.getEnd().isAfter(res.item1) &&
-    //           conf.getEnd().isBefore(res.item2)) {
-    //             print("000: clip off beginning");
-    //         schedule.remove(res);
-    //         schedule.add(Tuple2(conf.getEnd(), res.item2));
-    //       }
-    //       //clip off end
-    //       else if (conf.getStart().isAfter(res.item1) &&
-    //           conf.getStart().isBefore(res.item2)) {
-    //             print("000: ");
-    //         schedule.remove(res);
-    //         schedule.add(Tuple2(res.item1, conf.getStart()));
-    //       } else {
-    //         print("something strange happened");
-    //       }
-    //     }
-    //   }
-    // }
-    // print(schedule);
     return [...schedule];
   }
 
+  //E
   List<Tuple2<DateTime, DateTime>> constructScheduleIncludingConflicts() {
     if (_startTime == null || _endTime == null) {
       return [];
@@ -290,8 +256,7 @@ class NewReservationNotifier extends ChangeNotifier {
     ];
 
     var currIncrement = _scheduleFrequencyNum;
-    while (draftReservations.last.item2
-        .isBefore(_scheduleUntilDate!.add(const Duration(days: 1)))) {
+    while (draftReservations.last.item2.isBefore(_scheduleUntilDate!.add(const Duration(days: 1)))) {
       switch (_scheduleFrequency) {
         case "days":
           draftReservations.add(
@@ -348,6 +313,7 @@ class NewReservationNotifier extends ChangeNotifier {
     return [...scheduleReservations];
   }
 
+  //E
   Future<bool> isValid() async {
     if (_endTime == null ||
         _startTime == _endTime ||
@@ -360,6 +326,7 @@ class NewReservationNotifier extends ChangeNotifier {
     if (reservations.length == 0) {
       return false;
     }
+    //should be a conflict, so this shouldn't be needed
     for (var moment in _workspace!.getBlockedMoments()) {
       for (var res in reservations) {
         if (DateTimeHelper.dateRangesOverlap(moment, res)) {
@@ -379,10 +346,12 @@ class NewReservationNotifier extends ChangeNotifier {
     return await allConflictsResolved();
   }
 
+  //X
   bool hasSchedule() {
     return _scheduleUntilDate != null && _startTime != null && _endTime != null;
   }
 
+  //X
   void clear() {
     print("clearing");
     _scheduleFrequency = "months";
@@ -398,6 +367,7 @@ class NewReservationNotifier extends ChangeNotifier {
     print("notified");
   }
 
+  //X
   void clearSchedule() {
     _scheduleFrequency = "months";
     _scheduleExceptions = {};
@@ -406,32 +376,38 @@ class NewReservationNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  //X
   void setStartTime(DateTime? start) {
     _startTime = start;
     notifyListeners();
   }
 
+  //X
   void setEndTime(DateTime? end) {
     _endTime = end;
     notifyListeners();
   }
 
+  //X
   void setIdentifier(String identifier) {
     assert(_workspace != null);
     _workspace!.setIdentifier(identifier);
     notifyListeners();
   }
 
+  //X
   void setFloor(Floors floor) {
     _floor = floor;
     notifyListeners();
   }
 
+  //X
   void setWorkspace(Workspace? workspace) {
     _workspace = workspace;
     notifyListeners();
   }
 
+  //X
   void setScheduleFrequency(String timeframe) {
     if (getScheduleFrequencyOptions().contains(timeframe)) {
       _scheduleFrequency = timeframe;
@@ -439,58 +415,71 @@ class NewReservationNotifier extends ChangeNotifier {
     }
   }
 
+  //X
   void setScheduleFrequencyNum(int number) {
     _scheduleFrequencyNum = number;
     notifyListeners();
   }
 
+  //X
   void setScheduleUntilDate(DateTime date) {
     _scheduleUntilDate = date;
     notifyListeners();
   }
 
+  //X
   void addManualScheduleException(DateTime exception) {
     _scheduleExceptions.add(Tuple2("manual", exception));
     notifyListeners();
   }
 
+  //X
   void removeScheduleException(DateTime exception) {
     _scheduleExceptions.remove(Tuple2("manual", exception));
     notifyListeners();
   }
 
+  //X
   List<DateTime> getScheduleExceptions() {
     return _scheduleExceptions.map((e) => e.item2).toList();
   }
 
+  //X
   DateTime? getScheduleUntilDate() {
     return _scheduleUntilDate;
   }
 
+  //X
   String? getScheduleFrequency() {
     return _scheduleFrequency;
   }
 
+  //X
   int getScheduleFrequencyNum() {
     return _scheduleFrequencyNum;
   }
 
+  //X
   static List<String> getScheduleFrequencyOptions() {
     return ["days", "weeks", "months", "years"];
   }
 
+  //X
   Workspace? getWorkspace() {
     return _workspace;
   }
 
+  //X
   Floors getFloor() {
     return _floor;
   }
 
+  //X
   DateTime? getEndTime() {
     return _endTime == null ? null : _endTime!.copyWith();
   }
 
+  //X
   DateTime? getStartTime() {
     return _startTime == null ? null : _startTime!.copyWith();
   }

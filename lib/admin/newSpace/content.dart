@@ -1,4 +1,4 @@
-import "package:flexwork/database/database.dart";
+import 'package:flexwork/helpers/database.dart';
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/editWorkspace.dart";
 import "package:flexwork/widgets/futureBuilder.dart";
@@ -74,7 +74,7 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
     final numMiliSecondsBeforeHoldDown = 200;
     // print("key pressed");
     if (keyEvent is RawKeyDownEvent) {
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyW &&
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowUp &&
           !_upAlreadyPressed) {
         newSpace.offsetCoordinates(horizontal: 0, vertical: -1);
         _upAlreadyPressed = true;
@@ -82,7 +82,7 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
             () => _handleUpHoldDownEvent(newSpace));
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyD &&
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowRight &&
           !_rightAlreadyPressed) {
         newSpace.offsetCoordinates(horizontal: 1, vertical: 0);
         _rightAlreadyPressed = true;
@@ -90,7 +90,7 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
             () => _handleRightHoldDownEvent(newSpace));
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyA &&
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowLeft &&
           !_leftAlreadyPressed) {
         newSpace.offsetCoordinates(horizontal: -1, vertical: 0);
         _leftAlreadyPressed = true;
@@ -98,7 +98,7 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
             Duration(milliseconds: numMiliSecondsBeforeHoldDown),
             () => _handleLeftHoldDownEvent(newSpace));
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyS &&
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowDown &&
           !_downAlreadyPressed) {
         newSpace.offsetCoordinates(horizontal: 0, vertical: 1);
         _downAlreadyPressed = true;
@@ -107,19 +107,19 @@ class _KeyboardListenerState extends State<AdminNewSpaceContent> {
             () => _handleDownHoldDownEvent(newSpace));
       }
     } else if (keyEvent is RawKeyUpEvent) {
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyW) {
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowUp) {
         _upAlreadyPressed = false;
         _upDebounce.cancel();
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyD) {
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowRight) {
         _rightAlreadyPressed = false;
         _rightDebounce.cancel();
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyA) {
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowLeft) {
         _leftAlreadyPressed = false;
         _leftDebounce.cancel();
       }
-      if (keyEvent.logicalKey == LogicalKeyboardKey.keyS) {
+      if (keyEvent.logicalKey == LogicalKeyboardKey.arrowDown) {
         _downAlreadyPressed = false;
         _downDebounce.cancel();
       }

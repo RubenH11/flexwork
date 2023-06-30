@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tuple/tuple.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import "package:timezone/timezone.dart" as tz;

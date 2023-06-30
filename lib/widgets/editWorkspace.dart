@@ -1,5 +1,5 @@
 import "package:collection/collection.dart";
-import "package:flexwork/database/database.dart";
+import 'package:flexwork/helpers/database.dart';
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/bottomSheets.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";

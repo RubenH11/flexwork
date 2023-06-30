@@ -1,8 +1,8 @@
 import "package:flexwork/models/floors.dart";
 import "package:flexwork/models/workspace.dart";
 import "package:flexwork/widgets/editWorkspace.dart";
+import "package:flexwork/widgets/floor.dart";
 import "package:flutter/material.dart";
-import "../widgets/floor.dart";
 
 class AdminFloorsContent extends StatelessWidget {
   final Floors floor;

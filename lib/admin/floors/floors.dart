@@ -1,8 +1,8 @@
-import 'package:flexwork/admin/floorsContent.dart';
-import 'package:flexwork/admin/floorsMenu.dart';
+import 'package:flexwork/admin/floors/content.dart';
+import 'package:flexwork/admin/floors/menu.dart';
 import 'package:flexwork/admin/newSpace/content.dart';
 import 'package:flexwork/admin/newSpace/menu.dart';
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/models/floors.dart';
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import 'package:flexwork/models/workspace.dart';

@@ -1,5 +1,5 @@
-import 'package:flexwork/auth.dart';
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/auth/auth.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/user/flexwork.dart';
 import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
           elevatedButtonTheme: const ElevatedButtonThemeData(
             style: ButtonStyle(
@@ -73,7 +74,8 @@ class MyApp extends StatelessWidget {
         body: ChangeNotifierProvider.value(
           value: DatabaseFunctions(),
           builder: (context, _) {
-            Provider.of<DatabaseFunctions>(context);
+            final t = Provider.of<DatabaseFunctions>(context);
+            print("logged in!!!");
             if (DatabaseFunctions.getCookieValue('authToken') == null) {
               return AuthScreen();
             }

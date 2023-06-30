@@ -1,6 +1,6 @@
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
-import 'package:flexwork/helpers/diagonalPattern.dart';
+import 'package:flexwork/widgets/diagonalPattern.dart';
 import 'package:flexwork/models/reservation.dart';
 import 'package:flexwork/models/workspace.dart';
 import 'package:flexwork/widgets/customElevatedButton.dart';
@@ -179,7 +179,6 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                                 child: WorkspaceTimeline(
                                   key: ValueKey(timelineDays[index]),
                                   timelineDay: timelineDays[index],
-                                  userId: 1,
                                   workspace: widget.workspace,
                                   selectedReservations: DateTimeHelper
                                       .getOverlappingDateRangesOverDay(
@@ -210,7 +209,7 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                             });
                           },
                           active: true,
-                          selected: true,
+                          selected: false,
                           icon: Icons.arrow_upward,
                         ),
                       ),
@@ -223,7 +222,7 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                             });
                           },
                           active: true,
-                          selected: true,
+                          selected: false,
                           icon: Icons.arrow_drop_up,
                         ),
                       ),
@@ -236,7 +235,7 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                             });
                           },
                           active: true,
-                          selected: true,
+                          selected: false,
                           icon: Icons.arrow_drop_down,
                         ),
                       ),
@@ -249,7 +248,7 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                             });
                           },
                           active: true,
-                          selected: true,
+                          selected: false,
                           icon: Icons.arrow_downward,
                         ),
                       ),
@@ -268,12 +267,10 @@ class WorkspaceTimeline extends StatelessWidget {
   final List<Tuple2<DateTime, DateTime>> selectedReservations;
   final DateTime timelineDay;
   final Workspace workspace;
-  final int userId;
   const WorkspaceTimeline(
       {required this.timelineDay,
       required this.workspace,
       required this.selectedReservations,
-      required this.userId,
       super.key});
 
   Future<Map<String, List<Reservation>>> getReservations() async {

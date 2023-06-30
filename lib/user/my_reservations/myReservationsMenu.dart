@@ -1,4 +1,4 @@
-import "package:flexwork/database/database.dart";
+import 'package:flexwork/helpers/database.dart';
 import "package:flexwork/helpers/dateTimeHelper.dart";
 import "package:flexwork/models/request.dart";
 import "package:flexwork/models/workspace.dart";
@@ -306,6 +306,29 @@ class RequestsList extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
+                    Expanded(
+                        child: CustomElevatedButton(
+                      onPressed: () async {
+                        final result = await DatabaseFunctions.deleteRequest(
+                          requests[index].getId(),
+                        );
+                        if (result.item1) {
+                          showBottomSheetWithTimer(
+                              context, "Succesfully rejected a request",
+                              succes: true);
+                          update();
+                        } else {
+                          showBottomSheetWithTimer(
+                              context, "Could not reject requets",
+                              error: true);
+                        }
+                      },
+                      active: true,
+                      selected: true,
+                      selectedColor: Theme.of(context).colorScheme.error,
+                      text: "Reject",
+                    )),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: CustomElevatedButton(
                         onPressed: () {

@@ -33,10 +33,6 @@ class NewSpaceNotifier extends Workspace {
 
   List<Tuple2<double, double>> _coordinates;
   double _currAngle;
-  bool hasConflict = false;
-
-  final _defaultAngle = 90 * math.pi / 180;
-  // var _currAngle = 90.0;
   static const int _MAX_X = 321;
   static const int _MAX_Y = 144;
 
@@ -84,6 +80,7 @@ class NewSpaceNotifier extends Workspace {
     return path;
   }
 
+  //E
   bool setOneCoord(
       {required double x, required double y, required numOfCoord}) {
     final set = _setOneCoordinate(x: x, y: y, numOfCoord: numOfCoord);
@@ -95,6 +92,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetOneCoord(
       {required double x, required double y, required numOfCoord}) {
     final attempt = _setOneCoordinate(x: x, y: y, numOfCoord: numOfCoord);
@@ -104,6 +102,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   Tuple2<double, double>? _setOneCoordinate(
       {required double x, required double y, required numOfCoord}) {
     if (numOfCoord < 0 || numOfCoord > _coordinates.length) {
@@ -116,18 +115,20 @@ class NewSpaceNotifier extends Workspace {
     return coord;
   }
 
+  //E
   void addCoordinateFromLast() {
     final numCoords = _coordinates.length;
     _coordinates.add(_coordinates[numCoords - 1]);
     notifyListeners();
   }
 
+  //E
   void deleteCoordinate(int numOfCoord) {
     _coordinates.removeAt(numOfCoord);
     notifyListeners();
   }
 
-  //V
+  //E
   bool setCoordinate(double x, double y) {
     final set = _setCoordinate(x, y);
     if (set == null) {
@@ -138,6 +139,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetCoordinate(double x, double y) {
     final attempt = _setCoordinate(x, y);
     if (attempt == null) {
@@ -146,6 +148,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   List<Tuple2<double, double>>? _setCoordinate(double x, double y) {
     // print("== newSpaceNotifer: set coord");
     List<Tuple2<double, double>> newCoords = [];
@@ -163,21 +166,20 @@ class NewSpaceNotifier extends Workspace {
     return newCoords;
   }
 
-  //V
+  //E
   double getXCoordinate({int? numOfCoord}) {
     // print("== newSpaceNotifer: get x");
     return _coordinates[numOfCoord ?? 0].item1;
   }
 
-  //V
+  //E
   double getYCoordinate({int? numOfCoord}) {
     // print("== newSpaceNotifer: get y");
     return _coordinates[numOfCoord ?? 0].item2;
   }
 
-  //V
-  bool offsetCoordinates(
-      {required double horizontal, required double vertical}) {
+  //E
+  bool offsetCoordinates({required double horizontal, required double vertical}) {
     // print("== newSpaceNotifer: offset coord");
     List<Tuple2<double, double>> newCoords = [];
 
@@ -206,6 +208,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool setWidth(double width) {
     // print("== newSpaceNotifer: set width to $width");
     final set = _setWidth(width);
@@ -217,6 +220,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetWidth(double width) {
     // print("== newSpaceNotifer: attempt set width to $width");
     final attempt = _setWidth(width);
@@ -226,7 +230,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
-  //V
+  //E
   // Note: this can only be applied to spaces with 4 coordinates
   List<Tuple2<double, double>>? _setWidth(double width) {
     final topLeft = _coordinates[0];
@@ -246,6 +250,7 @@ class NewSpaceNotifier extends Workspace {
     ];
   }
 
+  //E
   // Note: this can only be applied to spaces with 4 coordinates
   double getWidth() {
     // print("== newSpaceNotifer: get width");
@@ -255,6 +260,7 @@ class NewSpaceNotifier extends Workspace {
     return math.sqrt(xDifference * xDifference + yDifference * yDifference);
   }
 
+  //E
   bool setHeight(double height) {
     // print("== newSpaceNotifer: set height to $height");
     final set = _setHeight(height);
@@ -266,6 +272,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetHeight(double height) {
     // print("== newSpaceNotifer: attempt set height to $height");
     final attempt = _setHeight(height);
@@ -275,7 +282,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
-  //V
+  //E
   List<Tuple2<double, double>>? _setHeight(double height) {
     final topLeft = _coordinates[0];
     final topRight = _coordinates[1];
@@ -294,6 +301,7 @@ class NewSpaceNotifier extends Workspace {
     ];
   }
 
+  //E
   double getHeight() {
     // print("== newSpaceNotifer: get height");
     final xDifference = _coordinates[3].item1 - _coordinates[0].item1;
@@ -301,6 +309,7 @@ class NewSpaceNotifier extends Workspace {
     return math.sqrt(xDifference * xDifference + yDifference * yDifference);
   }
 
+  //E
   bool setAngleInDegrees(double angle) {
     final set = _setAngle(angle);
     if (set == null) {
@@ -312,6 +321,7 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetAngleInDegrees(double angle) {
     // final normalizedAngle = angle % 360;
     // print(
@@ -323,17 +333,19 @@ class NewSpaceNotifier extends Workspace {
     return true;
   }
 
+  //E
   bool attemptSetAngleRadians(double angle) {
     // print("== newSpaceNotifer: attempt set angle in radians to $angle");
     return attemptSetAngleInDegrees(_radiansToDegrees(angle));
   }
 
+  //E
   bool setAngleInRadians(double angle) {
     // print("== newSpaceNotifer: set angle in radians to $angle");
     return setAngleInDegrees(_radiansToDegrees(angle));
   }
 
-  //V
+  //E
   List<Tuple2<double, double>>? _setAngle(double angle) {
     // print("== newSpaceNotifer: set angle with $angle");
     final normalizedAngle = (angle + 90) % 360;
@@ -370,6 +382,7 @@ class NewSpaceNotifier extends Workspace {
     return newCoords;
   }
 
+  //E
   double getAngleDegrees() {
     return (_currAngle - 90) % 360;
   }
@@ -418,8 +431,7 @@ class NewSpaceNotifier extends Workspace {
     for (var newSpacepointMetric in newSpaceWoPadding.computeMetrics()) {
       // for all point in this segment
       for (var offset = 0.0; offset < newSpacepointMetric.length; offset++) {
-        final currPointToCheck =
-            newSpacepointMetric.getTangentForOffset(offset)!.position;
+        final currPointToCheck = newSpacepointMetric.getTangentForOffset(offset)!.position;
         // for all other workspaces
         for (var otherWorkspace in workspaces) {
           final otherWorkspacePath = otherWorkspace.getPath();
@@ -475,6 +487,7 @@ class NewSpaceNotifier extends Workspace {
     return Tuple2(sumX / _coordinates.length, sumY / _coordinates.length);
   }
 
+  //E
   bool _isWithinBounds(Tuple2<double, double> coord) {
     return (coord.item1 <= _MAX_X && coord.item1 >= 0) &&
         (coord.item2 <= _MAX_Y && coord.item2 >= 0);
@@ -487,7 +500,7 @@ class NewSpaceNotifier extends Workspace {
     return newSpacePath.contains(Offset(coord.item1, coord.item2));
   }
 
-  //V
+  //E
   Tuple2<double, double> _rotateAlongPivot(double angle,
       Tuple2<double, double> pivot, Tuple2<double, double> coordToRotate) {
     // print("== newSpaceNotifer: rotate along pivot");
@@ -510,7 +523,7 @@ class NewSpaceNotifier extends Workspace {
     return newCoord;
   }
 
-  //V
+  //E
   Tuple2<double, double> _rotateOffset(
       Tuple2<double, double> coord, double angle, double offset) {
     late final double newX;

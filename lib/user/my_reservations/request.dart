@@ -1,4 +1,4 @@
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
 import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/workspace.dart';
@@ -59,6 +59,7 @@ class MyReservationsRequest extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   WorkspaceTimelines(
+                    key: UniqueKey(),
                       boldFocus: true,
                       days: days,
                       numSurroundingDays: 1,

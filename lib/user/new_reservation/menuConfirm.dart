@@ -1,4 +1,4 @@
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/reservationConflict.dart';
 import "package:flutter/material.dart";

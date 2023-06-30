@@ -591,7 +591,7 @@ class DatabaseFunctions extends ChangeNotifier {
     return result.statusCode.toString().substring(0, 1) == '2';
   }
 
-  static Future<void> deleteWorkspace(int id) async {
+  static Future<bool> deleteWorkspace(int id) async {
     final url = Uri.parse('http://localhost:3000/workspaces/$id');
     final authToken = DatabaseFunctions.getCookieValue('authToken');
     final response = await http.delete(
@@ -601,7 +601,12 @@ class DatabaseFunctions extends ChangeNotifier {
         'Authorization': 'Bearer $authToken',
       },
     );
-    _handleCompletion(response);
+    try {
+      _handleCompletion(response);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // not a set because adding involved adding coordinates, while updating does not

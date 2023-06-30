@@ -4,7 +4,7 @@ import "dart:math" as math;
 class FloorSketcher {
   static const unitWidth = 12.0;
   static const unitHeight = 18.0;
-  static final angleOfWalls = math.atan(4 / 18);
+  static final angleOfWalls = math.atan(2 / 9);
   static final secondaryAngleOfWalls = math.atan(0.75);
 
   // Floor 9
@@ -1397,150 +1397,150 @@ class FloorSketcher {
   }
 
   // Floor 12
-  static Map<String, Path> getFloor12Rooms() {
-    Map<String, Path> rooms = {};
-    const wall = 2.0;
-    final roomUnitWidth = unitWidth - wall;
-    final roomUnitHeight = unitHeight - wall;
+  // static Map<String, Path> getFloor12Rooms() {
+  //   Map<String, Path> rooms = {};
+  //   const wall = 2.0;
+  //   final roomUnitWidth = unitWidth - wall;
+  //   final roomUnitHeight = unitHeight - wall;
 
-    final topPoint = unitHeight * 1.5 + wall;
-    final xOffset1 = math.sin(angleOfWalls) * unitWidth;
-    final yOffset1 = -math.cos(angleOfWalls) * unitWidth;
-    final xOffset2 = math.sin(angleOfWalls) * 2 * unitWidth;
-    final yOffset2 = -math.cos(angleOfWalls) * 2 * unitWidth;
-    final secondaryAngleOfWalls = math.atan(0.75);
-    final referencePointX = 19 * unitWidth +
-        math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth +
-        math.cos(angleOfWalls) * unitHeight -
-        math.sin(angleOfWalls) * 2 * unitWidth -
-        math.cos(angleOfWalls) * 0.5 * unitHeight;
-    final referencePointY = 4 * unitHeight +
-        math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth +
-        math.sin(angleOfWalls) * unitHeight +
-        math.cos(angleOfWalls) * 2 * unitWidth -
-        math.sin(angleOfWalls) * 0.5 * unitHeight;
+  //   final topPoint = unitHeight * 1.5 + wall;
+  //   final xOffset1 = math.sin(angleOfWalls) * unitWidth;
+  //   final yOffset1 = -math.cos(angleOfWalls) * unitWidth;
+  //   final xOffset2 = math.sin(angleOfWalls) * 2 * unitWidth;
+  //   final yOffset2 = -math.cos(angleOfWalls) * 2 * unitWidth;
+  //   final secondaryAngleOfWalls = math.atan(0.75);
+  //   final referencePointX = 19 * unitWidth +
+  //       math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth +
+  //       math.cos(angleOfWalls) * unitHeight -
+  //       math.sin(angleOfWalls) * 2 * unitWidth -
+  //       math.cos(angleOfWalls) * 0.5 * unitHeight;
+  //   final referencePointY = 4 * unitHeight +
+  //       math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2.5 * unitWidth +
+  //       math.sin(angleOfWalls) * unitHeight +
+  //       math.cos(angleOfWalls) * 2 * unitWidth -
+  //       math.sin(angleOfWalls) * 0.5 * unitHeight;
 
-    rooms.addAll({
-      //top layer
-      "12A-27": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 2 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-29": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 3 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-31": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 4 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-33": Path()
-        ..addRect(Rect.fromLTWH(wall + 5 * unitWidth, wall,
-            roomUnitWidth + unitWidth, roomUnitHeight)),
-      "12A-37": Path()
-        ..addRect(Rect.fromLTWH(wall + 7 * unitWidth, wall,
-            2 * unitWidth + roomUnitWidth, roomUnitHeight)),
-      "12A-43": Path()
-        ..addRect(Rect.fromLTWH(wall + 10 * unitWidth, wall,
-            unitWidth + roomUnitWidth, roomUnitHeight)),
-      "12A-47": Path()
-        ..addRect(Rect.fromLTWH(wall + 12 * unitWidth, wall,
-            roomUnitWidth + unitWidth, roomUnitHeight)),
-      "12A-51": Path()
-        ..addRect(Rect.fromLTWH(wall + 14 * unitWidth, wall,
-            unitWidth + roomUnitWidth, roomUnitHeight)),
-      "12A-55": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 16 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-57": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 17 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-59": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 18 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      "12A-61": Path()
-        ..addRect(Rect.fromLTWH(wall + 19 * unitWidth, wall,
-            roomUnitWidth + unitWidth, roomUnitHeight)),
-      "12A-65": Path()
-        ..addRect(Rect.fromLTWH(wall + 21 * unitWidth, wall,
-            roomUnitWidth + unitWidth, roomUnitHeight)),
-      "12A-69": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 23 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
-      //second layer
-      "12A-30": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 3 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-      "12A-52": Path()
-        ..addRect(Rect.fromLTWH(wall + 11 * unitWidth, topPoint,
-            roomUnitWidth + 3 * unitWidth, roomUnitHeight + 1.5 * unitHeight)),
-      "12A-56": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 16 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-      "12A-58": Path()
-        ..addRect(Rect.fromLTWH(
-            wall + 17 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
-      // left layer
-      "12A-11": Path()
-        ..moveTo(wall + 0.0, 4 * unitHeight)
-        ..lineTo(2.7 * unitWidth, 4 * unitHeight)
-        ..lineTo(2.7 * unitWidth, 4.75 * unitHeight)
-        ..lineTo(3.2 * unitWidth, 4.75 * unitHeight)
-        ..lineTo(3.2 * unitWidth, 5.5 * unitHeight)
-        ..lineTo(7 * unitWidth, 5.5 * unitHeight)
-        ..lineTo(7 * unitWidth, 8 * unitHeight)
-        ..lineTo(wall + 0.0 * unitWidth, 8 * unitHeight)
-        ..lineTo(wall + 0.0, 4 * unitHeight),
-      //tricky room
-      "12A-81": Path()
-        ..moveTo(19.5 * unitWidth, 2.5 * unitHeight)
-        ..lineTo(22 * unitWidth, 2.5 * unitHeight)
-        ..lineTo(
-            24 * unitWidth -
-                math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
-            2.5 * unitHeight -
-                math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
-        ..lineTo(
-            24 * unitWidth +
-                math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
-            2.5 * unitHeight +
-                math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
-        ..lineTo((24 + 2 / 3) * unitWidth, 6 * unitHeight)
-        ..lineTo((22 + 2 / 3 - 1 / 4) * unitWidth, 8 * unitHeight)
-        ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
-        ..lineTo(19.5 * unitWidth, 2.5 * unitHeight),
-      // "12A-93": Path()
-      //   ..moveTo((22 + 5 / 12) * unitWidth, 8 * unitHeight) // G
-      //   ..lineTo(
-      //       (22 + 5 / 12) * unitWidth +
-      //           math.cos(0.5 * math.pi - secondaryAngleOfWalls) *
-      //               (2 * unitWidth / math.cos(secondaryAngleOfWalls - angleOfWalls)),
-      //       8 * unitHeight -
-      //           math.sin(0.5 * math.pi - secondaryAngleOfWalls) *
-      //               (2 * unitWidth / math.cos(secondaryAngleOfWalls - angleOfWalls)))
-      //   ..lineTo(
-      //       (22 + 5 / 12) * unitWidth +
-      //           math.sin(angleOfWalls) * 2 * unitWidth -
-      //           math.cos(angleOfWalls) * unitHeight,
-      //       8 * unitHeight -
-      //           math.cos(angleOfWalls) * 2 * unitWidth -
-      //           math.sin(angleOfWalls) * unitHeight) // H
-      //   ..lineTo(
-      //       (22 + 5 / 12) * unitWidth +
-      //           math.sin(angleOfWalls) * 2 * unitWidth -
-      //           math.cos(angleOfWalls) * unitHeight +
-      //           math.sin(angleOfWalls) * 1.1 * unitWidth,
-      //       8 * unitHeight -
-      //           math.cos(angleOfWalls) * 2 * unitWidth -
-      //           math.sin(angleOfWalls) * unitHeight -
-      //           math.cos(angleOfWalls) * 1.1 * unitWidth) // K
-      //   ..lineTo(19 * unitWidth - math.sin(angleOfWalls) * 2 * unitWidth,
-      //       4 * unitHeight + math.cos(angleOfWalls) * 2 * unitWidth)
-      //   ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
-      //   ..lineTo(
-      //       (22 + 5 / 12) * unitWidth - unitHeight / math.cos(angleOfWalls),
-      //       8 * unitHeight) // I
-      //   ..lineTo((22 + 5 / 12) * unitWidth, 8 * unitHeight), //D
-    });
-    return rooms;
-  }
+  //   rooms.addAll({
+  //     //top layer
+  //     "12A-27": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 2 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-29": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 3 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-31": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 4 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-33": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 5 * unitWidth, wall,
+  //           roomUnitWidth + unitWidth, roomUnitHeight)),
+  //     "12A-37": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 7 * unitWidth, wall,
+  //           2 * unitWidth + roomUnitWidth, roomUnitHeight)),
+  //     "12A-43": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 10 * unitWidth, wall,
+  //           unitWidth + roomUnitWidth, roomUnitHeight)),
+  //     "12A-47": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 12 * unitWidth, wall,
+  //           roomUnitWidth + unitWidth, roomUnitHeight)),
+  //     "12A-51": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 14 * unitWidth, wall,
+  //           unitWidth + roomUnitWidth, roomUnitHeight)),
+  //     "12A-55": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 16 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-57": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 17 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-59": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 18 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     "12A-61": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 19 * unitWidth, wall,
+  //           roomUnitWidth + unitWidth, roomUnitHeight)),
+  //     "12A-65": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 21 * unitWidth, wall,
+  //           roomUnitWidth + unitWidth, roomUnitHeight)),
+  //     "12A-69": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 23 * unitWidth, wall, roomUnitWidth, roomUnitHeight)),
+  //     //second layer
+  //     "12A-30": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 3 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
+  //     "12A-52": Path()
+  //       ..addRect(Rect.fromLTWH(wall + 11 * unitWidth, topPoint,
+  //           roomUnitWidth + 3 * unitWidth, roomUnitHeight + 1.5 * unitHeight)),
+  //     "12A-56": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 16 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
+  //     "12A-58": Path()
+  //       ..addRect(Rect.fromLTWH(
+  //           wall + 17 * unitWidth, topPoint, roomUnitWidth, roomUnitHeight)),
+  //     // left layer
+  //     "12A-11": Path()
+  //       ..moveTo(wall + 0.0, 4 * unitHeight)
+  //       ..lineTo(2.7 * unitWidth, 4 * unitHeight)
+  //       ..lineTo(2.7 * unitWidth, 4.75 * unitHeight)
+  //       ..lineTo(3.2 * unitWidth, 4.75 * unitHeight)
+  //       ..lineTo(3.2 * unitWidth, 5.5 * unitHeight)
+  //       ..lineTo(7 * unitWidth, 5.5 * unitHeight)
+  //       ..lineTo(7 * unitWidth, 8 * unitHeight)
+  //       ..lineTo(wall + 0.0 * unitWidth, 8 * unitHeight)
+  //       ..lineTo(wall + 0.0, 4 * unitHeight),
+  //     //tricky room
+  //     "12A-81": Path()
+  //       ..moveTo(19.5 * unitWidth, 2.5 * unitHeight)
+  //       ..lineTo(22 * unitWidth, 2.5 * unitHeight)
+  //       ..lineTo(
+  //           24 * unitWidth -
+  //               math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
+  //           2.5 * unitHeight -
+  //               math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
+  //       ..lineTo(
+  //           24 * unitWidth +
+  //               math.cos(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth,
+  //           2.5 * unitHeight +
+  //               math.sin(angleOfWalls) * math.cos(angleOfWalls) * 2 * unitWidth)
+  //       ..lineTo((24 + 2 / 3) * unitWidth, 6 * unitHeight)
+  //       ..lineTo((22 + 2 / 3 - 1 / 4) * unitWidth, 8 * unitHeight)
+  //       ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
+  //       ..lineTo(19.5 * unitWidth, 2.5 * unitHeight),
+  //     // "12A-93": Path()
+  //     //   ..moveTo((22 + 5 / 12) * unitWidth, 8 * unitHeight) // G
+  //     //   ..lineTo(
+  //     //       (22 + 5 / 12) * unitWidth +
+  //     //           math.cos(0.5 * math.pi - secondaryAngleOfWalls) *
+  //     //               (2 * unitWidth / math.cos(secondaryAngleOfWalls - angleOfWalls)),
+  //     //       8 * unitHeight -
+  //     //           math.sin(0.5 * math.pi - secondaryAngleOfWalls) *
+  //     //               (2 * unitWidth / math.cos(secondaryAngleOfWalls - angleOfWalls)))
+  //     //   ..lineTo(
+  //     //       (22 + 5 / 12) * unitWidth +
+  //     //           math.sin(angleOfWalls) * 2 * unitWidth -
+  //     //           math.cos(angleOfWalls) * unitHeight,
+  //     //       8 * unitHeight -
+  //     //           math.cos(angleOfWalls) * 2 * unitWidth -
+  //     //           math.sin(angleOfWalls) * unitHeight) // H
+  //     //   ..lineTo(
+  //     //       (22 + 5 / 12) * unitWidth +
+  //     //           math.sin(angleOfWalls) * 2 * unitWidth -
+  //     //           math.cos(angleOfWalls) * unitHeight +
+  //     //           math.sin(angleOfWalls) * 1.1 * unitWidth,
+  //     //       8 * unitHeight -
+  //     //           math.cos(angleOfWalls) * 2 * unitWidth -
+  //     //           math.sin(angleOfWalls) * unitHeight -
+  //     //           math.cos(angleOfWalls) * 1.1 * unitWidth) // K
+  //     //   ..lineTo(19 * unitWidth - math.sin(angleOfWalls) * 2 * unitWidth,
+  //     //       4 * unitHeight + math.cos(angleOfWalls) * 2 * unitWidth)
+  //     //   ..lineTo((17 + 2 / 3) * unitWidth, 8 * unitHeight)
+  //     //   ..lineTo(
+  //     //       (22 + 5 / 12) * unitWidth - unitHeight / math.cos(angleOfWalls),
+  //     //       8 * unitHeight) // I
+  //     //   ..lineTo((22 + 5 / 12) * unitWidth, 8 * unitHeight), //D
+  //   });
+  //   return rooms;
+  // }
 
   static Path getFloor12InnerWalls() {
     final xOffset1 = math.sin(angleOfWalls) * unitWidth;

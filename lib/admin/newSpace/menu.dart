@@ -1,6 +1,6 @@
 import 'package:flexwork/admin/newSpace/advancedMenu.dart';
 import 'package:flexwork/admin/newSpace/rectMenu.dart';
-import 'package:flexwork/database/database.dart';
+import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/models/floors.dart';
 import 'package:flexwork/models/newSpaceNotifier.dart';
 import 'package:flexwork/models/workspace.dart';
