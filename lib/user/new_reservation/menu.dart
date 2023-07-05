@@ -25,7 +25,7 @@ class NewReservationMenu extends StatelessWidget {
               children: [
                 const NewReservationMenuFloors(),
                 const Divider(),
-                const NewReservationMenuTimepickers(),
+                const NewReservationMenuTimeFrame(),
                 const Divider(),
                 Consumer<NewReservationNotifier>(
                   builder: (ctx, newRefNotif, _) =>
