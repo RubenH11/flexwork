@@ -9,6 +9,7 @@ class CustomTextButton extends StatelessWidget {
   TextAlign? textAlign;
   Color? color;
   double? size;
+  TextStyle? style;
 
   CustomTextButton({
     required this.onPressed,
@@ -19,11 +20,13 @@ class CustomTextButton extends StatelessWidget {
     this.size,
     this.textAlign,
     this.color,
+    this.style,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final _style = style ?? const TextStyle();
     var textColor =
         selected ? Color.fromARGB(255, 134, 159, 249) : Colors.black;
 
@@ -59,10 +62,10 @@ class CustomTextButton extends StatelessWidget {
                     if (text != null)
                       Text(
                         text!,
-                        style: TextStyle(
+                        style: _style.merge(TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: size == null ? 12 : size!,
-                            color: textColor),
+                            fontSize: size == null ? Theme.of(context).textTheme.bodyMedium!.fontSize : size!,
+                            color: textColor)),
                         textAlign: textAlign ?? TextAlign.center,
                       ),
                   ],

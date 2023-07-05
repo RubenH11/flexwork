@@ -73,6 +73,10 @@ class DateTimeHelper {
     return listVersion.toSet();
   }
 
+  static DateTime mergeDateAndTime(DateTime date, DateTime time){
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
   // static toDateTime(Timestamp timestamp) {
   //   DateTime localDateTime = timestamp.toDate();
   //   //might have to add an hour

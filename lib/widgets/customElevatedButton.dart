@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-class CustomElevatedButton extends StatelessWidget {
+class CustomElevatedButton extends StatefulWidget {
   bool active;
   bool selected;
   String? text;
@@ -8,6 +8,7 @@ class CustomElevatedButton extends StatelessWidget {
   Function onPressed;
   Color? selectedColor;
   bool? alignLeft;
+  bool? async;
 
   CustomElevatedButton({
     required this.onPressed,
@@ -17,15 +18,22 @@ class CustomElevatedButton extends StatelessWidget {
     this.text,
     this.icon,
     this.alignLeft,
+    this.async,
     super.key,
   });
 
-  var tapDown = false;
+  @override
+  State<CustomElevatedButton> createState() => _CustomElevatedButtonState();
+}
+
+class _CustomElevatedButtonState extends State<CustomElevatedButton> {
+  var loading = false;
+
   Color getTextColor(BuildContext context) {
-    if (!selected && active) {
+    if (!widget.selected && widget.active) {
       return Theme.of(context).colorScheme.onSecondary;
     }
-    if (!selected && !active) {
+    if (!widget.selected && !widget.active) {
       return Theme.of(context).colorScheme.secondary;
     } else {
       return Theme.of(context).colorScheme.onPrimary;
@@ -33,13 +41,13 @@ class CustomElevatedButton extends StatelessWidget {
   }
 
   Color getBackgroundColor(BuildContext context) {
-    if (selected && active) {
-      return selectedColor != null
-          ? selectedColor!
+    if (widget.selected && widget.active) {
+      return widget.selectedColor != null
+          ? widget.selectedColor!
           : Theme.of(context).colorScheme.primary;
-    } else if (selected && !active) {
-      return selectedColor != null
-          ? selectedColor!.withOpacity(0.5)
+    } else if (widget.selected && !widget.active) {
+      return widget.selectedColor != null
+          ? widget.selectedColor!.withOpacity(0.5)
           : Theme.of(context).colorScheme.primary.withOpacity(0.5);
     } else {
       return Theme.of(context).colorScheme.background;
@@ -51,10 +59,24 @@ class CustomElevatedButton extends StatelessWidget {
     final textColor = getTextColor(context);
     final backgroundColor = getBackgroundColor(context);
 
-    return Material(
+    return loading ? CircularProgressIndicator() : Material(
       color: backgroundColor,
       child: InkWell(
-        onTap: active ? () => onPressed() : null,
+        onTap: widget.active
+            ? () {
+                if (widget.async = true) {
+                  setState(() {
+                    loading = true;
+                  });
+                  widget.onPressed();
+                  setState(() {
+                    loading = false;
+                  });
+                } else {
+                  widget.onPressed();
+                }
+              }
+            : null,
         child: SizedBox(
           width: double.infinity,
           height: 30,
@@ -62,18 +84,18 @@ class CustomElevatedButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null)
+              if (widget.icon != null)
                 Icon(
-                  icon!,
+                  widget.icon!,
                   color: textColor,
                 ),
-              if (icon != null && text != null)
+              if (widget.icon != null && widget.text != null)
                 SizedBox(
                   width: 5,
                 ),
-              if (text != null)
+              if (widget.text != null)
                 Text(
-                  text!,
+                  widget.text!,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,

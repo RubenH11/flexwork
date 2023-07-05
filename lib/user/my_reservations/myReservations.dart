@@ -1,7 +1,7 @@
 import "package:flexwork/models/request.dart";
 import "package:flexwork/models/workspace.dart";
-import "package:flexwork/user/my_reservations/myReservationsContent.dart";
-import "package:flexwork/user/my_reservations/myReservationsMenu.dart";
+import 'package:flexwork/user/my_reservations/content.dart';
+import 'package:flexwork/user/my_reservations/menu.dart';
 import "package:flexwork/user/my_reservations/request.dart";
 import "package:flutter/material.dart";
 

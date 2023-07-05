@@ -92,7 +92,10 @@ class _AdminSelectedFloorState extends State<AdminSelectedFloor> {
   Widget build(BuildContext context) {
     final focusNode = FocusNode();
 
+    print("build _AdminSelectedFloorState");
+
     return ChangeNotifierProvider(
+      key: UniqueKey(),
       create: (_) {
         if (selectedWorkspace == null) {
           return NewSpaceNotifier(floor: widget.floor);

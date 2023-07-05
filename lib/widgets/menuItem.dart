@@ -20,7 +20,7 @@ class MenuItem extends StatelessWidget {
           children: [
             icon,
             const SizedBox(width: 4),
-            Text(title),
+            Text(title, style: Theme.of(context).textTheme.bodyLarge,),
             const SizedBox(width: 4),
             Spacer(),
             if (trailing != null) trailing!,

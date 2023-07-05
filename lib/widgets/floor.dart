@@ -21,12 +21,14 @@ class Floor extends StatelessWidget {
   final Function(Workspace?) setSelectedWorkspace;
   final List<int> blockedWorkspaceIds;
   final Map<String, Color> legend;
+  final bool? ignoreWorkpaces;
   const Floor({
     required this.floor,
     required this.selectedWorkspace,
     required this.setSelectedWorkspace,
     required this.blockedWorkspaceIds,
     required this.legend,
+    this.ignoreWorkpaces,
     super.key,
   });
 
@@ -55,7 +57,7 @@ class Floor extends StatelessWidget {
     print("|||| Floor ||||");
 
     return FlexworkFutureBuilder(
-        future: DatabaseFunctions.getWorkspaces(floor),
+        future: ignoreWorkpaces == true ? Future(() => <Workspace>[]) : DatabaseFunctions.getWorkspaces(floor),
         builder: (workspaces) {
 
           return LayoutBuilder(

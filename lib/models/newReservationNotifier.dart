@@ -323,9 +323,7 @@ class NewReservationNotifier extends ChangeNotifier {
     }
 
     final reservations = constructSchedule();
-    if (reservations.length == 0) {
-      return false;
-    }
+
     //should be a conflict, so this shouldn't be needed
     for (var moment in _workspace!.getBlockedMoments()) {
       for (var res in reservations) {
@@ -378,12 +376,14 @@ class NewReservationNotifier extends ChangeNotifier {
 
   //X
   void setStartTime(DateTime? start) {
+    print("set start!");
     _startTime = start;
     notifyListeners();
   }
 
   //X
   void setEndTime(DateTime? end) {
+    print("set end!");
     _endTime = end;
     notifyListeners();
   }

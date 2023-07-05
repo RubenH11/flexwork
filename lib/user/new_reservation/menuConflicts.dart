@@ -119,7 +119,7 @@ class Conflicts extends StatelessWidget {
                                   for (var conflict in reservationConflicts) {
                                     final request = Request(
                                       id: 0,
-                                      reservationId: conflict.getReservationId(),
+                                      workspaceId: conflict.getWorkspaceId(),
                                       start: conflict.getStart(),
                                       end: conflict.getEnd(),
                                       message: message,
@@ -260,7 +260,7 @@ class ConflictItem extends StatelessWidget {
             confirm: (message) {
               final request = Request(
                 id: 0, //TEMP
-                reservationId: conflict.getReservationId(),
+                workspaceId: conflict.getWorkspaceId(),
                 start: conflict.getStart(),
                 end: conflict.getEnd(),
                 message: message,

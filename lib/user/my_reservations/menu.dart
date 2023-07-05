@@ -141,11 +141,10 @@ class MyRequestsList extends StatelessWidget {
             )}";
           }
 
-          print(
-              "will request workspace from res_id: ${requests[index].getReservationId()}");
+          // print(
+          //     "will request workspace from res_id: ${requests[index].getReservationId()}");
           return FlexworkFutureBuilder(
-            future: DatabaseFunctions.getWorkspace(
-                reservationId: requests[index].getReservationId()),
+            future: DatabaseFunctions.getWorkspace(workspaceId: requests[index].getWorkspaceId()),
             builder: (workspaces) {
               // print("66");
               if (workspaces.isEmpty) {
@@ -267,11 +266,10 @@ class RequestsList extends StatelessWidget {
           )}";
         }
 
-        print(
-            "will request workspace from res_id: ${requests[index].getReservationId()}");
+        // print(
+        //     "will request workspace from res_id: ${requests[index].getReservationId()}");
         return FlexworkFutureBuilder(
-          future: DatabaseFunctions.getWorkspace(
-              reservationId: requests[index].getReservationId()),
+          future: DatabaseFunctions.getWorkspace(workspaceId: requests[index].getWorkspaceId()),
           builder: (workspaces) {
             print("55");
             if (workspaces.isEmpty) {

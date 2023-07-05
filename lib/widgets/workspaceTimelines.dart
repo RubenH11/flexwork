@@ -1,11 +1,13 @@
 import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
+import 'package:flexwork/widgets/bottomSheets.dart';
 import 'package:flexwork/widgets/diagonalPattern.dart';
 import 'package:flexwork/models/reservation.dart';
 import 'package:flexwork/models/workspace.dart';
 import 'package:flexwork/widgets/customElevatedButton.dart';
 import 'package:flexwork/widgets/futureBuilder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:tuple/tuple.dart';
 
@@ -50,7 +52,6 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
       movedFocusDays.add(day.add(Duration(days: moveDaysBy)));
     }
 
-
     final List<Widget> icons = List.generate(
       widget.workspace.getNumMonitors(),
       (index) => Icon(
@@ -87,7 +88,9 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
 
     List<DateTime> timelineDays = [];
     for (var day in movedFocusDays) {
-      for (var i = -widget.numSurroundingDays; i <= widget.numSurroundingDays; i++) {
+      for (var i = -widget.numSurroundingDays;
+          i <= widget.numSurroundingDays;
+          i++) {
         timelineDays.add(day.add(Duration(days: i)));
       }
     }
@@ -167,7 +170,8 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                                     .format(timelineDays[index]),
                                 style: TextStyle(
                                     fontWeight: widget.boldFocus &&
-                                            movedFocusDays.contains(timelineDays[index])
+                                            movedFocusDays
+                                                .contains(timelineDays[index])
                                         ? FontWeight.bold
                                         : null),
                               ),
@@ -178,6 +182,7 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                                     horizontal: 12.0),
                                 child: WorkspaceTimeline(
                                   key: ValueKey(timelineDays[index]),
+                                  setState: () => setState(() {}),
                                   timelineDay: timelineDays[index],
                                   workspace: widget.workspace,
                                   selectedReservations: DateTimeHelper
@@ -267,10 +272,12 @@ class WorkspaceTimeline extends StatelessWidget {
   final List<Tuple2<DateTime, DateTime>> selectedReservations;
   final DateTime timelineDay;
   final Workspace workspace;
+  final void Function() setState;
   const WorkspaceTimeline(
       {required this.timelineDay,
       required this.workspace,
       required this.selectedReservations,
+      required this.setState,
       super.key});
 
   Future<Map<String, List<Reservation>>> getReservations() async {
@@ -303,6 +310,7 @@ class WorkspaceTimeline extends StatelessWidget {
       required double fullWidth,
       required double height,
       CustomPainter? overlayPattern,
+      Reservation? reservationToTap,
     }) {
       double startOffset = 0.0;
       // if start is within the timeline
@@ -332,7 +340,17 @@ class WorkspaceTimeline extends StatelessWidget {
                     size: Size(blockWidth, height),
                     painter: overlayPattern,
                   )),
-            Container(width: blockWidth, height: height, color: boxColor),
+            Container(
+              width: blockWidth,
+              height: height,
+              color: boxColor,
+              child: reservationToTap != null
+                  ? _TappableReservation(
+                      setState: setState,
+                      reservation: reservationToTap,
+                    )
+                  : const SizedBox(),
+            ),
           ],
         ),
       );
@@ -382,6 +400,7 @@ class WorkspaceTimeline extends StatelessWidget {
 
               final personalTimelineBlocks = personalRes
                   .map((res) => getPositionedContainer(
+                        reservationToTap: res,
                         start: res.getStart(),
                         end: res.getEnd(),
                         timelineDay: timelineDay,
@@ -452,5 +471,107 @@ class WorkspaceTimeline extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _TappableReservation extends StatelessWidget {
+  final Reservation reservation;
+  final void Function() setState;
+  const _TappableReservation(
+      {super.key, required this.reservation, required this.setState});
+
+  @override
+  Widget build(BuildContext ctx) {
+    return Builder(builder: (context) {
+      return InkWell(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: ((context) {
+              return Center(
+                child: Container(
+                  color: Colors.white,
+                  width: 300,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text('From:'),
+                            Text(
+                                '${DateFormat('dd MMMM yyyy').format(reservation.getStart())}'),
+                            Text(
+                                '${DateFormat('HH:mm').format(reservation.getStart())}'),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text('Until:'),
+                            Text(
+                                '${DateFormat('dd MMMM yyyy').format(reservation.getEnd())}'),
+                                Text(
+                                '${DateFormat('HH:mm').format(reservation.getEnd())}'),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                active: true,
+                                selected: false,
+                                text: "Cancel",
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: CustomElevatedButton(
+                                onPressed: () async {
+                                  final success =
+                                      await DatabaseFunctions.deleteReservation(
+                                          reservation.getId());
+                                  Navigator.pop(context);
+                                  if (success) {
+                                    showBottomSheetWithTimer(
+                                      ctx,
+                                      "Successfully deleted a reservation",
+                                      succes: true,
+                                    );
+                                    setState();
+                                  } else {
+                                    showBottomSheetWithTimer(
+                                      ctx,
+                                      "Could not delete reservation",
+                                      error: true,
+                                    );
+                                  }
+                                },
+                                active: true,
+                                selected: true,
+                                selectedColor:
+                                    Theme.of(context).colorScheme.error,
+                                text: "Delete",
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          );
+        },
+      );
+    });
   }
 }

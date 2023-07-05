@@ -48,14 +48,14 @@ class MyApp extends StatelessWidget {
             ),
           ),
           textTheme: const TextTheme(
-            bodyMedium: TextStyle(color: Colors.black, fontSize: 12),
-            bodyLarge: TextStyle(color: Colors.black, fontSize: 16),
+            bodyMedium: TextStyle(color: Colors.black, fontSize: 13),
+            bodyLarge: TextStyle(color: Colors.black, fontSize: 15),
             headlineMedium: TextStyle(
                 color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
           ),
           cupertinoOverrideTheme: const CupertinoThemeData(
             textTheme: CupertinoTextThemeData(
-              dateTimePickerTextStyle: TextStyle(fontSize: 12),
+              dateTimePickerTextStyle: TextStyle(fontSize: 13),
             ),
           ),
           colorScheme: ColorScheme(
@@ -74,22 +74,18 @@ class MyApp extends StatelessWidget {
         body: ChangeNotifierProvider.value(
           value: DatabaseFunctions(),
           builder: (context, _) {
-            final t = Provider.of<DatabaseFunctions>(context);
-            print("logged in!!!");
-            if (DatabaseFunctions.getCookieValue('authToken') == null) {
-              return AuthScreen();
-            }
+            Provider.of<DatabaseFunctions>(context);
 
             return FlexworkFutureBuilder(
               future: DatabaseFunctions.getMyRole(),
               builder: (role) {
                 print(role);
                 if (role == 'admin') {
-                  return Admin();
+                  return const Admin();
                 } else if (role == 'user') {
-                  return FlexWork();
+                  return const FlexWork();
                 }
-                return AuthScreen();
+                return const AuthScreen();
               },
             );
           },

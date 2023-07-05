@@ -105,7 +105,7 @@ class DatabaseFunctions extends ChangeNotifier {
 
   static Future<int> deleteUser(int id) async {
     print("=+= deleteUser");
-    final url = Uri.parse('http://localhost:3000/users/${id}');
+    final url = Uri.parse('http://localhost:3000/users/$id');
     final authToken = DatabaseFunctions.getCookieValue('authToken');
     final result =
         await http.delete(url, headers: {'Authorization': "Bearer $authToken"});
@@ -113,13 +113,37 @@ class DatabaseFunctions extends ChangeNotifier {
     return result.statusCode;
   }
 
+  static Future<String> updateUser(int id, String role) async {
+    print("+= update user role");
+    final url = Uri.parse('http://localhost:3000/users');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final result = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': "Bearer $authToken",
+      },
+      body: jsonEncode(
+        {
+          "id": id,
+          "role": role,
+        },
+      ),
+    );
+    return jsonDecode(result.body)['code'] ??= "NO_ERROR";
+  }
+
   static Future<String> getMyRole() async {
     print("=+= getMyRole");
-    final url = Uri.parse('http://localhost:3000/my_role');
     final authToken = DatabaseFunctions.getCookieValue('authToken');
+    if (authToken == null) {
+      return "none";
+    }
+
+    final url = Uri.parse('http://localhost:3000/my_role');
     final response =
         await _get(url, headers: {'Authorization': "Bearer $authToken"});
-    print(response.body);
+    // print(response.body);
     final body = jsonDecode(response.body) as List<dynamic>;
     return body[0]['role'];
   }
@@ -190,6 +214,7 @@ class DatabaseFunctions extends ChangeNotifier {
     if (response.statusCode == 200) {
       DatabaseFunctions.setCookie("authToken", body['authToken']);
       DatabaseFunctions().notifyListeners();
+      print("?");
       return;
     }
 
@@ -258,6 +283,19 @@ class DatabaseFunctions extends ChangeNotifier {
     }
 
     return reservations;
+  }
+
+  static Future<bool> deleteReservation(int id) async {
+    final url = Uri.parse('http://localhost:3000/reservations/$id');
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    return response.statusCode.toString().substring(0, 1) == "2";
   }
 
   static Future<List<Workspace>> getWorkspace(
@@ -484,11 +522,11 @@ class DatabaseFunctions extends ChangeNotifier {
       requests.add(
         Request(
           id: req['id'],
-          reservationId: req['reservation_id'],
           message: req['message'],
           userId: req['user_id'],
           start: DateTime.parse(req['start']),
           end: DateTime.parse(req['end']),
+          workspaceId: req['workspace_id']
         ),
       );
     }
@@ -778,7 +816,7 @@ class DatabaseFunctions extends ChangeNotifier {
           "start": request.getStart().toIso8601String(),
           "end": request.getEnd().toIso8601String(),
           "message": request.getMessage(),
-          "reservation_id": request.getReservationId(),
+          "workspace_id": request.getWorkspaceId(),
         },
       ),
     );
@@ -840,5 +878,69 @@ class DatabaseFunctions extends ChangeNotifier {
     print(response.body);
 
     return response.statusCode.toString().substring(0, 1) == "2";
+  }
+
+  static Future<String> requestAccount(String email, String password) async {
+    print("=+= request account");
+    final url = Uri.parse('http://localhost:3000/request_account');
+    final result = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(
+        {
+          "email": email,
+          "password": password,
+        },
+      ),
+    );
+    return jsonDecode(result.body)['code'] ??= "NO_ERROR";
+  }
+
+  static Future<String> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    print("=+= change password");
+    final url = Uri.parse('http://localhost:3000/change_password');
+    final result = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(
+        {
+          "email": email,
+          "oldPassword": oldPassword,
+          "newPassword": newPassword,
+        },
+      ),
+    );
+    print(result.body);
+    return jsonDecode(result.body)['code'] ??= "NO_ERROR";
+  }
+
+  static String errorCodeToMessage(String code) {
+    switch (code) {
+      case "NO_ERROR":
+        return "";
+      case "INCORRECT_VALUES":
+        return "Some value was incorrect";
+      case "INVALID_ROLE":
+        return "You account type is resgistered incorrectly, please contact the administrator";
+      case "MISSING_VALUES":
+        return "Please enter all fields";
+      case "INVALID_EMAIL":
+        return "Invalid email address";
+      case "NONEXIST_EMAIL":
+        return "There is no account with this email address";
+      case "INCORR_PASSWORD":
+        return "Incorrect password";
+      case "EMAIL_ALREADY_EXIST":
+        return "Email already exists";
+      case "PERMISSION_STILL_DENIED":
+        return "Please wait until your account is verified by the administrator.";
+      default:
+        return "Something went wrong, please try again or contact the administator";
+    }
   }
 }

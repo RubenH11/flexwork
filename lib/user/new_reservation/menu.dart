@@ -3,6 +3,7 @@ import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/reservationConflict.dart';
 import 'package:flexwork/user/new_reservation/menuConflicts.dart';
 import 'package:flexwork/user/new_reservation/menuSchedule.dart';
+import 'package:flexwork/user/new_reservation/menuTimepickers.dart';
 import "package:flutter/material.dart";
 import 'package:provider/provider.dart';
 
@@ -24,7 +25,7 @@ class NewReservationMenu extends StatelessWidget {
               children: [
                 const NewReservationMenuFloors(),
                 const Divider(),
-                const NewReservationMenuTimeFrame(),
+                const NewReservationMenuTimepickers(),
                 const Divider(),
                 Consumer<NewReservationNotifier>(
                   builder: (ctx, newRefNotif, _) =>

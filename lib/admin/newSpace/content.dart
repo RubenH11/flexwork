@@ -201,27 +201,30 @@ class _AdminNewSpaceContent extends StatelessWidget {
   Widget build(BuildContext context) {
     print("build newSpace content");
     final newSpaceNotifier = Provider.of<NewSpaceNotifier>(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: NewSpaceFloor(isValid: isValid)),
-        SizedBox(
-          height: 10,
-        ),
-        Expanded(
-          flex: 1,
-          child: EditWorkspace(
-            legend: legend,
-            updatedLegend: updatedLegend,
-            selectedWorkspace: newSpaceNotifier,
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, left: 25, right: 25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: NewSpaceFloor(isValid: isValid)),
+          SizedBox(
+            height: 10,
           ),
-        ),
-        SizedBox(
-          height: 10,
-        ),
-      ],
+          Expanded(
+            flex: 1,
+            child: EditWorkspace(
+              legend: legend,
+              updatedLegend: updatedLegend,
+              selectedWorkspace: newSpaceNotifier,
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
     );
   }
 }

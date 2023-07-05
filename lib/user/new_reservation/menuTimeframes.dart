@@ -77,7 +77,8 @@ class _NewReservationTimeFrameState extends State<NewReservationMenuTimeFrame> {
           if (displayOption == _DisplayOption.onlyStart)
             Selector(
               selector: (p0, p1) => 0,
-              builder: (_, __, ___) => DatePicker(
+              builder: (_, __, ___) => 
+              DatePicker(
                 aboveMenuBase: "end",
                 aboveMenuOptions: [-30, -60, -120],
                 releaseDisplay: () => setDisplayOption(_DisplayOption.none),

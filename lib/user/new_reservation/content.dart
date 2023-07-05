@@ -65,18 +65,29 @@ class _NewReservationContentState extends State<NewReservationContent> {
         const SizedBox(height: 20),
         Expanded(
           flex: 2,
-          child: newResNotif.getWorkspace() != null
-              ? WorkspaceTimelines(
-                  moveDays: true,
-                  days: [
-                    focusDay,
-                  ],
-                  boldFocus: true,
-                  numSurroundingDays: 3,
-                  workspace: newResNotif.getWorkspace()!,
-                  selectedReservations: newResNotif.constructSchedule(),
-                )
-              : const SizedBox(),
+          child: newResNotif.getWorkspace() == null
+              ? const SizedBox()
+              : newResNotif.getStartTime() == null
+                  ? WorkspaceTimelines(
+                      moveDays: true,
+                      days: [
+                        focusDay,
+                      ],
+                      boldFocus: true,
+                      numSurroundingDays: 3,
+                      workspace: newResNotif.getWorkspace()!,
+                      selectedReservations: newResNotif.constructSchedule(),
+                    )
+                  : WorkspaceTimelines(
+                      moveDays: true,
+                      days: [
+                        DateTimeHelper.extractOnlyDay(newResNotif.getStartTime()!),
+                      ],
+                      boldFocus: true,
+                      numSurroundingDays: 3,
+                      workspace: newResNotif.getWorkspace()!,
+                      selectedReservations: newResNotif.constructSchedule(),
+                    ),
         ),
       ],
     );

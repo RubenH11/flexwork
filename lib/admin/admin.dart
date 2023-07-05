@@ -48,7 +48,7 @@ class _AdminState extends State<Admin> {
         Expanded(
           child: _openPage == _AdminPages.floors
               ? const AdminFloors()
-              : const AdminUsersContent(),
+              : const AdminUsers(),
         ),
       ],
     );
