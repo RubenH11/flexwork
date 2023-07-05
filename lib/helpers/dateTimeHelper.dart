@@ -73,7 +73,16 @@ class DateTimeHelper {
     return listVersion.toSet();
   }
 
-  static DateTime mergeDateAndTime(DateTime date, DateTime time){
+  static DateTime mergeDateAndTime(DateTime? date, DateTime? time){
+    if(date == null && time == null){
+      return DateTime(0);
+    }
+    if(date == null){
+      return DateTime(0, 0, 0, time!.hour, time.minute);
+    }
+    if(time == null){
+      return DateTime(date.year, date.month, date.day);
+    }
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 

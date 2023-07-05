@@ -236,6 +236,19 @@ class _WorkspaceTimelinesState extends State<WorkspaceTimelines> {
                         child: CustomElevatedButton(
                           onPressed: () {
                             setState(() {
+                              moveDaysBy = 0;
+                            });
+                          },
+                          active: true,
+                          selected: false,
+                          text: "return",
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: CustomElevatedButton(
+                          onPressed: () {
+                            setState(() {
                               moveDaysBy++;
                             });
                           },

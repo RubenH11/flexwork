@@ -344,7 +344,7 @@ class _AuthState extends State<AuthScreen> {
                                   ),
                                 if (_state != _States.login)
                                   SizedBox(
-                                    width: 160,
+                                    width: 140,
                                     child: CustomTextButton(
                                       onPressed: () {
                                         setState(() {

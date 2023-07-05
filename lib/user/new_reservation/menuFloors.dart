@@ -19,7 +19,7 @@ class _NewReservationFloorsState extends State<NewReservationMenuFloors> {
     print("|||| NewReservationMenuFloors ||||");
     final newReservationNotifier = Provider.of<NewReservationNotifier>(context);
     return MenuItem(
-      icon: Icon(Icons.reorder),
+      icon: Icon(Icons.apartment),
       title: "Floors",
       child: Column(
         children: [

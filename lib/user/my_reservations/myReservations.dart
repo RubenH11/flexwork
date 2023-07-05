@@ -2,7 +2,7 @@ import "package:flexwork/models/request.dart";
 import "package:flexwork/models/workspace.dart";
 import 'package:flexwork/user/my_reservations/content.dart';
 import 'package:flexwork/user/my_reservations/menu.dart';
-import "package:flexwork/user/my_reservations/request.dart";
+import 'package:flexwork/user/my_reservations/seeMoreRequest.dart';
 import "package:flutter/material.dart";
 
 class MyReservations extends StatefulWidget {
@@ -41,6 +41,7 @@ class _MyReservationsState extends State<MyReservations> {
   @override
   Widget build(BuildContext context) {
     print("|||| _MyReservationsScreen ||||");
+    print("this is with request set to ${_request}");
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -48,6 +49,7 @@ class _MyReservationsState extends State<MyReservations> {
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
           width: 350,
           child: MyReservationsMenu(
+            update: () => setState(() {}),
             seeMoreOfRequest: seeMoreOfRequest,
             closeRequestView: closeRequestView,
           ),
@@ -58,8 +60,8 @@ class _MyReservationsState extends State<MyReservations> {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
             child: content == _ContentPages.reservations
                 ? const MyReservationsOverview()
-                : MyReservationsRequest(
-                    workspace: _workspace!, request: _request!),
+                : SeeMoreOfRequest(
+                    workspace: _workspace!, request: _request!, ),
           ),
         ),
       ],

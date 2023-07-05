@@ -497,6 +497,31 @@ class DatabaseFunctions extends ChangeNotifier {
     return workspaceTypes;
   }
 
+  static Future<Request?> getRequest(int id) async {
+    print("=+= getRequest");
+    var url = 'http://localhost:3000/requests?id=${id}';
+
+    final authToken = DatabaseFunctions.getCookieValue('authToken');
+    final response = await _get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+
+    final responseRequests = jsonDecode(response.body) as List<dynamic>;
+    print(responseRequests);
+    Request? request;
+    if (responseRequests.length == 1) {
+      request = Request(
+          id: responseRequests[0]['id'],
+          message: responseRequests[0]['message'],
+          userId: responseRequests[0]['user_id'],
+          start: DateTime.parse(responseRequests[0]['start']),
+          end: DateTime.parse(responseRequests[0]['end']),
+          workspaceId: responseRequests[0]['workspace_id']);
+    }
+    return request;
+  }
+
   static Future<List<Request>> getRequests(
       {bool mine = false, bool others = false}) async {
     print("=+= getRequests");
@@ -521,13 +546,12 @@ class DatabaseFunctions extends ChangeNotifier {
     for (var req in responseRequests) {
       requests.add(
         Request(
-          id: req['id'],
-          message: req['message'],
-          userId: req['user_id'],
-          start: DateTime.parse(req['start']),
-          end: DateTime.parse(req['end']),
-          workspaceId: req['workspace_id']
-        ),
+            id: req['id'],
+            message: req['message'],
+            userId: req['user_id'],
+            start: DateTime.parse(req['start']),
+            end: DateTime.parse(req['end']),
+            workspaceId: req['workspace_id']),
       );
     }
     return requests;
@@ -708,22 +732,27 @@ class DatabaseFunctions extends ChangeNotifier {
     _handleCompletion(response);
   }
 
-  static Future<void> addReservations(
+  static Future<bool> addReservations(
       NewReservationNotifier reservations) async {
     print("=+= addReservations");
-    assert(reservations.getWorkspace() != null);
-    assert(reservations.getStartTime() != null);
-    assert(reservations.getEndTime() != null);
+    if (reservations.getWorkspace() == null ||
+        reservations.getStartTime() == null ||
+        reservations.getEndTime() == null) {
+      return false;
+    }
 
     final workspaceId = reservations.getWorkspace()!.getId();
     final ranges = reservations.constructSchedule();
 
     for (var res in ranges) {
-      await _addReservation(workspaceId, res.item1, res.item2);
+      if (await _addReservation(workspaceId, res.item1, res.item2) == false) {
+        return false;
+      }
     }
+    return true;
   }
 
-  static Future<void> _addReservation(
+  static Future<bool> _addReservation(
       int workspaceId, DateTime start, DateTime end) async {
     print("=+= _addReservation");
     final url = Uri.parse('http://localhost:3000/reservations');
@@ -743,7 +772,7 @@ class DatabaseFunctions extends ChangeNotifier {
       ),
     );
 
-    _handleCompletion(response);
+    return response.statusCode.toString().substring(0, 1) == "2";
   }
 
   static Future<void> addUser(

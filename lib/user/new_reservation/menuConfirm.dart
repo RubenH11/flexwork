@@ -1,14 +1,18 @@
 import 'package:flexwork/helpers/database.dart';
 import 'package:flexwork/models/request.dart';
 import 'package:flexwork/models/reservationConflict.dart';
+import 'package:flexwork/widgets/bottomSheets.dart';
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import '../../models/newReservationNotifier.dart';
 import '../../widgets/customElevatedButton.dart';
+import "dart:html" as html;
 
 class MakeReserationButton extends StatelessWidget {
+  final void Function() refreshPage;
   const MakeReserationButton({
     super.key,
+    required this.refreshPage,
   });
 
   @override
@@ -32,19 +36,20 @@ class MakeReserationButton extends StatelessWidget {
           final isValid = isValidSnapshot.data!;
           return CustomElevatedButton(
             onPressed: () async {
-              print("clicked confirm");
-              // for (var request in newRes.getRequests()) {
-              //   await FirebaseService().requests.add(request);
-              // }
-              // await FirebaseService().reservations.add(newRes);
-
-              // print("22222");
               for (var request in newRes.getRequests()) {
                 await DatabaseFunctions.addRequest(request);
               }
-              DatabaseFunctions.addReservations(newRes);
+              final success = await DatabaseFunctions.addReservations(newRes);
+              if(success){
+                showBottomSheetWithTimer(context, "Succesfully made reservations", succes: true);
+                newRes.clear();
+                html.window.location.reload();
+              }
+              else{
+                showBottomSheetWithTimer(context, "Could not make reservations, please check 'My reservations' to see what happened", error: true);
+              }
+              
               newRes.clear();
-              // print("3333");
             },
             active: isValid,
             selected: isValid,

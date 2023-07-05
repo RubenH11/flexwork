@@ -22,68 +22,6 @@ class FlexWork extends StatelessWidget {
       create: (context) => FlexWorkUIState(),
       child: _FlexworkScreen(),
     );
-    //   StreamBuilder(
-    //     stream: FirebaseService().getWorkspaceTypesStream(),
-    //     builder: (context, typeSnapshot) {
-    //       if (typeSnapshot.hasError) {
-    //         print(typeSnapshot.error);
-    //         return const Text("An error occurred, please reload the page.");
-    //       }
-
-    //       if (typeSnapshot.connectionState == ConnectionState.waiting) {
-    //         return Center(
-    //           child: CircularProgressIndicator(
-    //               color: Theme.of(context).colorScheme.primary),
-    //         );
-    //       }
-
-    //       FirebaseService().buildWorkspaceTypesRepo(typeSnapshot.data!);
-
-    //       return StreamBuilder(
-    //         stream: FirebaseService().getReservationsStream(),
-    //         builder: (context, reservationsSnapshot) {
-    //           if (reservationsSnapshot.hasError) {
-    //             return Text("error: ${reservationsSnapshot.error}");
-    //           }
-    //           if (reservationsSnapshot.connectionState ==
-    //                   ConnectionState.waiting ||
-    //               !reservationsSnapshot.hasData) {
-    //             return Center(
-    //               child: CircularProgressIndicator(
-    //                 color: Theme.of(context).colorScheme.primary,
-    //               ),
-    //             );
-    //           }
-
-    //           FirebaseService()
-    //               .buildReservationsRepo(reservationsSnapshot.data!);
-    //           return StreamBuilder(
-    //             stream: FirebaseService().getRequestsStream(),
-    //             builder: (context, requestsSnapshot) {
-    //               if (requestsSnapshot.hasError) {
-    //                 print("44");
-    //                 return Text("error: ${requestsSnapshot.error}");
-    //               }
-    //               if (requestsSnapshot.connectionState ==
-    //                       ConnectionState.waiting ||
-    //                   !requestsSnapshot.hasData) {
-    //                 return Center(
-    //                   child: CircularProgressIndicator(
-    //                     color: Theme.of(context).colorScheme.primary,
-    //                   ),
-    //                 );
-    //               }
-
-    //               FirebaseService().buildRequestsRepo(requestsSnapshot.data!);
-
-    //               return const _FlexworkScreen();
-    //             },
-    //           );
-    //         },
-    //       );
-    //     },
-    //   ),
-    // );
   }
 }
 
@@ -151,44 +89,53 @@ class _FlexworkScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ChangeNotifierProvider(
-            create: (_) => NewReservationNotifier(Floors.f9),
-            child: uiState.getOpenPage() == FlexworkPages.newReservation
-                ? const _NewReservationScreen()
-                : const MyReservations(),
-          ),
+          child: uiState.getOpenPage() == FlexworkPages.newReservation
+              ? const _NewReservationScreen()
+              : const MyReservations(),
         ),
       ],
     );
   }
 }
 
-class _NewReservationScreen extends StatelessWidget {
+class _NewReservationScreen extends StatefulWidget {
   const _NewReservationScreen({super.key});
 
   @override
+  State<_NewReservationScreen> createState() => _NewReservationScreenState();
+}
+
+class _NewReservationScreenState extends State<_NewReservationScreen> {
+  @override
   Widget build(BuildContext context) {
-    return FlexworkFutureBuilder(
-      future: DatabaseFunctions.getWorkspaceTypes(),
-      builder: (legend) {
-        return Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-              width: 350,
-              child: const NewReservationMenu(),
-            ),
-            const VerticalDivider(),
-            Expanded(
-              child: Container(
+    return ChangeNotifierProvider(
+      create: (_) => NewReservationNotifier(Floors.f9),
+      child: FlexworkFutureBuilder(
+        future: DatabaseFunctions.getWorkspaceTypes(),
+        builder: (legend) {
+          return Row(
+            children: [
+              Container(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
-                child: NewReservationContent(legend: legend),
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                width: 350,
+                child: NewReservationMenu(refreshPage: () {
+                  print("refreshed page");
+                  setState(() {});
+                }),
               ),
-            ),
-          ],
-        );
-      },
+              const VerticalDivider(),
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
+                  child: NewReservationContent(legend: legend),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

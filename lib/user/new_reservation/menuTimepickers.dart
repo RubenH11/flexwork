@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:date_format_field/date_format_field.dart';
 import 'package:flexwork/helpers/dateTimeHelper.dart';
 import 'package:flexwork/models/newReservationNotifier.dart';
+import 'package:flexwork/widgets/customElevatedButton.dart';
 import 'package:flexwork/widgets/menuItem.dart';
 import 'package:flutter/material.dart';
 import 'package:date_format_field/src/formater.dart';
@@ -25,6 +28,8 @@ class _NewReservationMenuTimepickersState
     extends State<NewReservationMenuTimepickers> {
   var startDateTimeState = _FieldState.error;
   var endDateTimeState = _FieldState.error;
+  var startErrorMessage = "Something went wrong";
+  var endErrorMessage = "Something went wrong";
   DateTime? startDate;
   DateTime? startTime;
   DateTime? endDate;
@@ -33,19 +38,55 @@ class _NewReservationMenuTimepickersState
   final startDateController = TextEditingController();
   final endTimeController = TextEditingController();
   final endDateController = TextEditingController();
-  final durationController = TextEditingController();
+  final durationMinController = TextEditingController();
+  final durationHourController = TextEditingController();
   final startTimeFocusNode = FocusNode();
   final startDateFocusNode = FocusNode();
   final endTimeFocusNode = FocusNode();
   final endDateFocusNode = FocusNode();
-  final durationFocusNode = FocusNode();
+  final durationMinFocusNode = FocusNode();
+  final durationHourFocusNode = FocusNode();
+
+  void updateFromDurationHours(int? number, NewReservationNotifier notif) {
+    if (number != null && notif.getStartTime() != null) {
+      final newStartDateTime = notif.getStartTime()!.add(
+            Duration(
+              hours: number,
+              minutes: durationMinController.text == ""
+                  ? 0
+                  : int.parse(durationMinController.text),
+            ),
+          );
+      print("endTime and endDate are set because of duration hour change");
+      endTime = newStartDateTime;
+      endDate = newStartDateTime;
+      Provider.of<NewReservationNotifier>(context, listen: false)
+          .setEndTime(newStartDateTime);
+    }
+  }
+
+  void updateFromDurationMinutes(int? number, NewReservationNotifier notif) {
+    if (number != null && notif.getStartTime() != null) {
+      final newEndDateTime = notif.getStartTime()!.add(
+            Duration(
+                hours: durationHourController.text == ""
+                    ? 0
+                    : int.parse(durationHourController.text),
+                minutes: number),
+          );
+      print("endTime and endDate are set because of duration minute change");
+      endTime = newEndDateTime;
+      endDate = newEndDateTime;
+      Provider.of<NewReservationNotifier>(context, listen: false)
+          .setEndTime(newEndDateTime);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     print("rebuild with state: ${startDateTimeState.name}");
 
     void findStateStart() {
-      print("try set start datetime");
       if (startDate == null || startTime == null) {
         startDateTimeState = _FieldState.none;
         return;
@@ -54,9 +95,15 @@ class _NewReservationMenuTimepickersState
       final newDateTime =
           DateTimeHelper.mergeDateAndTime(startDate!, startTime!);
 
-      if (newDateTime.isBefore(DateTime.now()) ||
-          newDateTime.isAfter(DateTime.now().add(const Duration(days: 2560)))) {
+      if (newDateTime.isBefore(DateTime.now())) {
         startDateTimeState = _FieldState.error;
+        startErrorMessage = "Timestamp is in the past";
+        return;
+      }
+
+      if (newDateTime.isAfter(DateTime.now().add(const Duration(days: 2560)))) {
+        startDateTimeState = _FieldState.error;
+        startErrorMessage = "Timestamp is too far in the future";
         return;
       }
 
@@ -68,11 +115,10 @@ class _NewReservationMenuTimepickersState
         if (currEndDateTime.isBefore(newDateTime)) {
           newResNotif.setEndTime(null);
           endDateTimeState = _FieldState.error;
+          endErrorMessage = "Timestamp is no longer valid";
           return;
         }
       }
-
-      newResNotif.setStartTime(newDateTime);
       startDateTimeState = _FieldState.valid;
     }
 
@@ -84,9 +130,15 @@ class _NewReservationMenuTimepickersState
 
       final newDateTime = DateTimeHelper.mergeDateAndTime(endDate!, endTime!);
 
-      if (newDateTime.isBefore(DateTime.now()) ||
-          newDateTime.isAfter(DateTime.now().add(const Duration(days: 2560)))) {
+      if (newDateTime.isBefore(DateTime.now())) {
         endDateTimeState = _FieldState.error;
+        endErrorMessage = "Timestamp is in the past";
+        return;
+      }
+
+      if (newDateTime.isAfter(DateTime.now().add(const Duration(days: 2560)))) {
+        endDateTimeState = _FieldState.error;
+        endErrorMessage = "Timestamp is too far in the future";
         return;
       }
 
@@ -97,6 +149,7 @@ class _NewReservationMenuTimepickersState
       if (currStartDateTime != null) {
         if (currStartDateTime.isAfter(newDateTime)) {
           endDateTimeState = _FieldState.error;
+          endErrorMessage = "Timestamp is before start timestamp";
           return;
         }
       }
@@ -113,6 +166,7 @@ class _NewReservationMenuTimepickersState
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         children: [
+          //start datetime
           Selector<NewReservationNotifier, DateTime?>(
             selector: (context, notif) => notif.getStartTime(),
             builder: (context, value, child) {
@@ -123,15 +177,14 @@ class _NewReservationMenuTimepickersState
                   Expanded(
                     flex: 2,
                     child: _CustomDateField(
+                      updateFields: () => setState(() {}),
                       focusNode: startDateFocusNode,
                       state: startDateTimeState,
                       value: value,
                       controller: startDateController,
                       onComplete: (datetime) {
                         startDate = datetime;
-                        setState(() {
-                          findStateStart();
-                        });
+                        findStateStart();
                         if (startDateTimeState == _FieldState.valid) {
                           final newStartDateTime =
                               DateTimeHelper.mergeDateAndTime(
@@ -156,9 +209,9 @@ class _NewReservationMenuTimepickersState
                       updateFields: () => setState(() {}),
                       onComplete: (datetime) {
                         startTime = datetime;
-                        setState(() {
-                          findStateStart();
-                        });
+
+                        findStateStart();
+
                         if (startDateTimeState == _FieldState.valid) {
                           final newStartDateTime =
                               DateTimeHelper.mergeDateAndTime(
@@ -174,56 +227,140 @@ class _NewReservationMenuTimepickersState
               );
             },
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: Text("Duration:")),
-              Expanded(
-                flex: 3,
-                child: _CustomDurataionField(
-                  controller: durationController,
-                  focusNode: durationFocusNode,
-                  hintText: "e.g. '2'",
-                  state: _FieldState.none,
-                  value: null,
-                  onComplete: (number) {
-                    final newResNotif = Provider.of<NewReservationNotifier>(
-                        context,
-                        listen: false);
-                    if (number != null && newResNotif.getStartTime() != null) {
-                      Provider.of<NewReservationNotifier>(context,
-                              listen: false)
-                          .setEndTime(newResNotif
-                              .getStartTime()!
-                              .add(Duration(hours: number)));
-                    }
-                  },
-                ),
-              ),
-            ],
+          const SizedBox(height: 5),
+          //start datetime error message
+          if (startDateTimeState == _FieldState.error)
+            Row(
+              children: [
+                Spacer(),
+                Expanded(
+                  child: Text(
+                    startErrorMessage,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  flex: 3,
+                )
+              ],
+            ),
+          const SizedBox(height: 5),
+          //duration
+          Consumer<NewReservationNotifier>(
+            builder: (context, notif, _) {
+              final start = notif.getStartTime();
+              final end = notif.getEndTime();
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text("Duration:"),
+                    flex: 2,
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      children: [
+                        //duration field
+                        Expanded(
+                          flex: 5,
+                          child: _CustomDurataionField(
+                            controller: durationHourController,
+                            focusNode: durationHourFocusNode,
+                            hintText: "e.g. '2'",
+                            state: _FieldState.none,
+                            value: start == null || end == null
+                                ? null
+                                : notif
+                                    .getEndTime()!
+                                    .difference(notif.getStartTime()!)
+                                    .inHours,
+                            onComplete: (number) {
+                              updateFromDurationHours(number, notif);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        //+ and -
+                        Expanded(
+                            child: _AddAndSubtractHours(
+                          hourController: durationHourController,
+                          minController: durationMinController,
+                          onPress: (number) =>
+                              updateFromDurationHours(number, notif),
+                        )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      children: [
+                        //duration field
+                        Expanded(
+                          flex: 5,
+                          child: _CustomDurataionField(
+                            controller: durationMinController,
+                            focusNode: durationMinFocusNode,
+                            hintText: "e.g. '30'",
+                            state: _FieldState.none,
+                            value: start == null || end == null
+                                ? null
+                                : (notif
+                                        .getEndTime()!
+                                        .difference(notif.getStartTime()!)
+                                        .inMinutes -
+                                    60 *
+                                        notif
+                                            .getEndTime()!
+                                            .difference(notif.getStartTime()!)
+                                            .inHours),
+                            onComplete: (number) {
+                              updateFromDurationMinutes(number, notif);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        //+ and -
+                        Expanded(
+                          child: _AddAndSubtractMinutes(
+                            hourController: durationHourController,
+                            minController: durationMinController,
+                            onPress: (number) =>
+                                updateFromDurationMinutes(number, notif),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: 10),
+          //end datetime
           Selector<NewReservationNotifier, DateTime?>(
             selector: (context, notif) => notif.getEndTime(),
             builder: (context, value, child) {
-              endDate = value;
-              endTime = value;
               findStateEnd();
+              print(
+                  "checked state after end time changed. It is: ${endDateTimeState}, with endTime $endTime and endDate $endDate");
               return Row(
                 children: [
                   Expanded(child: Text("End:")),
                   Expanded(
                     flex: 2,
                     child: _CustomDateField(
+                      updateFields: () => setState(() {}),
                       focusNode: endDateFocusNode,
                       state: endDateTimeState,
                       controller: endDateController,
                       value: value,
                       onComplete: (datetime) {
                         endDate = datetime;
-                        setState(() {
-                          findStateEnd();
-                        });
+
+                        findStateEnd();
+
                         if (endDateTimeState == _FieldState.valid) {
                           final newEndDateTime =
                               DateTimeHelper.mergeDateAndTime(
@@ -248,9 +385,9 @@ class _NewReservationMenuTimepickersState
                       updateFields: () => setState(() {}),
                       onComplete: (datetime) {
                         endTime = datetime;
-                        setState(() {
-                          findStateEnd();
-                        });
+
+                        findStateEnd();
+
                         if (endDateTimeState == _FieldState.valid) {
                           final newEndDateTime =
                               DateTimeHelper.mergeDateAndTime(
@@ -265,6 +402,197 @@ class _NewReservationMenuTimepickersState
                 ],
               );
             },
+          ),
+          const SizedBox(height: 5),
+          //end datetime error message
+          if (endDateTimeState == _FieldState.error)
+            Row(
+              children: [
+                Spacer(),
+                Expanded(
+                  child: Text(
+                    endErrorMessage,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  flex: 3,
+                )
+              ],
+            ),
+          const SizedBox(height: 5),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddAndSubtractMinutes extends StatelessWidget {
+  final TextEditingController minController;
+  final TextEditingController hourController;
+  final void Function(int?) onPress;
+  const _AddAndSubtractMinutes({
+    super.key,
+    required this.hourController,
+    required this.minController,
+    required this.onPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final notif = Provider.of<NewReservationNotifier>(context, listen: false);
+    return SizedBox(
+      height: 30,
+      child: Column(
+        children: [
+          //+
+          Expanded(
+            child: CustomElevatedButton(
+              onPressed: () {
+                if (minController.text.isEmpty) {
+                  minController.text = '1';
+                } else {
+                  final newValue = int.parse(minController.text) + 1;
+                  minController.text = newValue.toString();
+                }
+                if (notif.getStartTime() != null) {
+                  notif.setEndTime(
+                    notif.getStartTime()!.add(
+                          Duration(
+                              hours: hourController.text == ""
+                                  ? 0
+                                  : int.parse(hourController.text),
+                              minutes: int.parse(minController.text)),
+                        ),
+                  );
+                }
+                onPress(int.parse(minController.text));
+              },
+              active: true,
+              selected: false,
+              icon: Icons.add,
+              iconSize: 10,
+            ),
+          ),
+          const SizedBox(height: 1),
+          //-
+          Expanded(
+            child: CustomElevatedButton(
+              onPressed: () {
+                if (minController.text.isEmpty) {
+                  minController.text = '0';
+                } else {
+                  final newValue = int.parse(minController.text) - 1;
+                  if (newValue < 0) {
+                    return;
+                  }
+                  minController.text = newValue.toString();
+                  if (notif.getStartTime() != null) {
+                    notif.setEndTime(
+                      notif.getStartTime()!.add(
+                            Duration(
+                                hours: hourController.text == ""
+                                    ? 0
+                                    : int.parse(hourController.text),
+                                minutes: int.parse(minController.text)),
+                          ),
+                    );
+                  }
+                  onPress(int.parse(minController.text));
+                }
+              },
+              active: true,
+              selected: false,
+              icon: Icons.remove,
+              iconSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddAndSubtractHours extends StatelessWidget {
+  final TextEditingController minController;
+  final TextEditingController hourController;
+  final void Function(int?) onPress;
+  const _AddAndSubtractHours({
+    super.key,
+    required this.hourController,
+    required this.minController,
+    required this.onPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final notif = Provider.of<NewReservationNotifier>(context, listen: false);
+    return SizedBox(
+      height: 30,
+      child: Column(
+        children: [
+          //+
+          Expanded(
+            child: CustomElevatedButton(
+              onPressed: () {
+                if (hourController.text.isEmpty) {
+                  hourController.text = '1';
+                } else {
+                  final newValue = int.parse(hourController.text) + 1;
+                  hourController.text = newValue.toString();
+                }
+                if (notif.getStartTime() != null) {
+                  notif.setEndTime(
+                    notif.getStartTime()!.add(
+                          Duration(
+                            hours: int.parse(hourController.text),
+                            minutes: minController.text == ""
+                                ? 0
+                                : int.parse(minController.text),
+                          ),
+                        ),
+                  );
+                }
+                onPress(int.parse(hourController.text));
+              },
+              active: true,
+              selected: false,
+              icon: Icons.add,
+              iconSize: 10,
+            ),
+          ),
+          const SizedBox(height: 1),
+          //-
+          Expanded(
+            child: CustomElevatedButton(
+              onPressed: () {
+                if (hourController.text.isEmpty) {
+                  hourController.text = '0';
+                } else {
+                  final newValue = int.parse(hourController.text) - 1;
+                  if (newValue < 0) {
+                    return;
+                  }
+                  hourController.text = newValue.toString();
+                }
+                if (notif.getStartTime() != null) {
+                  notif.setEndTime(
+                    notif.getStartTime()!.add(
+                          Duration(
+                            hours: int.parse(hourController.text),
+                            minutes: minController.text == ""
+                                ? 0
+                                : int.parse(minController.text),
+                          ),
+                        ),
+                  );
+                }
+                onPress(int.parse(hourController.text));
+              },
+              active: true,
+              selected: false,
+              icon: Icons.remove,
+              iconSize: 10,
+            ),
           ),
         ],
       ),
@@ -350,14 +678,8 @@ class _CustomTimeField extends StatelessWidget {
     }
   }
 
-  void format(String input) {
-    int maxLength = 5;
+  void format(String input, int maxLength) {
     _typeTemplate(input, ':', maxLength);
-    print("parsing ${controller.text}");
-    if (input.length == maxLength) {
-      print("completed time");
-      onComplete(_parseTime(controller.text));
-    }
   }
 
   static DateTime _parseTime(String input) {
@@ -401,7 +723,13 @@ class _CustomTimeField extends StatelessWidget {
       controller: controller,
       keyboardType: TextInputType.datetime,
       onChanged: (value) {
-        format(value);
+        const maxLength = 5;
+        format(value, maxLength);
+        print("parsing ${controller.text}");
+        if (value.length == maxLength) {
+          print("completed time");
+          onComplete(_parseTime(controller.text));
+        }
         updateFields();
       },
       decoration: InputDecoration(
@@ -442,6 +770,7 @@ class _CustomDateField extends StatelessWidget {
   DateTime? value;
   final TextEditingController controller;
   final FocusNode focusNode;
+  final void Function() updateFields;
   _CustomDateField({
     super.key,
     required this.state,
@@ -449,6 +778,7 @@ class _CustomDateField extends StatelessWidget {
     required this.hintText,
     required this.controller,
     required this.focusNode,
+    required this.updateFields,
     this.value,
   });
 
@@ -515,12 +845,8 @@ class _CustomDateField extends StatelessWidget {
     }
   }
 
-  void format(String input) {
-    int maxLength = 10;
+  void format(String input, int maxLength) {
     _typeTemplate(input, '-', maxLength);
-    if (input.length == maxLength) {
-      onComplete(_parseDate(input));
-    }
   }
 
   static DateTime _parseDate(String input) {
@@ -563,7 +889,12 @@ class _CustomDateField extends StatelessWidget {
       controller: controller,
       keyboardType: TextInputType.datetime,
       onChanged: (value) {
-        format(value);
+        const maxLength = 10;
+        format(value, maxLength);
+        if (value.length == maxLength) {
+          onComplete(_parseDate(value));
+        }
+        updateFields();
       },
       decoration: InputDecoration(
         contentPadding: EdgeInsets.all(10),
@@ -633,6 +964,10 @@ class _CustomDurataionField extends StatelessWidget {
         fontWeight = FontWeight.bold;
         break;
       default:
+    }
+
+    if (value != null) {
+      controller.text = value.toString();
     }
 
     return TextField(

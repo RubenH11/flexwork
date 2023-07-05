@@ -9,6 +9,7 @@ class CustomElevatedButton extends StatefulWidget {
   Color? selectedColor;
   bool? alignLeft;
   bool? async;
+  double? iconSize;
 
   CustomElevatedButton({
     required this.onPressed,
@@ -19,6 +20,7 @@ class CustomElevatedButton extends StatefulWidget {
     this.icon,
     this.alignLeft,
     this.async,
+    this.iconSize,
     super.key,
   });
 
@@ -88,6 +90,7 @@ class _CustomElevatedButtonState extends State<CustomElevatedButton> {
                 Icon(
                   widget.icon!,
                   color: textColor,
+                  size: widget.iconSize,
                 ),
               if (widget.icon != null && widget.text != null)
                 SizedBox(

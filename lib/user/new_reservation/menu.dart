@@ -12,7 +12,8 @@ import 'menuFloors.dart';
 import 'menuConfirm.dart';
 
 class NewReservationMenu extends StatelessWidget {
-  const NewReservationMenu({super.key});
+  final void Function() refreshPage;
+  const NewReservationMenu({super.key, required this.refreshPage});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,7 @@ class NewReservationMenu extends StatelessWidget {
           ),
         ),
         const Divider(),
-        MakeReserationButton(),
+        MakeReserationButton(refreshPage: refreshPage),
       ],
     );
   }
