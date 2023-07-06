@@ -1,16 +1,8 @@
-// import "dart:js_util";
-
-import "dart:ui";
-
 import 'package:flexwork/helpers/database.dart';
-import "package:flexwork/models/floors.dart";
 import "package:flexwork/widgets/customElevatedButton.dart";
 import "package:flexwork/widgets/customTextButton.dart";
-import "package:flexwork/widgets/customTextField.dart";
-import "package:flexwork/widgets/floor.dart";
 import "package:flutter/material.dart";
 import "package:email_validator/email_validator.dart";
-import "package:intl/date_symbols.dart";
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -48,7 +40,7 @@ class _AuthState extends State<AuthScreen> {
     });
   }
 
-  void _submitLogin() async {
+  Future<void> _submitLogin() async {
     setErrorMessage("");
     setSuccessMessage("");
     if (_formKey.currentState!.validate()) {
@@ -177,11 +169,6 @@ class _AuthState extends State<AuthScreen> {
         Expanded(
           child: Stack(
             children: [
-              // Padding(
-              //   padding: const EdgeInsets.all(50.0),
-              //   child: Floor(floor: Floors.f9, selectedWorkspace: null, setSelectedWorkspace: (_){}, blockedWorkspaceIds: [], legend: {}, ignoreWorkpaces: true),
-              // ),
-              // Container(color: Color.fromRGBO(255, 255, 255, 0.95)),
               Center(
                 child: _loading
                     ? CircularProgressIndicator()
@@ -380,11 +367,12 @@ class _PasswordTextField extends StatelessWidget {
   void Function()? onEditingComplete;
   TextEditingController controller;
   String hintText;
-  _PasswordTextField(
-      {super.key,
-      this.onEditingComplete,
-      required this.controller,
-      required this.hintText});
+  _PasswordTextField({
+    super.key,
+    this.onEditingComplete,
+    required this.controller,
+    required this.hintText,
+  });
 
   @override
   Widget build(BuildContext context) {
